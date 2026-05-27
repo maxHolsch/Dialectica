@@ -1,0 +1,127 @@
+{
+  "id": "seed-001",
+  "title": "Google Xi Workshops",
+  "topQuestion": "How much of the risk lies in the tool, versus how we use it?",
+  "topQuestionPosition": { "x": 818, "y": 81 },
+  "topQuestionSize": { "width": 291, "height": 265 },
+  "topQuestionFrameId": "frame-tool-risk",
+  "createdAt": "2026-05-01T00:00:00.000Z",
+  "updatedAt": "2026-05-27T00:00:00.000Z",
+  "cruxes": [
+    {
+      "id": "crux-friction",
+      "frameId": "frame-friction",
+      "question": "When does good human judgment require friction?",
+      "position": { "x": 217, "y": 346 },
+      "size": { "width": 336, "height": 265 }
+    },
+    {
+      "id": "crux-jobs",
+      "frameId": "frame-jobs",
+      "question": "Is AI destroying jobs, or exposing which jobs were never meaningful to begin with?",
+      "position": { "x": 796, "y": 634 },
+      "size": { "width": 336, "height": 195 }
+    },
+    {
+      "id": "crux-agency",
+      "frameId": "frame-agency",
+      "question": "When AI removes friction from work, does it expand human agency or promote cognitive surrender?",
+      "position": { "x": 1283, "y": 555 },
+      "size": { "width": 374, "height": 206 }
+    }
+  ],
+  "cruxEdges": [
+    { "id": "ce-top-friction", "source": "top", "target": "crux-friction" },
+    { "id": "ce-top-jobs", "source": "top", "target": "crux-jobs" },
+    { "id": "ce-top-agency", "source": "top", "target": "crux-agency" }
+  ],
+  "nodes": {
+    "n-cognitive-overload": {
+      "id": "n-cognitive-overload",
+      "type": "claim",
+      "text": "AI/LLMs can create cognitive overload or even “psychosis” because they produce too much plausible, affirming output."
+    },
+    "n-sycophants": {
+      "id": "n-sycophants",
+      "type": "claim",
+      "text": "LLMs are “sycophants” that tell users what they want to hear."
+    },
+    "n-agency-pushback": {
+      "id": "n-agency-pushback",
+      "type": "claim",
+      "text": "We actually have even more agency than we sometimes think, especially since we can push back on AI anytime"
+    },
+    "n-humans-tell-too": {
+      "id": "n-humans-tell-too",
+      "type": "claim",
+      "text": "Humans also tell people what they want to hear, so this is not unique to AI."
+    },
+
+    "n-friction-deliberation": { "id": "n-friction-deliberation", "type": "claim", "text": "Friction forces deliberation that fast tools bypass." },
+    "n-friction-access": { "id": "n-friction-access", "type": "claim", "text": "Removing friction democratizes access to expertise." },
+    "n-friction-q": { "id": "n-friction-q", "type": "question", "text": "Which decisions actually benefit from being slow?" },
+
+    "n-jobs-bullshit": { "id": "n-jobs-bullshit", "type": "claim", "text": "Many roles were already bullshit jobs by design." },
+    "n-jobs-transition": { "id": "n-jobs-transition", "type": "claim", "text": "Job loss is a transition cost, not an indictment of the work." },
+    "n-jobs-q": { "id": "n-jobs-q", "type": "question", "text": "What makes a job meaningful in the first place?" },
+
+    "n-agency-atrophy": { "id": "n-agency-atrophy", "type": "claim", "text": "Outsourcing cognition atrophies the underlying skill." },
+    "n-agency-judgment": { "id": "n-agency-judgment", "type": "claim", "text": "AI lets humans focus on higher-order judgment." },
+    "n-agency-q": { "id": "n-agency-q", "type": "question", "text": "Surrender to what end?" }
+  },
+  "frames": {
+    "frame-tool-risk": {
+      "id": "frame-tool-risk",
+      "cruxId": "top",
+      "nodeInstances": [
+        { "nodeId": "n-cognitive-overload", "position": { "x": 428,  "y": 134 }, "size": { "width": 368, "height": 300 } },
+        { "nodeId": "n-sycophants",         "position": { "x": 1124, "y": 134 }, "size": { "width": 368, "height": 300 } },
+        { "nodeId": "n-agency-pushback",    "position": { "x": 428,  "y": 646 }, "size": { "width": 368, "height": 300 } },
+        { "nodeId": "n-humans-tell-too",    "position": { "x": 1124, "y": 646 }, "size": { "width": 368, "height": 300 } }
+      ],
+      "edges": [
+        { "id": "e-tool-explanation",    "source": "n-sycophants",      "target": "n-cognitive-overload", "label": "Gives explanation to" },
+        { "id": "e-tool-significance",   "source": "n-humans-tell-too", "target": "n-sycophants",         "label": "Contests significance of" },
+        { "id": "e-tool-responsibility", "source": "n-agency-pushback", "target": "n-cognitive-overload", "label": "Shifts responsibility from AI traits to human decisions" }
+      ]
+    },
+    "frame-friction": {
+      "id": "frame-friction",
+      "cruxId": "crux-friction",
+      "nodeInstances": [
+        { "nodeId": "n-friction-deliberation", "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-friction-access",       "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-friction-q",            "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+      ],
+      "edges": [
+        { "id": "e-fr-1", "source": "n-friction-deliberation", "target": "n-friction-access", "undirected": true, "label": "tension" },
+        { "id": "e-fr-2", "source": "n-friction-q", "target": "n-friction-deliberation" }
+      ]
+    },
+    "frame-jobs": {
+      "id": "frame-jobs",
+      "cruxId": "crux-jobs",
+      "nodeInstances": [
+        { "nodeId": "n-jobs-bullshit",   "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-jobs-transition", "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-jobs-q",          "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+      ],
+      "edges": [
+        { "id": "e-jb-1", "source": "n-jobs-q", "target": "n-jobs-bullshit" }
+      ]
+    },
+    "frame-agency": {
+      "id": "frame-agency",
+      "cruxId": "crux-agency",
+      "nodeInstances": [
+        { "nodeId": "n-agency-atrophy",  "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-agency-judgment", "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-agency-q",        "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+      ],
+      "edges": [
+        { "id": "e-ag-1", "source": "n-agency-atrophy", "target": "n-agency-judgment", "undirected": true, "label": "tension" },
+        { "id": "e-ag-2", "source": "n-agency-q", "target": "n-agency-judgment" }
+      ]
+    }
+  }
+}
