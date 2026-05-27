@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMap } from "@/lib/data/maps";
+import { currentUser, avatarFor } from "@/lib/data/users";
 import { Topbar } from "@/components/topbar/Topbar";
 import { CruxCanvas } from "@/components/crux/CruxCanvas";
 
@@ -10,8 +11,9 @@ export default async function CruxPage({
   params: Promise<{ mapId: string }>;
 }) {
   const { mapId } = await params;
-  const map = await getMap(mapId);
+  const [map, user] = await Promise.all([getMap(mapId), currentUser()]);
   if (!map) notFound();
+  const avatar = user ? avatarFor(user) : { initials: "?", color: "#cdf4d3" };
 
   return (
     <div className="flex h-screen flex-col bg-dia-bg">
@@ -24,13 +26,14 @@ export default async function CruxPage({
           { kind: "dim", label: "Crux map" },
         ]}
         pill={{ kind: "live", count: 2 }}
-        avatars={[
-          { initials: "EM", color: "#cdf4d3" },
-          { initials: "JS", color: "#ffc2ec" },
-        ]}
+        avatars={[avatar]}
       />
       <main className="flex-1">
-        <CruxCanvas map={map} />
+        <CruxCanvas
+          map={map}
+          userId={user?.id ?? "anon"}
+          isEditMode={user?.role === "edit"}
+        />
       </main>
     </div>
   );

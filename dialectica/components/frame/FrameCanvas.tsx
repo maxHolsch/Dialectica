@@ -22,7 +22,17 @@ const EDGE_TYPES: EdgeTypes = {
   labeled: LabeledEdge,
 };
 
-export function FrameCanvas({ map, frame }: { map: ArgMap; frame: Frame }) {
+export function FrameCanvas({
+  map,
+  frame,
+  userId,
+  isEditMode,
+}: {
+  map: ArgMap;
+  frame: Frame;
+  userId: string;
+  isEditMode: boolean;
+}) {
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = frame.nodeInstances.map((inst) => {
       const canonical = map.nodes[inst.nodeId];
@@ -61,6 +71,11 @@ export function FrameCanvas({ map, frame }: { map: ArgMap; frame: Frame }) {
       edges={edges}
       nodeTypes={NODE_TYPES}
       edgeTypes={EDGE_TYPES}
+      annotations={map.annotations}
+      mapId={map.id}
+      frameId={frame.id}
+      userId={userId}
+      isEditMode={isEditMode}
     />
   );
 }

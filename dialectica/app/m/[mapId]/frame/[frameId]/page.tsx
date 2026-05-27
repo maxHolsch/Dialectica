@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getMap } from "@/lib/data/maps";
+import { currentUser, avatarFor } from "@/lib/data/users";
 import { Topbar } from "@/components/topbar/Topbar";
 import { FrameCanvas } from "@/components/frame/FrameCanvas";
 
@@ -10,8 +11,9 @@ export default async function FramePage({
   params: Promise<{ mapId: string; frameId: string }>;
 }) {
   const { mapId, frameId } = await params;
-  const map = await getMap(mapId);
+  const [map, user] = await Promise.all([getMap(mapId), currentUser()]);
   if (!map) notFound();
+  const avatar = user ? avatarFor(user) : { initials: "?", color: "#cdf4d3" };
 
   const frame = map.frames[frameId];
   if (!frame) notFound();
@@ -32,13 +34,15 @@ export default async function FramePage({
           { kind: "dim", label: cruxQuestion },
         ]}
         pill={{ kind: "settings" }}
-        avatars={[
-          { initials: "EM", color: "#cdf4d3" },
-          { initials: "JS", color: "#ffc2ec" },
-        ]}
+        avatars={[avatar]}
       />
       <main className="flex-1">
-        <FrameCanvas map={map} frame={frame} />
+        <FrameCanvas
+          map={map}
+          frame={frame}
+          userId={user?.id ?? "anon"}
+          isEditMode={user?.role === "edit"}
+        />
       </main>
     </div>
   );

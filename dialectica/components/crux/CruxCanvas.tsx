@@ -17,7 +17,15 @@ const NODE_TYPES: NodeTypes = {
   cruxTile: CruxTileNode,
 };
 
-export function CruxCanvas({ map }: { map: ArgMap }) {
+export function CruxCanvas({
+  map,
+  userId,
+  isEditMode,
+}: {
+  map: ArgMap;
+  userId: string;
+  isEditMode: boolean;
+}) {
   const { nodes, edges } = useMemo(() => {
     const TOP_ID = "top";
     const topSize = map.topQuestionSize ?? { width: 290, height: 265 };
@@ -77,6 +85,10 @@ export function CruxCanvas({ map }: { map: ArgMap }) {
       nodes={nodes}
       edges={edges}
       nodeTypes={NODE_TYPES}
+      annotations={map.annotations}
+      mapId={map.id}
+      userId={userId}
+      isEditMode={isEditMode}
       onNodeNavigate={onNodeNavigate}
     />
   );

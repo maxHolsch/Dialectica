@@ -2,7 +2,7 @@
 
 > Source PRD: [`../Dialectica V6 PRD.md`](../Dialectica%20V6%20PRD.md) · Roadmap for unbuilt phases: [`ROADMAP.md`](ROADMAP.md)
 
-This document describes **what exists today** (Phases 0 + 1) and how the codebase is organized. For things that haven't been built yet, see [`ROADMAP.md`](ROADMAP.md).
+This document describes **what exists today** (Phases 0 + 1 + 2) and how the codebase is organized. For things that haven't been built yet, see [`ROADMAP.md`](ROADMAP.md).
 
 ---
 
@@ -40,7 +40,7 @@ Everything else from the PRD (auth, edit mode, drawing, claim-staking, AI genera
 | Package manager | **pnpm 11.3.0** | User preference |
 | Node | **24+ LTS** (tested on 25.9.0) | Next.js 16 baseline |
 
-No Supabase, no auth, no realtime, no annotation library yet — all deferred per the Phase 1 scope decision. The data layer is a thin Zod-validated JSON fixture loader, which Phase 2 will swap for Supabase without touching UI components.
+Auth + persistence land in Phase 2 via [`@supabase/ssr`](https://supabase.com/docs/guides/auth/server-side/nextjs) (`@supabase/supabase-js` underneath). Realtime + annotation library are still deferred per their later phases.
 
 ---
 
@@ -52,14 +52,19 @@ dialectica/
 │   ├── layout.tsx                          # root layout: fonts, dark theme, providers stub
 │   ├── globals.css                         # Tailwind + shadcn + Dialectica design tokens
 │   ├── page.tsx                            # DIA-HOME-1 — homepage
+│   ├── sign-in/                            # Phase 2 — magic-link signup (PRD §6.6)
+│   ├── auth/callback/route.ts              # Phase 2 — Supabase PKCE callback
+│   ├── sign-out/route.ts                   # Phase 2 — POST sign-out
 │   └── m/[mapId]/
 │       ├── page.tsx                        # redirects to /crux
 │       ├── crux/page.tsx                   # DIA-VIEW-1
 │       └── frame/[frameId]/page.tsx        # DIA-VIEW-2
 │
+├── proxy.ts                                # Phase 2 — Next.js 16 proxy: auth gate + session refresh
+│
 ├── components/
 │   ├── topbar/Topbar.tsx                   # shared chrome (brand, breadcrumb, pills, avatars)
-│   ├── homepage/                           # HeroBar, HomepageTabs, MapGrid, MapCard, MapPreview
+│   ├── homepage/                           # HeroBar, HomepageTabs, MapGrid, MapCard(+Wrapper), MapPreview
 │   ├── canvas/CanvasShell.tsx              # React Flow wrapper, minimap, edit-pencil button
 │   ├── crux/                               # TopQuestionNode, CruxTileNode, CruxCanvas
 │   ├── frame/                              # ClaimNode, QuestionNode, LabeledEdge, FrameCanvas
@@ -67,11 +72,20 @@ dialectica/
 │
 ├── lib/
 │   ├── schema/index.ts                     # Zod types — the data contract (PRD §6.1)
-│   ├── data/maps.ts                        # data accessor — swap point for Supabase in Phase 2
-│   ├── fixtures/seed-map.json              # the single fully-populated demo map
-│   ├── state/                              # Zustand stores (none in Phase 1)
+│   ├── supabase/                           # Phase 2 — browser/server clients + session refresh
+│   ├── data/
+│   │   ├── maps.ts                         # Supabase reads for homepage + canvas pages
+│   │   ├── mutations.ts                    # createMap / renameMap / deleteMap (edit-mode only)
+│   │   └── users.ts                        # currentUser(), currentMode(), avatarFor()
+│   ├── fixtures/seed-map.json              # Google Xi demo map (also seeded into DB)
+│   ├── fixtures/stub-maps.ts               # Phase 2 — 5 stub ArgMaps for the rest of the grid
+│   ├── state/                              # Zustand stores (none in Phase 2)
 │   ├── figma-tokens/                       # reserved for the Phase 10 theming pass
 │   └── utils.ts                            # shadcn cn() helper
+│
+├── db/
+│   ├── schema.sql                          # Phase 2 — users, maps, map_access, RLS + new-user trigger
+│   └── seed.ts                             # Phase 2 — pushes the 6 fixture maps to Supabase
 │
 ├── docs/                                   # internal-facing notes (state, data model, module map)
 │   ├── state-management.md
@@ -79,8 +93,9 @@ dialectica/
 │   └── module-map.md                       # PRD-ID ↔ folder/file mapping
 │
 ├── .screenshots/                           # Figma reference + dev captures used in verification
+├── .env.local.example                      # Phase 2 — template for Supabase env vars
 ├── documentation.md                        # ← this file (what's built)
-└── ROADMAP.md                              # what's next (Phases 2–10)
+└── ROADMAP.md                              # what's next (Phases 3–10)
 ```
 
 ---
@@ -220,13 +235,25 @@ The Figma reference screenshots and dev captures live in [`.screenshots/`](.scre
 
 ---
 
-## Adding a new map (Phase 1 — fixture-only)
+## Auth + persistence (Phase 2)
 
-1. Author a `.json` file under [`lib/fixtures/`](lib/fixtures/) matching the `ArgMap` Zod schema in [`lib/schema/index.ts`](lib/schema/index.ts).
-2. Add a card entry to `HOMEPAGE_CARDS` in [`lib/data/maps.ts`](lib/data/maps.ts).
-3. If you want the map to be openable (rather than falling back to the seed), import it and add the parsed result to `FULL_MAPS` in the same file.
+Auth and the `maps` table live in Supabase. Phase 2 is wired to **local Supabase** via the Supabase CLI (`supabase start` → containers on ports 54321 / 54322 / 54323 / 54324). The flow:
 
-Phase 2 replaces all of the above with `INSERT INTO maps (...)`.
+1. **First-time setup:**
+   - Ensure the local Supabase stack is running: `docker ps | grep supabase_kong_app` should show port 54321 → 8000.
+   - [`.env.local`](.env.local) is already populated with the default local keys.
+   - Apply schema: `docker cp db/schema.sql supabase_db_app:/tmp/ && docker exec supabase_db_app psql -U postgres -d postgres -f /tmp/schema.sql` (or paste it into Supabase Studio's SQL editor at http://127.0.0.1:54323).
+   - Seed the 6 fixture maps: `pnpm db:seed`.
+   - **Magic-link emails:** local Supabase doesn't actually send mail — links are caught by Inbucket at http://127.0.0.1:54324. Sign in, then open Inbucket to click the link.
+2. **Sign-in:** users enter email + display name on [`/sign-in`](app/sign-in/page.tsx); Supabase sends a magic link that hits [`/auth/callback`](app/auth/callback/route.ts); the PKCE exchange sets the session cookie. The trigger in [`db/schema.sql`](db/schema.sql) inserts a row in `public.users` on signup — `mpholsch@media.mit.edu` is hard-coded as `role = 'edit'`; everyone else defaults to `view`.
+3. **Auth gate:** [`proxy.ts`](proxy.ts) (Next.js 16's renamed middleware) refreshes the Supabase session on every request and bounces unauthenticated users to `/sign-in`.
+4. **Mode:** [`currentMode()`](lib/data/users.ts) reads `users.role`. The homepage hides `+ NEW MAP` and the right-click rename/delete menu for view-mode users; mutations in [`lib/data/mutations.ts`](lib/data/mutations.ts) double-check on the server and RLS enforces the same in the DB.
+
+### Adding a new map
+
+- **Via the UI:** sign in as an edit-role user and click `+ NEW MAP`. This calls `createMap()` (server action) which inserts an empty `ArgMap` and routes to `/m/<id>/crux`.
+- **From SQL:** `insert into maps (id, title, visibility, data) values (..., '<argmap-json>')` — `data` must validate against the `ArgMap` Zod schema in [`lib/schema/index.ts`](lib/schema/index.ts).
+- **From a fixture file:** add an entry in [`lib/fixtures/stub-maps.ts`](lib/fixtures/stub-maps.ts) (or import a new JSON), wire its presentation metadata into [`CARD_PRESENTATION`](lib/data/maps.ts) for grid styling, then re-run `pnpm dlx tsx db/seed.ts`.
 
 ---
 
@@ -236,7 +263,7 @@ Phase 2 replaces all of the above with `INSERT INTO maps (...)`.
 |---|---|---|
 | Fonts | Inter / Roboto Mono / Merriweather | Figma uses Google Sans Flex and Google Sans Code which aren't free. These are the closest Google Fonts equivalents. |
 | `QuestionNode` color | Solid pink (vs. mint claims) | The Figma frame example shows only claims. Differentiating questions visually helps when fixtures mix types. |
-| `+ NEW MAP` button visible to all | Rendered for everyone in Phase 1 | Pixel parity with Figma takes precedence. Gating to edit-mode lands in Phase 2 along with auth. |
+| `+ NEW MAP` button gated by role | Visible only to `role = 'edit'` users (Phase 2) | Matches PRD §5.1 + §6.6. View-mode users see the same Figma layout minus the button. |
 | Minimap nodes | React Flow's built-in rectangles, colored by tint | Figma shows stylized circles + a viewport indicator. Functionally equivalent for navigation; refine in Phase 10 if needed. |
 | Card titles font | Roboto Mono | Figma uses Google Sans Code (monospace flavor). Roboto Mono is the closest free equivalent. |
 

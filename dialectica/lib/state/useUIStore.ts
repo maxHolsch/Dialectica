@@ -1,0 +1,130 @@
+"use client";
+
+import { create } from "zustand";
+import type { Annotation, StrokePoint } from "@/lib/schema";
+
+export type CanvasMode = "select" | "draw" | "erase";
+export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
+
+// 4 swatches in view mode, plus white in edit mode (Figma 12:127). Index 0 = white.
+export const SWATCHES = ["#ffffff", "#cdf4d3", "#ffc2ec", "#c2e5ff", "#dcccff"];
+
+type HistoryAction =
+  | { type: "create"; annotation: Annotation }
+  | { type: "delete"; annotation: Annotation };
+
+type UIStore = {
+  // Mode + tool selection
+  mode: CanvasMode;
+  tool: DrawingTool;
+  color: string;
+  setMode: (mode: CanvasMode) => void;
+  setTool: (tool: DrawingTool) => void;
+  setColor: (color: string) => void;
+
+  // Current map context — used to reset local state on map switch
+  activeMapId: string | null;
+  bindMap: (mapId: string) => void;
+
+  // Optimistic annotation layer keyed by id. Live on top of the server-loaded
+  // annotations from props; we merge by id when rendering.
+  optimisticAdds: Record<string, Annotation>;
+  optimisticDeletes: Record<string, true>;
+  addOptimistic: (annotation: Annotation) => void;
+  removeOptimistic: (id: string) => void;
+
+  // In-flight stroke being drawn right now (before commit).
+  inFlightPoints: StrokePoint[] | null;
+  startStroke: (firstPoint: StrokePoint) => void;
+  appendStrokePoint: (p: StrokePoint) => void;
+  endStroke: () => StrokePoint[] | null; // returns the collected points and clears in-flight
+
+  // Undo / redo (session-local)
+  history: HistoryAction[];
+  cursor: number; // index of next un-redone action; history[0..cursor-1] are "applied"
+  pushHistory: (action: HistoryAction) => void;
+  undo: () => HistoryAction | null;
+  redo: () => HistoryAction | null;
+};
+
+export const useUIStore = create<UIStore>((set, get) => ({
+  mode: "select",
+  tool: "pen",
+  color: "#ffffff",
+  setMode: (mode) => set({ mode }),
+  setTool: (tool) => set({ tool, mode: "draw" }),
+  setColor: (color) => set({ color }),
+
+  activeMapId: null,
+  bindMap: (mapId) => {
+    if (get().activeMapId === mapId) return;
+    set({
+      activeMapId: mapId,
+      optimisticAdds: {},
+      optimisticDeletes: {},
+      inFlightPoints: null,
+      history: [],
+      cursor: 0,
+    });
+  },
+
+  optimisticAdds: {},
+  optimisticDeletes: {},
+  addOptimistic: (annotation) =>
+    set((s) => ({
+      optimisticAdds: { ...s.optimisticAdds, [annotation.id]: annotation },
+      optimisticDeletes: removeKey(s.optimisticDeletes, annotation.id),
+    })),
+  removeOptimistic: (id) =>
+    set((s) => ({
+      optimisticDeletes: { ...s.optimisticDeletes, [id]: true },
+      optimisticAdds: removeKey(s.optimisticAdds, id),
+    })),
+
+  inFlightPoints: null,
+  startStroke: (firstPoint) => set({ inFlightPoints: [firstPoint] }),
+  appendStrokePoint: (p) =>
+    set((s) =>
+      s.inFlightPoints
+        ? { inFlightPoints: [...s.inFlightPoints, p] }
+        : { inFlightPoints: null },
+    ),
+  endStroke: () => {
+    const pts = get().inFlightPoints;
+    set({ inFlightPoints: null });
+    return pts;
+  },
+
+  history: [],
+  cursor: 0,
+  pushHistory: (action) =>
+    set((s) => {
+      const trimmed = s.history.slice(0, s.cursor);
+      const next = [...trimmed, action];
+      return { history: next, cursor: next.length };
+    }),
+  undo: () => {
+    const { history, cursor } = get();
+    if (cursor === 0) return null;
+    const action = history[cursor - 1]!;
+    set({ cursor: cursor - 1 });
+    return action;
+  },
+  redo: () => {
+    const { history, cursor } = get();
+    if (cursor >= history.length) return null;
+    const action = history[cursor]!;
+    set({ cursor: cursor + 1 });
+    return action;
+  },
+}));
+
+function removeKey<T>(
+  obj: Record<string, T>,
+  key: string,
+): Record<string, T> {
+  if (!(key in obj)) return obj;
+  const rest = { ...obj };
+  delete rest[key];
+  return rest;
+}

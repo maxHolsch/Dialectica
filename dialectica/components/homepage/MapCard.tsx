@@ -1,34 +1,36 @@
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { MapCard as MapCardData } from "@/lib/data/maps";
+import type { Mode } from "@/lib/data/users";
 import { MapPreview } from "./MapPreview";
+import { MapCardWrapper } from "./MapCardWrapper";
 
-export function MapCard({ card }: { card: MapCardData }) {
+export function MapCard({ card, mode }: { card: MapCardData; mode: Mode }) {
   return (
-    <Link
-      href={`/m/${card.id}/crux`}
-      className={cn(
-        "group relative flex h-[320px] flex-col overflow-hidden rounded-lg border border-dia-border bg-dia-surface",
-        "transition-colors hover:border-dia-border-strong",
-      )}
-    >
-      <MapPreview kind={card.previewKind} />
-      <VisibilityPill visibility={card.visibility} />
+    <MapCardWrapper card={card} mode={mode}>
+      <div
+        className={cn(
+          "group relative flex h-[320px] flex-col overflow-hidden rounded-lg border border-dia-border bg-dia-surface",
+          "transition-colors hover:border-dia-border-strong",
+        )}
+      >
+        <MapPreview kind={card.previewKind} />
+        <VisibilityPill visibility={card.visibility} />
 
-      <div className="border-t border-dia-border-subtle" />
+        <div className="border-t border-dia-border-subtle" />
 
-      <div className="relative flex-1 px-4 pt-5">
-        <h3 className="font-mono text-[18px] leading-[1.3] tracking-[-0.18px] text-dia-fg">
-          {card.title}
-        </h3>
-        <div className="absolute inset-x-4 bottom-3 flex items-center justify-between">
-          <span className="font-mono text-[11px] text-dia-fg-dim">
-            {card.editedLabel}
-          </span>
-          <CollaboratorStack collaborators={card.collaborators} />
+        <div className="relative flex-1 px-4 pt-5">
+          <h3 className="font-mono text-[18px] leading-[1.3] tracking-[-0.18px] text-dia-fg">
+            {card.title}
+          </h3>
+          <div className="absolute inset-x-4 bottom-3 flex items-center justify-between">
+            <span className="font-mono text-[11px] text-dia-fg-dim">
+              {card.editedLabel}
+            </span>
+            <CollaboratorStack collaborators={card.collaborators} />
+          </div>
         </div>
       </div>
-    </Link>
+    </MapCardWrapper>
   );
 }
 

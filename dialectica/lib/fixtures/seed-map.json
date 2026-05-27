@@ -60,14 +60,20 @@
     "n-friction-deliberation": { "id": "n-friction-deliberation", "type": "claim", "text": "Friction forces deliberation that fast tools bypass." },
     "n-friction-access": { "id": "n-friction-access", "type": "claim", "text": "Removing friction democratizes access to expertise." },
     "n-friction-q": { "id": "n-friction-q", "type": "question", "text": "Which decisions actually benefit from being slow?" },
+    "n-friction-q-irreversible": { "id": "n-friction-q-irreversible", "type": "claim", "text": "Decisions that are irreversible, like firing someone, deserve a slow path." },
+    "n-friction-q-reversible": { "id": "n-friction-q-reversible", "type": "claim", "text": "Reversible, low-stakes decisions benefit from speed, not deliberation." },
 
     "n-jobs-bullshit": { "id": "n-jobs-bullshit", "type": "claim", "text": "Many roles were already bullshit jobs by design." },
     "n-jobs-transition": { "id": "n-jobs-transition", "type": "claim", "text": "Job loss is a transition cost, not an indictment of the work." },
     "n-jobs-q": { "id": "n-jobs-q", "type": "question", "text": "What makes a job meaningful in the first place?" },
+    "n-jobs-q-craft": { "id": "n-jobs-q-craft", "type": "claim", "text": "Meaning comes from craft — work that compounds skill over time." },
+    "n-jobs-q-service": { "id": "n-jobs-q-service", "type": "claim", "text": "Meaning comes from service — visible impact on other people." },
 
     "n-agency-atrophy": { "id": "n-agency-atrophy", "type": "claim", "text": "Outsourcing cognition atrophies the underlying skill." },
     "n-agency-judgment": { "id": "n-agency-judgment", "type": "claim", "text": "AI lets humans focus on higher-order judgment." },
-    "n-agency-q": { "id": "n-agency-q", "type": "question", "text": "Surrender to what end?" }
+    "n-agency-q": { "id": "n-agency-q", "type": "question", "text": "Surrender to what end?" },
+    "n-agency-q-leisure": { "id": "n-agency-q-leisure", "type": "claim", "text": "Surrender frees us for leisure, family, and the things machines can't do." },
+    "n-agency-q-drift": { "id": "n-agency-q-drift", "type": "claim", "text": "Surrender without a chosen end is drift — we end up serving whoever set the defaults." }
   },
   "frames": {
     "frame-tool-risk": {
@@ -89,13 +95,18 @@
       "id": "frame-friction",
       "cruxId": "crux-friction",
       "nodeInstances": [
-        { "nodeId": "n-friction-deliberation", "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
-        { "nodeId": "n-friction-access",       "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
-        { "nodeId": "n-friction-q",            "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+        { "nodeId": "n-friction-deliberation",   "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-friction-access",         "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-friction-q",              "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } },
+        { "nodeId": "n-friction-q-irreversible", "position": { "x": 280,  "y": 920 }, "size": { "width": 368, "height": 220 } },
+        { "nodeId": "n-friction-q-reversible",   "position": { "x": 1272, "y": 920 }, "size": { "width": 368, "height": 220 } }
       ],
       "edges": [
         { "id": "e-fr-1", "source": "n-friction-deliberation", "target": "n-friction-access", "undirected": true, "label": "tension" },
-        { "id": "e-fr-2", "source": "n-friction-q", "target": "n-friction-deliberation" }
+        { "id": "e-fr-2", "source": "n-friction-q", "target": "n-friction-deliberation" },
+        { "id": "e-fr-q-1", "source": "n-friction-q", "target": "n-friction-q-irreversible", "label": "answers" },
+        { "id": "e-fr-q-2", "source": "n-friction-q", "target": "n-friction-q-reversible", "label": "answers" },
+        { "id": "e-fr-q-3", "source": "n-friction-q-irreversible", "target": "n-friction-q-reversible", "undirected": true, "label": "tension" }
       ]
     },
     "frame-jobs": {
@@ -104,23 +115,33 @@
       "nodeInstances": [
         { "nodeId": "n-jobs-bullshit",   "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
         { "nodeId": "n-jobs-transition", "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
-        { "nodeId": "n-jobs-q",          "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+        { "nodeId": "n-jobs-q",          "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } },
+        { "nodeId": "n-jobs-q-craft",    "position": { "x": 280,  "y": 920 }, "size": { "width": 368, "height": 220 } },
+        { "nodeId": "n-jobs-q-service",  "position": { "x": 1272, "y": 920 }, "size": { "width": 368, "height": 220 } }
       ],
       "edges": [
-        { "id": "e-jb-1", "source": "n-jobs-q", "target": "n-jobs-bullshit" }
+        { "id": "e-jb-1", "source": "n-jobs-q", "target": "n-jobs-bullshit" },
+        { "id": "e-jb-q-1", "source": "n-jobs-q", "target": "n-jobs-q-craft", "label": "answers" },
+        { "id": "e-jb-q-2", "source": "n-jobs-q", "target": "n-jobs-q-service", "label": "answers" },
+        { "id": "e-jb-q-3", "source": "n-jobs-q-craft", "target": "n-jobs-q-service", "undirected": true, "label": "tension" }
       ]
     },
     "frame-agency": {
       "id": "frame-agency",
       "cruxId": "crux-agency",
       "nodeInstances": [
-        { "nodeId": "n-agency-atrophy",  "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
-        { "nodeId": "n-agency-judgment", "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
-        { "nodeId": "n-agency-q",        "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } }
+        { "nodeId": "n-agency-atrophy",     "position": { "x": 428,  "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-agency-judgment",    "position": { "x": 1124, "y": 200 }, "size": { "width": 368, "height": 240 } },
+        { "nodeId": "n-agency-q",           "position": { "x": 776,  "y": 580 }, "size": { "width": 368, "height": 200 } },
+        { "nodeId": "n-agency-q-leisure",   "position": { "x": 280,  "y": 920 }, "size": { "width": 368, "height": 220 } },
+        { "nodeId": "n-agency-q-drift",     "position": { "x": 1272, "y": 920 }, "size": { "width": 368, "height": 220 } }
       ],
       "edges": [
         { "id": "e-ag-1", "source": "n-agency-atrophy", "target": "n-agency-judgment", "undirected": true, "label": "tension" },
-        { "id": "e-ag-2", "source": "n-agency-q", "target": "n-agency-judgment" }
+        { "id": "e-ag-2", "source": "n-agency-q", "target": "n-agency-judgment" },
+        { "id": "e-ag-q-1", "source": "n-agency-q", "target": "n-agency-q-leisure", "label": "answers" },
+        { "id": "e-ag-q-2", "source": "n-agency-q", "target": "n-agency-q-drift", "label": "answers" },
+        { "id": "e-ag-q-3", "source": "n-agency-q-leisure", "target": "n-agency-q-drift", "undirected": true, "label": "tension" }
       ]
     }
   }

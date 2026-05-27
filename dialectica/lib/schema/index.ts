@@ -63,32 +63,14 @@ export const Crux = z.object({
 });
 export type Crux = z.infer<typeof Crux>;
 
-// PRD §5.1 + §6 — The full map: top-level question + cruxes + frames + canonical nodes.
-// The top question is anchored by its text + position + (optional) size. If
-// `topQuestionFrameId` is set, clicking the top question in the crux view
-// navigates to that frame — the Figma 2:15 design surfaces the top question's
-// own frame this way.
-export const ArgMap = z.object({
-  id: z.string(),
-  title: z.string(),
-  topQuestion: z.string(),
-  topQuestionPosition: Position,
-  topQuestionSize: Size.optional(),
-  topQuestionFrameId: z.string().optional(),
-  cruxes: z.array(Crux),
-  cruxEdges: z.array(Edge),
-  nodes: z.record(z.string(), Node),
-  frames: z.record(z.string(), Frame),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-export type ArgMap = z.infer<typeof ArgMap>;
-
-// PRD §9.2 — Annotation. Reserved for Phase 5; defined now to lock the shape.
-// Strokes attach to a frame (frame-local coords); they are NOT semantically tied to nodes.
+// PRD §9.2 — Annotation. Phase 3 wires pencil/pen/highlighter/textbox via perfect-freehand.
+// marker/sticker stay in the enum for Phase 5. Strokes attach to a frame when on the
+// frame view, or have frameId undefined when drawn on the crux canvas.
 export const AnnotationTool = z.enum([
   "pencil",
+  "pen",
   "highlighter",
+  "textbox",
   "marker",
   "eraser",
   "sticker",
@@ -105,15 +87,43 @@ export type StrokePoint = z.infer<typeof StrokePoint>;
 
 export const Annotation = z.object({
   id: z.string(),
-  frameId: z.string(),
+  frameId: z.string().optional(),
   points: z.array(StrokePoint),
   tool: AnnotationTool,
   color: z.string(),
   size: z.number(),
+  // Bounding box origin in flow coordinates; points are stored relative to this.
+  origin: Position,
+  width: z.number(),
+  height: z.number(),
+  // Only set when tool === "textbox".
+  text: z.string().optional(),
   userId: z.string(),
   createdAt: z.string(),
 });
 export type Annotation = z.infer<typeof Annotation>;
+
+// PRD §5.1 + §6 — The full map: top-level question + cruxes + frames + canonical nodes.
+// The top question is anchored by its text + position + (optional) size. If
+// `topQuestionFrameId` is set, clicking the top question in the crux view
+// navigates to that frame — the Figma 2:15 design surfaces the top question's
+// own frame this way.
+export const ArgMap = z.object({
+  id: z.string(),
+  title: z.string(),
+  topQuestion: z.string(),
+  topQuestionPosition: Position,
+  topQuestionSize: Size.optional(),
+  topQuestionFrameId: z.string().optional(),
+  cruxes: z.array(Crux),
+  cruxEdges: z.array(Edge),
+  nodes: z.record(z.string(), Node),
+  frames: z.record(z.string(), Frame),
+  annotations: z.array(Annotation).default([]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type ArgMap = z.infer<typeof ArgMap>;
 
 // PRD §10.1 — Claim stake. Reserved for Phase 4.
 // Attached to a frame instance: (frameId, nodeId).

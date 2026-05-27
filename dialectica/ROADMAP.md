@@ -2,25 +2,32 @@
 
 > Source PRD: [`../Dialectica V6 PRD.md`](../Dialectica%20V6%20PRD.md) · Current state: [`documentation.md`](documentation.md) · Module ↔ PRD ID map: [`docs/module-map.md`](docs/module-map.md)
 
-Phases 0 and 1 are shipped (project bootstrap + 3 pixel-perfect read-only views). Everything below is the remaining work, broken into self-contained modules that drop into the structure already in place. Order is roughly per PRD §14 "must ship before event," but each phase is independently sequenceable.
+Phases 0, 1, and 2 are shipped (project bootstrap + 3 pixel-perfect read-only views + Supabase auth/persistence). Everything below is the remaining work, broken into self-contained modules that drop into the structure already in place. Order is roughly per PRD §14 "must ship before event," but each phase is independently sequenceable.
 
 ## Sequencing summary
 
 | Phase | Name | PRD IDs | Blocks |
 |------:|------|---------|--------|
 | 2 | Supabase auth + persistence | `DIA-MAP-2/3`, `DIA-MODE-1/2`, `DIA-HOME-1` writes | nothing — purely additive |
-| 3 | Edit-mode affordances on the 3 views | `DIA-MODE-2`, `DIA-VIEW-1/2` edit | requires Phase 2 (writes) |
+| 3 | Edit-mode affordances + freehand scribbling | `DIA-MODE-2`, `DIA-VIEW-1/2` edit, `DIA-ANNO-1..3` (single-user) | requires Phase 2 (writes) |
 | 4 | Claim staking + side panel | `DIA-CLAIM-1`, `DIA-VIEW-3.5` | requires Phase 2 (user identity), independent of Phase 3 |
-| 5 | Annotation / drawing | `DIA-ANNO-1..4` | requires Phase 2 (realtime + identity) |
+| 5 | Annotation realtime + multi-user | `DIA-ANNO-4`, sticker/marker | requires Phase 3 (drawing UI) + Phase 2 (realtime + identity) |
 | 6 | Version control | `DIA-VER-1` | requires Phase 2 (event sink); design-once |
 | 7 | AI generation + admin | `DIA-AI-1`, `DIA-AI-4` | requires Phase 2 (write maps), independent of 3–6 |
 | 8 | Print + scan-in | `DIA-PRINT-1/2` | requires Phase 2 (read maps), independent of 3–7 |
 | 9 | Heatmap iframe | `DIA-VIEW-3.7` | requires Phase 4 (entry point) |
 | 10 | Theming / assets | `DIA-ASSET-1` | independent; cleanup pass |
 
-## Phase 2 — Supabase auth + persistence
+## Phase 2 — Supabase auth + persistence ✅ shipped
 
 **Goal:** Replace the JSON fixture data layer with Supabase. Add auth-gated access. Make the homepage's create/rename/delete actually persist.
+
+**Setup checklist for a new clone** (also in [`documentation.md`](documentation.md)):
+
+1. Local: ensure `supabase start` is running (containers `supabase_*_app` on ports 54321–54324); `.env.local` is already populated with the well-known local keys
+2. Apply [`db/schema.sql`](db/schema.sql) (via Studio at http://127.0.0.1:54323 or `docker exec ... psql -f ...`)
+3. Seed: `pnpm db:seed`
+4. Magic-link emails land in Inbucket at http://127.0.0.1:54324
 
 Implements: `DIA-MAP-2` (JSON as source of truth — now stored as JSON in Postgres), `DIA-MAP-3` (direct JSON interface — JSONB column editable from SQL/Studio), `DIA-MODE-1` and `DIA-MODE-2` role gates, `DIA-HOME-1` writes.
 
@@ -79,35 +86,58 @@ RLS policies: anyone signed in can read maps they have access to; only `role = '
 
 **Risk:** RLS policies are easy to misconfigure. Add a Playwright smoke test that signs in as a view user and verifies attempted writes are 403.
 
-## Phase 3 — Edit-mode affordances on the 3 views
+## Phase 3 — Edit-mode affordances + freehand scribbling
 
-**Goal:** Curators can edit cruxes / frames / nodes / edges directly on the canvas. Per PRD §5.1 edit-mode and §5.2 affordances.
+**Goal:** Curators edit cruxes / frames / nodes / edges, and any signed-in user can scribble on the canvas with pencil / pen / highlighter / text-box. Per PRD §5.1, §5.2, §9.1, §9.2.
 
-Implements: `DIA-MODE-2`, `DIA-VIEW-1` edit, `DIA-VIEW-2` edit, `DIA-MAP-4` propagation (text edits to canonical nodes propagate to every frame instance).
+Implements: `DIA-MODE-2`, `DIA-VIEW-1` edit, `DIA-VIEW-2` edit, `DIA-MAP-4` propagation, `DIA-ANNO-1` tools (single-user subset), `DIA-ANNO-2` coordinate model, `DIA-ANNO-3` edit/move.
 
-**Figma reference:** node `12:127` for the edit toolbar.
+**Figma references:** edit toolbar `12:127`, view toolbar `5:48`. The two pills share the same drawing tools — edit mode adds the dashed `+ ADD CLAIM` pill and a fifth (white) color swatch.
 
-**New components:**
+**Architecture decision settled:** strokes are stored as React Flow custom nodes (the canonical Steve Ruiz / official R-F Pro pattern). Stroke geometry comes from `perfect-freehand`. Rendering is `<svg><path/></svg>` per stroke — Phase 5 will migrate to a `<canvas>` overlay only if SVG-per-node degrades past ~hundreds of strokes during pan/zoom.
 
-- `components/canvas/EditToolbar.tsx` — floating bottom-center toolbar (replaces the disabled edit pencil in `CanvasShell`) with: select, add-node, add-edge, delete. Renders only when `currentMode() === 'edit'`.
-- `components/canvas/EditableLabel.tsx` — double-click to enter contenteditable, click away to save. Used in all four node types.
-- `lib/state/useDraftStore.ts` — Zustand store holding the in-progress edit (debounced flush to Supabase).
-- `lib/data/mutations.ts` — `updateNodeText`, `addCrux`, `deleteCrux`, `moveNodeInstance`, `addEdge`, `deleteEdge`, etc. All write via `supabase.rpc(...)` or direct upserts and emit a row into the `events` table (Phase 6).
+**New deps:** [`perfect-freehand`](https://github.com/steveruizok/perfect-freehand).
 
-**Behavior changes in existing components:**
+**Schema additions (no DB migration):**
 
-- [`CanvasShell.tsx`](components/canvas/CanvasShell.tsx) — when edit mode, pass `nodesDraggable={true}`, `nodesConnectable={true}`. Wire `onNodesChange`, `onEdgesChange`, `onConnect` to mutation calls. Persist position changes globally per §6.7.
-- [`TopQuestionNode.tsx`](components/crux/TopQuestionNode.tsx) / [`CruxTileNode.tsx`](components/crux/CruxTileNode.tsx) / [`ClaimNode.tsx`](components/frame/ClaimNode.tsx) — wrap text in `EditableLabel`.
+- `lib/schema/index.ts` — `Annotation` extended with `origin: Position`, `width`, `height`, optional `text` (for text-box tool), and `frameId` made optional (crux-view scribbles have no frame). `AnnotationTool` extended with `pen` and `textbox` values. `ArgMap.annotations: Annotation[]` added so strokes persist inside the existing JSONB blob. Phase 5 will migrate to a dedicated `annotations` table.
+
+**New components / modules:**
+
+- `components/canvas/EditToolbar.tsx` — floating bottom-center pill matching Figma `12:127` / `5:48`. Tools: pencil, pen, highlighter, text-box, eraser. Mode glyphs: ✥ (select) / ✎ (draw) / ● (current color). Pastel swatches: mint / pink / blue / lavender (+ white in edit mode). Undo/redo buttons. `+ ADD CLAIM` pill in edit mode.
+- `components/canvas/StrokeNode.tsx` — React Flow custom node. Renders one `Annotation` as an SVG path (freehand) or an editable text div (text-box). Bounding-box hit-test is "good enough" for Phase 3 eraser; precise polygon hit-test is a Phase 5 polish item.
+- `components/canvas/InFlightStrokeLayer.tsx` — viewport-transformed overlay that renders the current gesture preview during a pointer-down → pointer-up cycle (before commit).
+- `lib/state/useUIStore.ts` — Zustand store: `{ mode: 'select' | 'draw' | 'erase', tool, color, inFlightPoints, optimisticAdds, optimisticDeletes, history, cursor }`. Session-local undo/redo.
+- `lib/canvas/freehand.ts` — `getSvgPathFromStroke`, per-tool `TOOL_PRESETS` for `getStroke` (pencil: thin opaque; pen: thick opaque; highlighter: broad with `fillOpacity: 0.35`), bounding-box helper.
+- `lib/canvas/useDrawingHandlers.ts` — hook returning `{ onPointerDown, onPointerMove, onPointerUp, onPaneClick, eraseAnnotation }`. Converts screen → flow coords via `useReactFlow().screenToFlowPosition`, captures pressure (`e.pressure || 0.5`), stores points relative to bounding-box origin on commit.
+- `lib/data/mutations.ts` — adds `createAnnotation(mapId, annotation)` and `deleteAnnotation(mapId, annotationId)`. Reads + writes the `maps.data` JSONB blob. Idempotent (replace-if-exists) so undo→redo round-trips cleanly.
+
+**Behavior changes:**
+
+- [`CanvasShell.tsx`](components/canvas/CanvasShell.tsx) — wraps `<ReactFlow>` in a div that owns pointer events. `panOnDrag={mode !== 'draw'}` prevents pan competing with the draw gesture. Merges server `map.annotations` with optimistic adds/deletes from `useUIStore`; promotes each to a `stroke`-type node. Eraser mode: `onNodeClick` checks `node.type === 'stroke'` and calls `eraseAnnotation`.
+- Edit-mode-only node/edge affordances (editable text, drag, add/delete crux) — `components/canvas/EditableLabel.tsx`, `useDraftStore.ts`, `updateNodeText`, `addCrux`, `deleteCrux`, etc. — remain as previously scoped; the `+ ADD CLAIM` pill in `EditToolbar` is the entry point.
 
 **Edge direction from drag (per PRD §5.1):** when user drags from tile A to tile B, edge direction defaults to A → B. Mark `undirected: true` only via a toolbar toggle.
 
+**Pointer-event ownership:** don't attach drawing handlers directly to `<ReactFlow>` — React Flow's pane handlers can compete. Wrap React Flow in a `<div>` that owns the pointer events; use `e.stopPropagation()` inside drawing handlers + `panOnDrag={false}` in draw mode.
+
+**Coordinate transforms:** always convert pointer events to flow coords via `screenToFlowPosition` *before* pushing into the points array. On commit, compute the bounding box, set the node's `position` to the box origin, store points relative to it. Strokes pan/zoom with the graph but stay spatially independent of content nodes (PRD §9.2).
+
+**Pressure:** mouse events report `pressure === 0`; fall back to `0.5` (covered by `e.pressure || 0.5`). On a pen-capable device, `e.pressure` produces variable stroke width.
+
 **Acceptance:**
 
-1. Edit-mode user double-clicks a crux text → contenteditable opens → typing updates the text in real time → clicking away saves and propagates to every frame instance.
-2. Drag a crux tile → on release, position persists globally; other connected users see it move (Phase 5 realtime stretches here too).
-3. Click "+ Add crux" in toolbar → new tile appears at viewport center; an associated empty `Frame` is created.
-4. Right-click → Delete crux removes the tile, its frame, and any incident edges. Recorded in version history (Phase 6).
-5. Pixel-stable for view-mode users (per PRD §6.7).
+1. Click pen tool → click-drag across the canvas → release. A stroke renders along the gesture path with no perceptible lag, stays anchored when you pan/zoom.
+2. Pencil / highlighter look visually distinct (thin opaque / broad translucent).
+3. Click a color swatch → draw → color applies.
+4. Eraser mode → click any prior stroke → it disappears.
+5. ⌘Z → erased stroke comes back. ⌘⇧Z → it disappears again. (Phase 3 keyboard binding is a hook into the toolbar buttons; the buttons themselves always work.)
+6. Reload the page → strokes persist (proves `maps.data.annotations` survived via `createAnnotation`).
+7. Drag a crux tile (edit mode + select mode) → nearby strokes do NOT move with it (PRD §9.2 independence).
+8. View-mode user opens the page → toolbar shows 4 swatches (no white) and no `+ ADD CLAIM` pill. They can still draw.
+9. Edit-mode user double-clicks a crux text → contenteditable opens → typing updates text in real time → clicking away saves and propagates to every frame instance.
+10. Click `+ ADD CLAIM` → new tile appears at viewport center; associated empty `Frame` created.
+11. Pixel-stable for view-mode content nodes (PRD §6.7) — adding annotations does not shift nodes.
 
 ## Phase 4 — Claim staking + side panel
 
@@ -147,45 +177,52 @@ Stakes attach to the **frame instance** per PRD §6.4: `(map_id, frame_id, node_
 3. View-mode user sees count but not names; edit-mode user sees both.
 4. One-stake-per-user enforced (unique constraint).
 
-## Phase 5 — Annotation / drawing
+## Phase 5 — Annotation realtime + multi-user
 
-**Goal:** Hand-drawn scribbles render over the canvas in real time, persistent across sessions, attributed per user.
+**Goal:** Migrate Phase 3's local-only annotations to a dedicated table + Supabase Realtime so participants see each other's strokes within ~200ms. Add view-vs-edit permission asymmetry and the sticker tool.
 
-Implements: `DIA-ANNO-1` tools (pencil / highlighter / marker / eraser / sticker), `DIA-ANNO-2` coordinate model, `DIA-ANNO-3` edit/move, `DIA-ANNO-4` realtime.
+Implements: `DIA-ANNO-4` realtime, the remainder of `DIA-ANNO-1` (sticker + marker), Phase 3 → Phase 5 migration of stroke storage.
 
-**Open question to settle first** (per PRD §9.1): survey `perfect-freehand` vs. a custom canvas implementation. Decision criterion: stroke rendering must keep up with pan/zoom without lag. **Recommended:** `perfect-freehand` for stroke geometry + a Konva or raw `<canvas>` layer for rendering. Rendering on `<svg>` may pile up paths and slow the canvas as strokes accumulate.
-
-**Schema:**
+**Schema migration (Phase 3 ships JSONB-only; Phase 5 adds the table):**
 
 ```sql
 create table annotations (
   id uuid primary key default gen_random_uuid(),
   map_id text references maps(id) on delete cascade,
-  frame_id text not null,                -- which frame the stroke lives on (PRD §9.2)
+  frame_id text,                         -- nullable: crux-view strokes have no frame
   user_id uuid references users(id),
-  tool text not null,                    -- pencil | highlighter | marker | eraser | sticker
+  tool text not null,                    -- pencil | pen | highlighter | textbox | marker | sticker
   color text not null,
   size real not null,
-  points jsonb not null,                 -- [{x,y,t,pressure}, ...]
+  origin jsonb not null,                 -- {x,y} bounding-box origin
+  width real not null,
+  height real not null,
+  points jsonb not null,                 -- [{x,y,t,pressure}, ...] (relative to origin)
+  text text,                             -- only set for tool = 'textbox'
   created_at timestamptz default now()
 );
+create index on annotations (map_id, frame_id);
 ```
 
-Strokes attach to `frame_id` (not to nodes — strokes are independent geometric objects per PRD §9.2).
+One-time migration script copies `maps.data.annotations[]` into the table, then drops the field from `ArgMap` (Phase 5 acceptance criterion).
 
-**New components:**
+**New code:**
 
-- `components/canvas/AnnotationLayer.tsx` — `<canvas>` overlay on top of React Flow, transforms with the same viewport (subscribe to `useReactFlow().getViewport()`).
-- `components/canvas/AnnotationToolbar.tsx` — tool picker (pencil/highlighter/marker/eraser/sticker), color picker, size slider.
-- `lib/state/useStrokeStore.ts` — in-flight stroke during a draw gesture, flushed on pointer-up.
-- `lib/realtime/annotations.ts` — Supabase Realtime channel per frame; broadcast strokes as they complete.
+- `lib/realtime/annotations.ts` — Supabase Realtime channel per map; broadcast strokes on `createAnnotation` / `deleteAnnotation`. Subscribe in `CanvasShell` and dispatch into `useUIStore.optimisticAdds` so the same merge path handles both optimistic-self and remote-other strokes.
+- `lib/data/annotations.ts` — read/write helpers backed by the new table; replaces the JSONB pattern in `lib/data/mutations.ts`.
+- Permission logic in `deleteAnnotation`: view users can only delete annotations where `user_id === current.id`; edit users can delete any.
+- Sticker tool: re-uses `StrokeNode` with `tool: 'sticker'` rendering a sticker SVG instead of a stroke path. Sticker assets live in `assets/stickers/` (Phase 10).
+
+**Perf escape hatch:** if SVG-per-node degrades past ~hundreds of strokes during pan/zoom in real maps, replace `StrokeNode` with a single `<canvas>` overlay that draws all strokes per-frame, transformed via `useViewport()`. The data model stays the same; only the renderer changes.
 
 **Acceptance:**
 
-1. Pencil tool draws textured strokes that follow the pointer with no perceptible delay during pan/zoom.
-2. Stroke is visible to all connected users within ~200ms (Supabase Realtime).
-3. Strokes are spatially independent of nodes: dragging a crux in edit mode does NOT move nearby strokes (per PRD §9.2 implication).
-4. View-mode users can only edit/move/erase their own strokes; edit-mode users can edit any.
+1. Two browser tabs open the same map → drawing in tab A appears in tab B within ~200ms.
+2. View-mode user attempts to erase a stroke they didn't draw → no-op (graceful, no error toast).
+3. Edit-mode user can erase any stroke regardless of author.
+4. Sticker tool drops a sticker at click position; visible identically to other clients.
+5. Migration script: existing `maps.data.annotations[]` entries land in the `annotations` table with `created_at` preserved; `maps.data.annotations` is gone after migration.
+6. Pan/zoom remains fluid at ≥200 strokes per frame.
 
 ## Phase 6 — Version control
 
