@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ReactFlow,
@@ -141,7 +142,14 @@ function Canvas({
   useEffect(() => {
     const unsubscribe = subscribeToAnnotations(mapId, {
       onUpsert: (annotation) => {
-        if (annotation.userId === userId) return; // already in local store
+        if (annotation.userId === userId) {
+          console.log("[realtime] skipping self upsert", {
+            incoming: annotation.userId,
+            self: userId,
+          });
+          return;
+        }
+        console.log("[realtime] applying remote upsert", annotation.id);
         addOptimistic(annotation);
       },
       onDelete: (id) => {
@@ -296,16 +304,85 @@ function Canvas({
     [frameId, mapId, stakes],
   );
 
+  // Drag-to-erase: while the user holds the eraser button down, every stroke
+  // node the pointer crosses gets deleted. We hit-test with elementsFromPoint
+  // (rather than wiring per-node listeners) so a fast drag through several
+  // strokes is reliable even when individual hover events get coalesced.
+  const eraseSessionRef = useRef<{ active: boolean; erased: Set<string> }>({
+    active: false,
+    erased: new Set(),
+  });
+
+  const eraseAtPoint = useCallback(
+    (x: number, y: number) => {
+      const session = eraseSessionRef.current;
+      if (!session.active) return;
+      const hits = document.elementsFromPoint(x, y);
+      for (const el of hits) {
+        const nodeEl = (el as Element).closest?.(".react-flow__node");
+        if (!nodeEl) continue;
+        const id = nodeEl.getAttribute("data-id");
+        if (!id || session.erased.has(id)) continue;
+        const ann = annotationById[id];
+        if (!ann) continue;
+        session.erased.add(id);
+        void drawing.eraseAnnotation(ann);
+      }
+    },
+    [annotationById, drawing],
+  );
+
+  const handlePointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (mode === "erase" && e.button === 0) {
+        // Don't hijack clicks on UI overlays (toolbar, minimap, context menu);
+        // only the actual React Flow canvas area should start an erase session.
+        const target = e.target as Element | null;
+        if (!target?.closest(".react-flow")) return;
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        eraseSessionRef.current = { active: true, erased: new Set() };
+        eraseAtPoint(e.clientX, e.clientY);
+        return;
+      }
+      drawing.onPointerDown(e);
+    },
+    [mode, drawing, eraseAtPoint],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (eraseSessionRef.current.active) {
+        eraseAtPoint(e.clientX, e.clientY);
+        return;
+      }
+      drawing.onPointerMove(e);
+    },
+    [drawing, eraseAtPoint],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (eraseSessionRef.current.active) {
+        e.currentTarget.releasePointerCapture?.(e.pointerId);
+        eraseSessionRef.current = { active: false, erased: new Set() };
+        return;
+      }
+      drawing.onPointerUp(e);
+    },
+    [drawing],
+  );
+
   const drawingActive = mode === "draw";
 
   return (
     <div
       className="relative h-full w-full bg-dia-bg"
-      onPointerDown={drawing.onPointerDown}
-      onPointerMove={drawing.onPointerMove}
-      onPointerUp={drawing.onPointerUp}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
       onClick={drawing.onPaneClick}
-      style={{ touchAction: drawingActive ? "none" : undefined }}
+      style={{ touchAction: drawingActive || mode === "erase" ? "none" : undefined }}
     >
       <ReactFlow
         nodes={allNodes}

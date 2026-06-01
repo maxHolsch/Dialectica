@@ -34,9 +34,9 @@ export default async function FramePage({
     <div className="flex h-screen flex-col bg-dia-bg">
       <Topbar
         crumbs={[
-          { kind: "brand", label: "DIALECTIA" },
+          { kind: "brand", label: "DIALECTIA", href: "/" },
           { kind: "sep-slash" },
-          { kind: "medium", label: map.title },
+          { kind: "medium", label: map.title, href: `/m/${mapId}/crux` },
           { kind: "sep-arrow" },
           { kind: "dim", label: cruxQuestion },
         ]}

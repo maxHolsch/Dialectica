@@ -24,13 +24,22 @@ export default async function CruxPage({
     <div className="flex h-screen flex-col bg-dia-bg">
       <Topbar
         crumbs={[
-          { kind: "brand", label: "DIALECTIA" },
+          { kind: "brand", label: "DIALECTIA", href: "/" },
           { kind: "sep-slash" },
           { kind: "medium", label: map.title },
           { kind: "sep-arrow" },
           { kind: "dim", label: "Crux map" },
         ]}
-        pill={{ kind: "live", count: 2 }}
+        pill={
+          user
+            ? {
+                kind: "live-room",
+                channelKey: `map:${mapId}`,
+                userId: user.id,
+                displayName: user.displayName,
+              }
+            : { kind: "live", count: 0 }
+        }
         avatars={[avatar]}
       />
       <main className="flex-1">

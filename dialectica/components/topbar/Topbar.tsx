@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { LivePill } from "./LivePill";
 
 /**
  * Topbar — shared chrome across DIA-HOME-1, DIA-VIEW-1, DIA-VIEW-2.
@@ -6,15 +8,21 @@ import { cn } from "@/lib/utils";
  */
 
 export type Crumb =
-  | { kind: "brand"; label: "DIALECTIA" }
+  | { kind: "brand"; label: "DIALECTIA"; href?: string }
   | { kind: "sep-slash" }
   | { kind: "sep-arrow" }
-  | { kind: "medium"; label: string }
-  | { kind: "dim"; label: string };
+  | { kind: "medium"; label: string; href?: string }
+  | { kind: "dim"; label: string; href?: string };
 
 export type Avatar = { initials: string; color: string };
 export type PresencePill =
   | { kind: "live"; count: number }
+  | {
+      kind: "live-room";
+      channelKey: string;
+      userId: string;
+      displayName: string;
+    }
   | { kind: "settings" };
 
 export function Topbar({
@@ -48,10 +56,14 @@ export function Topbar({
 
 function Crumb({ crumb }: { crumb: Crumb }) {
   if (crumb.kind === "brand") {
-    return (
-      <span className="mr-[80px] font-bold tracking-[0.52px] text-dia-fg">
+    const classes =
+      "mr-[80px] font-bold tracking-[0.52px] text-dia-fg transition-opacity hover:opacity-70";
+    return crumb.href ? (
+      <Link href={crumb.href} className={classes}>
         {crumb.label}
-      </span>
+      </Link>
+    ) : (
+      <span className={classes}>{crumb.label}</span>
     );
   }
   if (crumb.kind === "sep-slash") {
@@ -61,11 +73,29 @@ function Crumb({ crumb }: { crumb: Crumb }) {
     return <span className="mx-3 text-dia-border-strong">›</span>;
   }
   if (crumb.kind === "medium") {
-    return (
-      <span className="font-medium text-dia-fg-muted">{crumb.label}</span>
+    const classes = "font-medium text-dia-fg-muted";
+    return crumb.href ? (
+      <Link
+        href={crumb.href}
+        className={cn(classes, "transition-colors hover:text-dia-fg")}
+      >
+        {crumb.label}
+      </Link>
+    ) : (
+      <span className={classes}>{crumb.label}</span>
     );
   }
-  return <span className="text-dia-fg-dim">{crumb.label}</span>;
+  const dimClasses = "text-dia-fg-dim";
+  return crumb.href ? (
+    <Link
+      href={crumb.href}
+      className={cn(dimClasses, "transition-colors hover:text-dia-fg-muted")}
+    >
+      {crumb.label}
+    </Link>
+  ) : (
+    <span className={dimClasses}>{crumb.label}</span>
+  );
 }
 
 function ViewingPill() {
@@ -82,6 +112,15 @@ function PresencePillView({ pill }: { pill: PresencePill }) {
       <span className="flex h-6 items-center rounded-full border border-dia-border-strong px-3 font-mono text-[12px] tracking-[0.48px] text-dia-fg-muted">
         Settings
       </span>
+    );
+  }
+  if (pill.kind === "live-room") {
+    return (
+      <LivePill
+        channelKey={pill.channelKey}
+        userId={pill.userId}
+        displayName={pill.displayName}
+      />
     );
   }
   return (

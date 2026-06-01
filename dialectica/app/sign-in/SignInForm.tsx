@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { sendMagicLink, signInAsMaxDev, type SignInState } from "./actions";
+import { sendMagicLink, signInAsDev, type SignInState } from "./actions";
 
 export function SignInForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState<SignInState, FormData>(
@@ -9,7 +9,7 @@ export function SignInForm({ next }: { next: string }) {
     { status: "idle" },
   );
   const [devState, devAction, devPending] = useActionState<SignInState, FormData>(
-    signInAsMaxDev,
+    signInAsDev,
     { status: "idle" },
   );
 
@@ -72,18 +72,31 @@ export function SignInForm({ next }: { next: string }) {
         </p>
         <button
           type="submit"
-          form="dev-sign-in"
+          form="dev-sign-in-max"
           disabled={devPending}
           className="mt-2 flex h-9 w-full items-center justify-center rounded-full border border-dia-border-strong bg-dia-bg font-mono text-[12px] text-dia-fg disabled:opacity-60"
         >
           {devPending ? "Signing in…" : "Sign in as Max (mpholsch@media.mit.edu)"}
+        </button>
+        <button
+          type="submit"
+          form="dev-sign-in-john"
+          disabled={devPending}
+          className="mt-2 flex h-9 w-full items-center justify-center rounded-full border border-dia-border-strong bg-dia-bg font-mono text-[12px] text-dia-fg disabled:opacity-60"
+        >
+          {devPending ? "Signing in…" : "Sign in as John (john@media.mit.edu)"}
         </button>
         {devState.status === "error" && (
           <p className="mt-2 font-mono text-[12px] text-dia-pink">{devState.message}</p>
         )}
       </div>
     </form>
-    <form id="dev-sign-in" action={devAction}>
+    <form id="dev-sign-in-max" action={devAction}>
+      <input type="hidden" name="email" value="mpholsch@media.mit.edu" />
+      <input type="hidden" name="next" value={next} />
+    </form>
+    <form id="dev-sign-in-john" action={devAction}>
+      <input type="hidden" name="email" value="john@media.mit.edu" />
       <input type="hidden" name="next" value={next} />
     </form>
     </>

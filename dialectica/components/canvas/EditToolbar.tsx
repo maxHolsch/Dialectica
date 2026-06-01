@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pencil,
   Pen,
@@ -10,6 +10,7 @@ import {
   Undo2,
   Redo2,
   Move,
+  ChevronRight,
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -47,6 +48,9 @@ export function EditToolbar({ mapId, isEditMode, onAddClaim }: Props) {
   const redo = useUIStore((s) => s.redo);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
+  // Toolbar starts minimized to a single pencil button (Figma node 4:246).
+  // Click to expand the full toolbar; click the collapse button to shrink it again.
+  const [expanded, setExpanded] = useState(false);
 
   const swatches = isEditMode ? SWATCHES : SWATCHES.slice(1);
 
@@ -106,9 +110,33 @@ export function EditToolbar({ mapId, isEditMode, onAddClaim }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onUndo, onRedo]);
 
+  if (!expanded) {
+    return (
+      <div className="pointer-events-auto absolute bottom-7 left-1/2 z-20 -translate-x-1/2 select-none">
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-label="Show annotation tools"
+          aria-expanded={false}
+          className="flex size-11 items-center justify-center rounded-full border border-dia-border bg-[#111] text-dia-fg-muted transition-colors hover:bg-dia-surface-2 hover:text-dia-fg"
+        >
+          <Pencil className="size-4" strokeWidth={1.5} />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="pointer-events-auto absolute bottom-7 left-1/2 z-20 -translate-x-1/2 select-none">
       <div className="flex h-14 items-center gap-1 rounded-full border border-dia-border bg-[#111] px-2">
+        {/* Collapse toolbar */}
+        <ModeButton
+          onClick={() => setExpanded(false)}
+          aria-label="Hide annotation tools"
+        >
+          <ChevronRight className="size-4 rotate-180" strokeWidth={1.5} />
+        </ModeButton>
+        <Divider />
         {/* Drawing tools */}
         <ToolButton
           tool="pencil"

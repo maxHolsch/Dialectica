@@ -15,7 +15,7 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col bg-dia-bg">
       <Topbar
         crumbs={[
-          { kind: "brand", label: "DIALECTIA" },
+          { kind: "brand", label: "DIALECTIA", href: "/" },
           { kind: "sep-slash" },
           { kind: "medium", label: "Home" },
         ]}

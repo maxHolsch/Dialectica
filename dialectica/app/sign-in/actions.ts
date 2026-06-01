@@ -36,21 +36,29 @@ export async function sendMagicLink(
   return { status: "sent", email };
 }
 
-// Dev shortcut — log in as Max without an email round-trip.
-// Remove before production hardening; see ROADMAP Phase 11 (Google OAuth) for the real second auth path.
-export async function signInAsMaxDev(
+// Dev shortcut — log in as a known user without an email round-trip.
+// Allowlisted emails only. Remove before production hardening; see ROADMAP Phase 11.
+const DEV_USERS: Record<string, { display_name: string }> = {
+  "mpholsch@media.mit.edu": { display_name: "Max H." },
+  "john@media.mit.edu": { display_name: "John" },
+};
+
+export async function signInAsDev(
   _prev: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
-  const email = "mpholsch@media.mit.edu";
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const next = String(formData.get("next") ?? "/");
   const safeNext = next.startsWith("/") ? next : "/";
+
+  const profile = DEV_USERS[email];
+  if (!profile) return { status: "error", message: "Email not in dev allowlist." };
 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { data: { display_name: "Max H." } },
+    options: { data: { display_name: profile.display_name } },
   });
   if (error || !data?.properties?.hashed_token) {
     return { status: "error", message: error?.message ?? "Failed to generate dev link." };

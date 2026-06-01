@@ -297,29 +297,120 @@ create index on events (map_id, created_at desc);
 
 ## Phase 7 — AI generation + admin
 
-**Goal:** Produce maps from source material (docs, transcripts, audio) via an encapsulated pipeline. Admin page to oversee runs.
+**Goal:** Produce maps from source material (docs, transcripts, audio) via an encapsulated pipeline that turns a long, messy discussion transcript into a **free-form argument map**: a small set of central questions, a deduplicated set of distinct claims, the relationships between them, and a separate fact-check to-do list. Admin page to oversee runs.
 
 Implements: `DIA-AI-1`, `DIA-AI-4`.
 
-**Use the workflow skill (`vercel-plugin:workflow`) here.** Generation is a long-running multi-step task that benefits from durable execution: AssemblyAI transcription (minutes) → prompt pipeline (seconds) → JSON synthesis (seconds) → DB write. Crash mid-run → resume from last completed step.
+**Use the workflow skill (`vercel-plugin:workflow`) here.** Generation is a long-running multi-step task that benefits from durable execution: AssemblyAI transcription (minutes) → 4-stage prompt pipeline (one workflow step per stage) → fact-check side layer → schema mapping → DB write. Each stage's intermediate JSON is persisted before the next stage runs; a crash resumes from the last completed step rather than re-running expensive LLM calls.
 
-**New code:**
+### Design principles (non-negotiable — do not "improve" these away)
 
-- `lib/ai/pipeline.ts` — the pipeline itself, encapsulated. Single export: `generateMap({ inputs, params })` returns a populated `ArgMap`.
-- `lib/ai/assemblyai.ts` — audio (`.m4a`) → transcript via AssemblyAI.
-- `lib/ai/prompts/` — versioned prompt templates (tunable copy style, frame structure, number of maps).
-- `app/api/generations/route.ts` — POST creates a Vercel Workflow run. GET lists runs.
-- `app/admin/page.tsx` — DIA-AI-4 admin UI: list runs, view inputs/outputs, re-run with adjusted params. Gated on `role = 'edit'`.
-- `app/admin/runs/[runId]/page.tsx` — single-run detail with step status, transcripts, generated JSON preview.
+1. **Free-form, not pro/con.** Relationships come from a small *open* palette (`supports, challenges, qualifies, reframes, depends-on, raises`), never a forced for/against binary.
+2. **Claim-checking is a separate layer.** The main pipeline never reasons about truth. Factual claims still appear on the map as ordinary claims; they just carry an `is_factual` flag and are echoed in `fact_check_todos`.
+3. **No provenance / no speaker attribution.** Claims are de-personalized — the pipeline never tracks who said what. (User-level attribution still exists downstream via stakes, which are added by participants *after* the map is generated.)
+4. **The distillate is the product.** Stage 2 (dedup/merge) is the highest-value step and the point where a human reviews. Frequency is not importance — ten restatements of one idea become one claim. Merge decisions must be inspectable via the `absorbed` field.
+5. **Momentum over struggle.** The output foregrounds where the conversation can move (highest-leverage question, latent agreement), not a flat overwhelming web.
+6. **Keep it lean.** Four LLM passes plus one side layer. No more architecture than that. No embeddings, clustering libraries, or graph DB unless transcript scale genuinely forces it.
 
-**Failure modes (per PRD §7.1):** bad audio, partial transcription. Surface them on the run's admin page with clear error text and a "re-run from step N" button.
+### Pipeline output schema (intermediate, before mapping to `ArgMap`)
 
-**Acceptance:**
+```ts
+type PipelineOutput = {
+  claims: { id: string; text: string; is_factual: boolean; absorbed: string[] }[];
+  central_questions: { id: string; question: string; claim_ids: string[] }[];
+  relationships: { from: string; to: string; type: string; question_id: string }[];
+  cross_question_relationships: {
+    from: string; to: string; type: string; note: string; shared_claim_ids: string[];
+  }[];
+  momentum: {
+    highest_leverage_question: string;
+    rationale: string;
+    latent_agreements: { claim_ids: string[]; note: string }[];
+  };
+  fact_check_todos: { claim_id: string; claim_text: string; what_to_check: string }[];
+};
+```
+
+`claims` is the canonical flat list (the distillate). Questions reference claim ids; a claim may be referenced by more than one question (many-to-one — matches PRD §6.4 frame-instance model: a shared claim becomes the same node id appearing in multiple frames).
+
+### Mapping pipeline output → `ArgMap`
+
+The pipeline is model-agnostic; mapping into our app shape happens in a final step (`lib/ai/mapToArgMap.ts`):
+
+- Each `central_question` → one **crux** (`question` becomes the crux text) plus one **frame** of the same id.
+- Each claim attached to a question → one **node** inside that frame; node id = `claim.id` so the same claim referenced by multiple questions appears as a shared node across frames (PRD §6.4).
+- Each `relationships[]` entry → one **edge** in the corresponding frame. `type` is stored verbatim on the edge (free-form palette; no `kind: 'support' | 'rebut'` enum).
+- `cross_question_relationships` → stored in `ArgMap.crossLinks[]` (new optional field) for rendering on the crux view between cruxes; `shared_claim_ids` informs which nodes deserve a visual "appears in multiple frames" marker.
+- `momentum` → stored on `ArgMap.meta.momentum`; the crux view highlights the `highest_leverage_question` crux and surfaces `latent_agreements` in the admin view (and optionally as a side-panel hint in the canvas later).
+- `fact_check_todos` → stored on `ArgMap.meta.factCheckTodos`; surfaced in admin and (Phase 7+) as a small indicator on `is_factual` nodes.
+- Claims keep their `absorbed` array on the node so the side panel can show "this claim collapsed N restatements" for the merge-transparency principle.
+
+### Pipeline stages (each is one LLM call; Stage 1 may run once per chunk)
+
+Edit the prompts as **editable string constants at the top of `lib/ai/pipeline.ts`** — do not bury them in helper files.
+
+**Stage 1 — Extract (wide):** catch everything. Over-include. Do not filter, rank, or merge. Output: `[{ "text": "..." }]`.
+
+**Stage 2 — Distill (merge):** collapse restatements into canonical distinct claims. Sets `is_factual` flag. Populates `absorbed[]` for human review (not attribution). This is the dedup step that also stitches chunks. Output: `{ claims: [{ id, text, is_factual, absorbed }] }`.
+
+**Stage 3 — Organize:** infer `N_QUESTIONS` central questions; attach claims (many-to-one allowed; not every claim must attach). Output: `{ central_questions: [{ id, question, claim_ids }] }`.
+
+**Stage 4 — Relate + momentum:** within-question relationships from the open palette, across-question relationships, plus the momentum lens (highest-leverage question + latent agreements). Output: `{ relationships, cross_question_relationships, momentum }`.
+
+**Side layer — Fact-check (independent, after the map is final):** reads the final claims, selects empirically checkable ones, writes what would need verifying. **Must not modify the map.** Output: `{ fact_check_todos }`.
+
+Full prompt text for all five calls lives at the top of `lib/ai/pipeline.ts`. The exact text follows the spec in `Dialectica V6 PRD.md` §7 (or wherever we land the canonical prompt source); keep that file and the constants in sync.
+
+### Long transcripts / chunking
+
+If the transcript fits one context window, run Stage 1 once and skip chunking. Otherwise: split into overlapping chunks, run **Stage 1 per chunk**, concatenate raw claims, then run **Stage 2 once over the whole pile**. The Stage 2 dedup *is* the chunk-stitching mechanism — restatements across chunk boundaries collapse there. Do not add a separate merge step.
+
+### Configurable knobs (exposed in admin "re-run with params")
+
+Defaults shown; all editable per-run from the admin UI:
+
+- `GRANULARITY` — `"atomic"` (one assertion per claim) vs `"bundled"` (tight cluster). Default: `atomic`.
+- `DEDUP_LEVEL` — `"conservative"` (near-identical only) vs `"aggressive"`. Default: `conservative`.
+- `N_QUESTIONS` — target central-question count (allow 3–7). Default: `5`.
+- `RELATIONSHIP_PALETTE` — open list; Stage 4 may coin a new short label if nothing fits, but should prefer the palette. Default: `supports, challenges, qualifies, reframes, depends-on, raises`.
+
+### New code
+
+- `lib/ai/pipeline.ts` — the pipeline. Single export: `generateMap({ transcript, params }) → { argMap: ArgMap, intermediates: { rawClaims, distilled, questions, relations, factCheck } }`. Stage prompts are exported string constants at the top of the file.
+- `lib/ai/assemblyai.ts` — audio (`.m4a`) → transcript.
+- `lib/ai/mapToArgMap.ts` — pure function: `PipelineOutput → ArgMap`. Unit-tested with fixtures; this is where node/edge id stability is enforced.
+- `lib/ai/jsonParse.ts` — tolerant JSON parser: strips ```` ``` ```` code fences, retries with a "return only JSON" reminder once, fails loudly with the offending text on a second failure. Used between every stage.
+- `lib/ai/chunk.ts` — overlapping-chunk splitter for long transcripts. No-op if input fits.
+- `app/api/generations/route.ts` — POST creates a Vercel Workflow run. GET lists runs. Each stage's output is uploaded to Vercel Blob (one JSON file per stage per run) so a human can open and argue with the distillate.
+- `app/admin/page.tsx` — DIA-AI-4 admin UI: list runs, upload transcript/audio, edit the four knobs, re-run with adjusted params. Gated on `role = 'edit'`.
+- `app/admin/runs/[runId]/page.tsx` — single-run detail with: step status, raw transcript, **every stage's intermediate JSON viewable inline (especially the distillate with `absorbed` arrays expanded)**, generated `ArgMap` preview, "re-run from step N" button, momentum / fact-check todos.
+
+### Failure modes (per PRD §7.1)
+
+- Bad audio, partial transcription → surface on the run's admin page.
+- LLM returns invalid JSON → `jsonParse.ts` retries once, then fails the workflow step loudly with the raw text saved to blob for inspection.
+- Stage 2 over-merges → caught by human review of `absorbed[]` in admin; "re-run from Stage 2" with `DEDUP_LEVEL: conservative` is the fix.
+- Stage 3 produces too few/many questions → re-run from Stage 3 with adjusted `N_QUESTIONS`.
+
+### Pitfalls to avoid (explicit non-goals)
+
+- Stage 1 must not filter or pre-merge — it silently loses claims and fidelity is the whole point.
+- Stage 2 must not over-merge invisibly — `absorbed[]` is mandatory.
+- No pro/con framing, scoring, or "winner" labels anywhere.
+- No fact-checking, truth judgments, or confidence scores in the spine — only in the side layer.
+- No speaker names, quotes, timestamps, or provenance in claims.
+
+### Acceptance
 
 1. Admin uploads an `.m4a` → workflow starts → admin sees AssemblyAI transcript when it completes.
-2. Generated map appears in the homepage grid, openable in crux view, with the right structure.
-3. Re-running a generation with edited prompt params produces a different output, both versions visible in admin history.
-4. A crashed function instance does not lose run state — pipeline resumes on next invocation.
+2. Each of the four pipeline stages writes its intermediate JSON to blob and the file is viewable in the admin run-detail page.
+3. The distilled-claims view shows each canonical claim with its `absorbed[]` expandable — a human can audit every merge decision.
+4. Generated map appears in the homepage grid, openable in crux view: cruxes = central questions, frame nodes = claims, edges carry free-form `type` values from the open palette.
+5. A claim that attaches to multiple questions appears as the same node id across multiple frames (frame-instance model holds).
+6. `momentum.highest_leverage_question` is visually emphasized in the crux view; `latent_agreements` and `fact_check_todos` are visible in admin (canvas surfacing is a follow-on).
+7. Re-running a generation with edited knobs (e.g. `DEDUP_LEVEL: aggressive`, `N_QUESTIONS: 3`) produces a different output; both versions visible in admin history; map ids differ.
+8. A crashed function instance does not lose run state — pipeline resumes from the last completed stage on next invocation.
+9. No claim text in the final map carries speaker names, quotes, or timestamps.
 
 ## Phase 8 — Print + scan-in
 
