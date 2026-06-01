@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type AppUser = {
   id: string;
@@ -35,21 +36,37 @@ export async function currentUser(): Promise<AppUser | null> {
   if (!user) return null;
 
   const { data: row } = await supabase
-    .from("users")
+    .from("Dialectica_users")
     .select("id, email, display_name, role")
     .eq("id", user.id)
     .maybeSingle();
 
   if (!row) {
     // Trigger may not have fired yet in edge cases (e.g. seeded auth user without app row).
+    // Backfill the row via admin client so FKs to Dialectica_users(id) (stakes, annotations) succeed.
+    const email = user.email ?? "";
+    const displayName =
+      (user.user_metadata?.display_name as string | undefined) ??
+      email.split("@")[0] ??
+      "user";
+    const role = email === "mpholsch@media.mit.edu" ? "edit" : "view";
+    const admin = createSupabaseAdminClient();
+    const { data: inserted, error: insertErr } = await admin
+      .from("Dialectica_users")
+      .upsert(
+        { id: user.id, email, display_name: displayName, role },
+        { onConflict: "id" },
+      )
+      .select("id, email, display_name, role")
+      .single();
+    if (insertErr || !inserted) {
+      return { id: user.id, email, displayName, role: "view" };
+    }
     return {
-      id: user.id,
-      email: user.email ?? "",
-      displayName:
-        (user.user_metadata?.display_name as string | undefined) ??
-        user.email?.split("@")[0] ??
-        "user",
-      role: "view",
+      id: inserted.id,
+      email: inserted.email,
+      displayName: inserted.display_name,
+      role: inserted.role,
     };
   }
 

@@ -12,6 +12,7 @@ type Options = {
   mapId: string;
   frameId?: string;
   userId: string;
+  isEditMode: boolean;
 };
 
 function newAnnotationId() {
@@ -68,7 +69,12 @@ function defaultSizeFor(tool: DrawingTool): number {
   }
 }
 
-export function useDrawingHandlers({ mapId, frameId, userId }: Options) {
+export function useDrawingHandlers({
+  mapId,
+  frameId,
+  userId,
+  isEditMode,
+}: Options) {
   const { screenToFlowPosition } = useReactFlow();
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
@@ -206,8 +212,13 @@ export function useDrawingHandlers({ mapId, frameId, userId }: Options) {
     onPointerUp,
     onPaneClick,
     // Eraser dispatch: called by CanvasShell.onNodeClick when mode === 'erase'.
+    // View users can only erase their own strokes (PRD §9.1). The server also
+    // enforces this via RLS, but the client-side guard prevents wasted requests
+    // and avoids surfacing the rejection.
     eraseAnnotation: useCallback(
       async (annotation: Annotation) => {
+        const canErase = isEditMode || annotation.userId === userId;
+        if (!canErase) return;
         removeOptimistic(annotation.id);
         pushHistory({ type: "delete", annotation });
         try {
@@ -216,7 +227,7 @@ export function useDrawingHandlers({ mapId, frameId, userId }: Options) {
           console.error("[drawing] deleteAnnotation failed", err);
         }
       },
-      [mapId, removeOptimistic, pushHistory],
+      [mapId, userId, isEditMode, removeOptimistic, pushHistory],
     ),
   };
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ReactFlow,
   ReactFlowProvider,
   Background,
   MiniMap,
+  useReactFlow,
   type Node,
   type Edge,
   type NodeTypes,
@@ -20,9 +21,15 @@ import type { Annotation } from "@/lib/schema";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { useDrawingHandlers } from "@/lib/canvas/useDrawingHandlers";
 import { createAnnotation } from "@/lib/data/mutations";
+import { subscribeToAnnotations } from "@/lib/realtime/annotations";
+import { stakeKey, type StakeMap } from "@/lib/data/stakes-types";
 import { EditToolbar } from "./EditToolbar";
 import { StrokeNode } from "./StrokeNode";
 import { InFlightStrokeLayer } from "./InFlightStrokeLayer";
+import {
+  NodeContextMenu,
+  type NodeContextMenuState,
+} from "@/components/frame/ContextMenu";
 
 /**
  * Shared React Flow canvas used by Crux view (DIA-VIEW-1) and Frame view (DIA-VIEW-2).
@@ -40,6 +47,7 @@ export function CanvasShell({
   isEditMode,
   onNodeNavigate,
   onAddClaim,
+  stakes,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -52,6 +60,8 @@ export function CanvasShell({
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
+  /** Frame view only: stake aggregates keyed by `${frameId}::${nodeId}`. */
+  stakes?: StakeMap;
 }) {
   // Always include the stroke node type alongside whatever the caller passes.
   const mergedNodeTypes = useMemo<NodeTypes>(
@@ -73,6 +83,7 @@ export function CanvasShell({
         isEditMode={isEditMode}
         onNodeNavigate={onNodeNavigate}
         onAddClaim={onAddClaim}
+        stakes={stakes}
       />
     </ReactFlowProvider>
   );
@@ -90,6 +101,7 @@ function Canvas({
   isEditMode,
   onNodeNavigate,
   onAddClaim,
+  stakes,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -102,20 +114,78 @@ function Canvas({
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
+  stakes?: StakeMap;
 }) {
   const router = useRouter();
+  const reactFlow = useReactFlow();
   const mode = useUIStore((s) => s.mode);
   const optimisticAdds = useUIStore((s) => s.optimisticAdds);
   const optimisticDeletes = useUIStore((s) => s.optimisticDeletes);
   const bindMap = useUIStore((s) => s.bindMap);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
+  const removeOptimistic = useUIStore((s) => s.removeOptimistic);
+  const openSidePanel = useUIStore((s) => s.openSidePanel);
+  const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
+    null,
+  );
 
   // Reset session-local annotation state when the map changes.
   useEffect(() => {
     bindMap(mapId);
   }, [mapId, bindMap]);
 
-  const drawing = useDrawingHandlers({ mapId, frameId, userId });
+  // Phase 5 / DIA-ANNO-4 — subscribe to Supabase Realtime so other users'
+  // strokes appear in this client within ~200ms. Inserts/updates land in the
+  // optimistic-adds layer; deletes land in optimistic-deletes. Self-broadcasts
+  // are dedup'd by id since our own optimistic entries already have that id.
+  useEffect(() => {
+    const unsubscribe = subscribeToAnnotations(mapId, {
+      onUpsert: (annotation) => {
+        if (annotation.userId === userId) return; // already in local store
+        addOptimistic(annotation);
+      },
+      onDelete: (id) => {
+        removeOptimistic(id);
+      },
+    });
+    return unsubscribe;
+  }, [mapId, userId, addOptimistic, removeOptimistic]);
+
+  const drawing = useDrawingHandlers({
+    mapId,
+    frameId,
+    userId,
+    isEditMode,
+  });
+
+  // Delete / Backspace removes selected stroke (or text-box) nodes.
+  // We handle this ourselves rather than rely on React Flow's built-in
+  // `deleteKeyCode` so we go through the existing eraseAnnotation flow —
+  // optimistic delete, undo-history push, DB persist — in one path.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      // Don't intercept while the user is typing inside a textbox / input.
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA")
+      ) {
+        return;
+      }
+      const selected = reactFlow
+        .getNodes()
+        .filter((n) => n.selected && n.type === "stroke");
+      if (selected.length === 0) return;
+      e.preventDefault();
+      for (const node of selected) {
+        const ann = (node.data as { annotation?: Annotation }).annotation;
+        if (ann) void drawing.eraseAnnotation(ann);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [reactFlow, drawing]);
 
   // Merge server annotations with optimistic adds, filter by optimistic deletes.
   // Filter further by frameId scope: frame view sees only this frame's annotations.
@@ -193,13 +263,37 @@ function Canvas({
         }
         return;
       }
-      // Select mode: clicking a content node may navigate (strokes get dragged, not navigated).
-      if (mode === "select" && node.type !== "stroke") {
-        const target = onNodeNavigate?.(node.id);
-        if (target) router.push(target);
+      if (mode !== "select" || node.type === "stroke") return;
+      // Frame view: clicking a claim/question opens the side panel (PRD §5.3 / DIA-VIEW-3.5).
+      if (frameId && (node.type === "claim" || node.type === "question")) {
+        openSidePanel({ frameId, nodeId: node.id });
+        return;
       }
+      // Crux view: navigate into the clicked crux's frame.
+      const target = onNodeNavigate?.(node.id);
+      if (target) router.push(target);
     },
-    [mode, drawing, onNodeNavigate, router],
+    [mode, drawing, frameId, openSidePanel, onNodeNavigate, router],
+  );
+
+  // Right-click on a content node opens the stake context menu. PRD §10.1.
+  const handleNodeContextMenu: NodeMouseHandler = useCallback(
+    (event, node) => {
+      if (!frameId) return;
+      if (node.type !== "claim" && node.type !== "question") return;
+      event.preventDefault();
+      event.stopPropagation();
+      const bucket = stakes?.[stakeKey(frameId, node.id)];
+      setContextMenu({
+        mapId,
+        frameId,
+        nodeId: node.id,
+        selfStaked: bucket?.selfStaked ?? false,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    [frameId, mapId, stakes],
   );
 
   const drawingActive = mode === "draw";
@@ -219,6 +313,7 @@ function Canvas({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
+        onNodeContextMenu={handleNodeContextMenu}
         onNodesChange={handleNodesChange}
         nodesDraggable
         nodesConnectable={false}
@@ -244,6 +339,10 @@ function Canvas({
         mapId={mapId}
         isEditMode={isEditMode}
         onAddClaim={onAddClaim}
+      />
+      <NodeContextMenu
+        state={contextMenu}
+        onClose={() => setContextMenu(null)}
       />
     </div>
   );

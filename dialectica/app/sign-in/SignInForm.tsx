@@ -1,11 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
-import { sendMagicLink, type SignInState } from "./actions";
+import { sendMagicLink, signInAsMaxDev, type SignInState } from "./actions";
 
 export function SignInForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState<SignInState, FormData>(
     sendMagicLink,
+    { status: "idle" },
+  );
+  const [devState, devAction, devPending] = useActionState<SignInState, FormData>(
+    signInAsMaxDev,
     { status: "idle" },
   );
 
@@ -22,6 +26,7 @@ export function SignInForm({ next }: { next: string }) {
   }
 
   return (
+    <>
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="next" value={next} />
       <label className="block">
@@ -60,6 +65,27 @@ export function SignInForm({ next }: { next: string }) {
       {state.status === "error" && (
         <p className="font-mono text-[12px] text-dia-pink">{state.message}</p>
       )}
+
+      <div className="mt-6 border-t border-dia-border pt-4">
+        <p className="font-mono text-[11px] uppercase tracking-[1.2px] text-dia-fg-dim">
+          Dev shortcut
+        </p>
+        <button
+          type="submit"
+          form="dev-sign-in"
+          disabled={devPending}
+          className="mt-2 flex h-9 w-full items-center justify-center rounded-full border border-dia-border-strong bg-dia-bg font-mono text-[12px] text-dia-fg disabled:opacity-60"
+        >
+          {devPending ? "Signing in…" : "Sign in as Max (mpholsch@media.mit.edu)"}
+        </button>
+        {devState.status === "error" && (
+          <p className="mt-2 font-mono text-[12px] text-dia-pink">{devState.message}</p>
+        )}
+      </div>
     </form>
+    <form id="dev-sign-in" action={devAction}>
+      <input type="hidden" name="next" value={next} />
+    </form>
+    </>
   );
 }

@@ -52,7 +52,7 @@ async function main() {
     }
     ArgMap.parse(map);
 
-    const { error } = await supabase.from("maps").upsert(
+    const { error } = await supabase.from("Dialectica_maps").upsert(
       {
         id: card.id,
         title: card.title,

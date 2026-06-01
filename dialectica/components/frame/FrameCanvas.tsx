@@ -8,8 +8,10 @@ import {
   type NodeTypes,
   type EdgeTypes,
 } from "@xyflow/react";
-import type { ArgMap, Frame } from "@/lib/schema";
+import type { ArgMap, Frame, Annotation } from "@/lib/schema";
+import type { StakeMap } from "@/lib/data/stakes-types";
 import { CanvasShell } from "@/components/canvas/CanvasShell";
+import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
 import { LabeledEdge } from "./LabeledEdge";
 
@@ -25,14 +27,22 @@ const EDGE_TYPES: EdgeTypes = {
 export function FrameCanvas({
   map,
   frame,
+  annotations,
   userId,
   isEditMode,
+  stakes,
 }: {
   map: ArgMap;
   frame: Frame;
+  annotations: Annotation[];
   userId: string;
   isEditMode: boolean;
+  stakes: StakeMap;
 }) {
+  const selectedNodeId = useUIStore((s) =>
+    s.sidePanelNode?.frameId === frame.id ? s.sidePanelNode.nodeId : null,
+  );
+
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = frame.nodeInstances.map((inst) => {
       const canonical = map.nodes[inst.nodeId];
@@ -42,7 +52,11 @@ export function FrameCanvas({
         id: inst.nodeId,
         type: canonical?.type ?? "claim",
         position: inst.position,
-        data: { text: canonical?.text ?? "", tint },
+        data: {
+          text: canonical?.text ?? "",
+          tint,
+          selected: selectedNodeId === inst.nodeId,
+        },
         width: size.width,
         height: size.height,
         draggable: false,
@@ -63,7 +77,7 @@ export function FrameCanvas({
     }));
 
     return { nodes, edges };
-  }, [map, frame]);
+  }, [map, frame, selectedNodeId]);
 
   return (
     <CanvasShell
@@ -71,11 +85,12 @@ export function FrameCanvas({
       edges={edges}
       nodeTypes={NODE_TYPES}
       edgeTypes={EDGE_TYPES}
-      annotations={map.annotations}
+      annotations={annotations}
       mapId={map.id}
       frameId={frame.id}
       userId={userId}
       isEditMode={isEditMode}
+      stakes={stakes}
     />
   );
 }

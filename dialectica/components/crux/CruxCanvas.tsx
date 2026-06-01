@@ -7,7 +7,7 @@ import {
   type Edge,
   type NodeTypes,
 } from "@xyflow/react";
-import type { ArgMap } from "@/lib/schema";
+import type { ArgMap, Annotation } from "@/lib/schema";
 import { CanvasShell } from "@/components/canvas/CanvasShell";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
@@ -19,10 +19,12 @@ const NODE_TYPES: NodeTypes = {
 
 export function CruxCanvas({
   map,
+  annotations,
   userId,
   isEditMode,
 }: {
   map: ArgMap;
+  annotations: Annotation[];
   userId: string;
   isEditMode: boolean;
 }) {
@@ -85,7 +87,7 @@ export function CruxCanvas({
       nodes={nodes}
       edges={edges}
       nodeTypes={NODE_TYPES}
-      annotations={map.annotations}
+      annotations={annotations}
       mapId={map.id}
       userId={userId}
       isEditMode={isEditMode}

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed": "node --env-file=.env.local --import tsx db/seed.ts"
+    "db:seed": "node --env-file=.env.local --import tsx db/seed.ts",
+    "db:seed:stakes": "node --env-file=.env.local --import tsx db/seed-stakes.ts",
+    "db:migrate:annotations": "node --env-file=.env.local --import tsx db/migrate-annotations.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

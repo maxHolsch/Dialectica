@@ -97,7 +97,7 @@ type MapRow = {
 export async function listMaps(): Promise<MapSummary[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("maps")
+    .from("Dialectica_maps")
     .select("id, title, data, updated_at")
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -112,7 +112,7 @@ export async function listMaps(): Promise<MapSummary[]> {
 export async function listMapCards(): Promise<MapCard[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("maps")
+    .from("Dialectica_maps")
     .select("id, title, visibility, updated_at")
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -136,7 +136,7 @@ export async function listMapCards(): Promise<MapCard[]> {
 export async function getMap(id: string): Promise<ArgMap | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
-    .from("maps")
+    .from("Dialectica_maps")
     .select("data")
     .eq("id", id)
     .maybeSingle();

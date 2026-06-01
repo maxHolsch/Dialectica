@@ -15,8 +15,9 @@ Phases 0, 1, and 2 are shipped (project bootstrap + 3 pixel-perfect read-only vi
 | 6 | Version control | `DIA-VER-1` | requires Phase 2 (event sink); design-once |
 | 7 | AI generation + admin | `DIA-AI-1`, `DIA-AI-4` | requires Phase 2 (write maps), independent of 3–6 |
 | 8 | Print + scan-in | `DIA-PRINT-1/2` | requires Phase 2 (read maps), independent of 3–7 |
-| 9 | Heatmap iframe | `DIA-VIEW-3.7` | requires Phase 4 (entry point) |
+| 9 | Heatmap iframe | `DIA-VIEW-3.7` | merged into Phase 4 (entry point + split view shipped together) |
 | 10 | Theming / assets | `DIA-ASSET-1` | independent; cleanup pass |
+| 11 | Google OAuth sign-in | extends `DIA-MAP-2/3` auth (PRD §6.6) | requires Phase 2; independent of all others |
 
 ## Phase 2 — Supabase auth + persistence ✅ shipped
 
@@ -139,11 +140,15 @@ Implements: `DIA-MODE-2`, `DIA-VIEW-1` edit, `DIA-VIEW-2` edit, `DIA-MAP-4` prop
 10. Click `+ ADD CLAIM` → new tile appears at viewport center; associated empty `Frame` created.
 11. Pixel-stable for view-mode content nodes (PRD §6.7) — adding annotations does not shift nodes.
 
-## Phase 4 — Claim staking + side panel
+## Phase 4 — Claim staking + side panel + heatmap split view ✅ shipped
 
-**Goal:** Participants can right-click a node and "I stand behind this." Clicking a node opens a side panel showing the stake count, list of stakers (names only in edit mode), and a stub "Where was this said?" button.
+**Goal:** Participants can right-click a node and "I stand behind this." Clicking a node opens a side panel showing the stake count, list of stakers (with emails on name hover), and a hover-revealed "Where was this said?" trigger that expands into a side-by-side Heatmap iframe.
 
-Implements: `DIA-CLAIM-1`, `DIA-VIEW-3.5`.
+Implements: `DIA-CLAIM-1`, `DIA-VIEW-3.5`, and `DIA-VIEW-3.7` (the heatmap split view formerly scoped to Phase 9 — folded in because the side panel is its only entry point).
+
+**Figma references:** side panel layout [Dialectia · views `34:53`](https://www.figma.com/design/8lnl3MImPRpi6QftZMEDsw/Dialectia-%C2%B7-views?node-id=34-53); hover-trigger region [`40:53`](https://www.figma.com/design/8lnl3MImPRpi6QftZMEDsw/Dialectia-%C2%B7-views?node-id=40-53).
+
+**New deps:** [`react-resizable-panels`](https://github.com/bvaughn/react-resizable-panels) for the heatmap splitter.
 
 **Schema:**
 
@@ -163,25 +168,56 @@ Stakes attach to the **frame instance** per PRD §6.4: `(map_id, frame_id, node_
 
 **New components:**
 
-- `components/frame/SidePanel.tsx` — slide-out panel anchored to right edge. Opens via React Flow `onNodeClick` (was a no-op in Phase 1). Shows the claim text, "I stand behind this" button, stake count, optional list of stakers.
+- `components/frame/SidePanel.tsx` — slide-out panel anchored to right edge, styled per Figma `34:53`. Two width modes: `compact` (default) and `expanded` (engaged when the heatmap split view is open). Opens via React Flow `onNodeClick` (was a no-op in Phase 1). Renders claim text, stake button, count, and the staker list.
+- `components/frame/StakerList.tsx` — names rendered per `currentMode()` (see attribution rules below). Each name is a hover target: `onMouseEnter` reveals a tooltip with the user's `users.email`. Tooltip styled to match the panel chrome.
 - `components/frame/StakeButton.tsx` — toggles the current user's stake. Optimistic update.
 - `components/frame/ContextMenu.tsx` — right-click handler on nodes; "I stand behind this" shortcut.
-- `lib/state/useUIStore.ts` — adds `sidePanelNode: { frameId, nodeId } | null` and open/close actions.
+- `components/frame/WhereWasThisSaidTrigger.tsx` — the hover-revealed entry point per Figma `40:53`. Hidden by default. Hovering the `40:53` image region fades in the pill button plus an extending text box. Cursor anywhere over the button **or** the extension keeps it visible; leaving both fades it out after a ~150ms forgiveness delay. Implementation: a single hover group `<div>` wrapping the trigger area, button, and extension, with a `pointer-events: auto` invisible bridge so cursor travel between button and text doesn't trip the leave.
+- `components/frame/HeatmapPanel.tsx` — `react-resizable-panels` 2-pane split. Default: Dialectica left at 25%, heatmap iframe right at 75%. Slider clamps to a Dialectica-side range of 15%–85% (heatmap 85%–15%) per PRD §5.4. Iframe `src = "https://heatmap-nine-iota.vercel.app"` (placeholder until the heatmap exposes a per-claim deep-link API; URL builder lives in `lib/heatmap.ts` so the swap is one-line).
+- `lib/state/useUIStore.ts` — adds `sidePanelNode: { frameId, nodeId } | null`, `sidePanelMode: 'compact' | 'expanded'`, `heatmapSplit: number` (0–1, Dialectica side width), and open/close/expand/restore actions.
 
-**Attribution visibility (PRD §6.6):** the staker list reads `currentMode()` and shows names only in edit mode. Counts always visible.
+**Behavior — hover reveal of "Where was this said?":**
+
+The trigger is the only side-panel control that isn't always visible. Hover semantics:
+
+1. Cursor enters the `40:53` image region → trigger fades in (button + extending text box).
+2. Cursor over the button OR the extension → trigger stays.
+3. Cursor leaves both → fades out after ~150ms.
+4. Click on the button or the extension text → opens the heatmap split view (below) and locks the trigger visible until the split view is dismissed.
+
+**Behavior — expand to split view:**
+
+Clicking the trigger transitions the layout from "frame canvas full-width + compact side panel" to a 2-pane split: Dialectica (canvas + expanded side panel) on the left at 25%, Heatmap iframe on the right at 75%. The splitter is draggable; the Dialectica side clamps to 15%–85%. Closing the heatmap (✕ on the panel or pressing Esc) restores the full-width canvas and returns the side panel to compact mode.
+
+**Attribution visibility (PRD §6.6):** the staker list reads `currentMode()`. View mode shows stake count only. Edit mode shows names; hovering a name reveals that user's email via tooltip. Counts are always visible.
 
 **Acceptance:**
 
 1. View-mode user right-clicks a claim → menu shows "I stand behind this" → clicking adds their stake → count increments.
-2. Clicking the same claim again opens the side panel with the full text, stake count, and a "Where was this said?" button (stubbed → returns to canvas in Phase 4; routes to Phase 9 split view once that ships).
-3. View-mode user sees count but not names; edit-mode user sees both.
-4. One-stake-per-user enforced (unique constraint).
+2. Clicking a claim opens the side panel in compact mode matching Figma `34:53`. The "Where was this said?" button is **not** visible.
+3. Edit-mode user sees staker names; hovering any name reveals a tooltip with that user's email.
+4. View-mode user sees the count but no names, and no email tooltip.
+5. Hovering the `40:53` image region reveals the button + extending text box. Cursor travel between the button and the extension keeps it visible. Moving fully off both fades it out after ~150ms.
+6. Clicking the button (or its extension text) opens the side-by-side split view: Dialectica 25% left, heatmap iframe 75% right, loading `https://heatmap-nine-iota.vercel.app`. The side panel widens to `expanded` mode.
+7. Dragging the splitter resizes both panes, clamped between 15% and 85% on the Dialectica side.
+8. Closing the heatmap restores the full-width canvas and the compact side panel.
+9. One-stake-per-user enforced (unique constraint).
 
-## Phase 5 — Annotation realtime + multi-user
+## Phase 5 — Annotation realtime + multi-user ✅ shipped
 
-**Goal:** Migrate Phase 3's local-only annotations to a dedicated table + Supabase Realtime so participants see each other's strokes within ~200ms. Add view-vs-edit permission asymmetry and the sticker tool.
+**Goal:** Migrate Phase 3's local-only annotations to a dedicated table + Supabase Realtime so participants see each other's strokes within ~200ms. Add view-vs-edit permission asymmetry. Sticker + marker polish deferred to a future extension.
 
-Implements: `DIA-ANNO-4` realtime, the remainder of `DIA-ANNO-1` (sticker + marker), Phase 3 → Phase 5 migration of stroke storage.
+Implements: `DIA-ANNO-4` realtime, Phase 3 → Phase 5 migration of stroke storage. Sticker tool polish (the remainder of `DIA-ANNO-1`) deferred per §16.
+
+**Hosted Supabase switchover:** Phase 5 moves off the local supabase stack to the hosted project at `https://enokfgiwbgianwblplcn.supabase.co`. All tables now carry the `Dialectica_` prefix (mixed-case, double-quoted at the DDL level): `Dialectica_users`, `Dialectica_maps`, `Dialectica_map_access`, `Dialectica_stakes`, `Dialectica_annotations`.
+
+**Setup (new clone or first hosted run):**
+
+1. `.env.local` populated with `NEXT_PUBLIC_SUPABASE_URL` (hosted), `NEXT_PUBLIC_SUPABASE_ANON_KEY` (the `sb_publishable_*` value), and `SUPABASE_SERVICE_ROLE_KEY` from the Supabase dashboard.
+2. Apply [`db/schema.sql`](db/schema.sql) via Supabase Studio → SQL editor.
+3. `pnpm db:seed` to seed maps.
+4. `pnpm db:seed:stakes` for the participant sample.
+5. (Phase 3 → Phase 5 only) `pnpm db:migrate:annotations` copies any pre-existing `maps.data.annotations[]` rows into `Dialectica_annotations` and strips them from the JSONB blob.
 
 **Schema migration (Phase 3 ships JSONB-only; Phase 5 adds the table):**
 
@@ -315,23 +351,9 @@ Implements: `DIA-PRINT-1`, `DIA-PRINT-2`.
 2. Scan a booklet page: visible scribbles on the printed page appear within ~10 seconds as annotation strokes on the corresponding digital frame.
 3. Repeated uploads of the same page do not duplicate strokes (idempotency via photo content hash or upload session id).
 
-## Phase 9 — Heatmap iframe (DIA-VIEW-3.7)
+## Phase 9 — Heatmap iframe (DIA-VIEW-3.7) — merged into Phase 4
 
-**Goal:** Side-by-side split view triggered by "Where was this said?" in Phase 4's side panel. Heatmap is an external tool surfaced as an iframe.
-
-**New components:**
-
-- `components/frame/HeatmapPanel.tsx` — iframe wrapped in a resizable splitter (Dialectica left, heatmap right). Splitter constrained to 15% ↔ 85% per PRD §5.4. Use `react-resizable-panels`.
-- `lib/heatmap.ts` — URL builder per node: `heatmapUrl(claimText)`. Per PRD §5.4 this is a "pre-run all prompts for each claim" model — until the heatmap tool exposes a real API, fall back to a grey-box `<div>` matching the iframe's intended size.
-
-**State:** Phase 4's side panel passes the active claim. Clicking "Where was this said?" sets `useUIStore.heatmapClaim = { frameId, nodeId }`; the FramePage layout then renders `HeatmapPanel` instead of full-width `FrameCanvas`.
-
-**Acceptance:**
-
-1. From a claim's side panel, clicking "Where was this said?" splits the view: Dialectica takes 25%, heatmap iframe takes 75%.
-2. Dragging the splitter resizes both panes, clamped to 15%/85%.
-3. Closing the heatmap returns to full-width frame view.
-4. When the heatmap tool isn't reachable, the right pane shows a clearly-labeled grey placeholder instead of a broken iframe.
+The split view + iframe (`HeatmapPanel.tsx`, `lib/heatmap.ts`, slider behavior, acceptance criteria) is shipped as part of Phase 4 because the side panel is its only entry point and the two were always going to share state. The placeholder iframe URL is `https://heatmap-nine-iota.vercel.app`; swap to a per-claim deep link once the heatmap exposes one (one-line change in `lib/heatmap.ts`).
 
 ## Phase 10 — Theming / assets
 
@@ -370,6 +392,51 @@ assets/
 4. Sticker authoring guidelines (size, padding, color)
 
 **Acceptance:** changing `active` from `default` to a new theme propagates through the homepage, both canvas views, and all UI chrome without code edits.
+
+## Phase 11 — Google OAuth sign-in
+
+**Goal:** Add "Continue with Google" alongside the existing magic-link flow so participants can sign in without checking email. Magic-link remains the primary path (anyone with an email works); Google is an optional accelerator.
+
+Extends `DIA-MAP-2/3` auth per PRD §6.6 (the PRD says "no SSO" — this is a deliberate scope change to reduce friction at events; revisit with stakeholder before shipping).
+
+**Setup:**
+
+1. Supabase dashboard → **Authentication → Providers → Google** → enable. Copy the **Callback URL** Supabase displays (`https://enokfgiwbgianwblplcn.supabase.co/auth/v1/callback`).
+2. Google Cloud Console → **APIs & Services → Credentials → Create OAuth client ID** (Web application). Paste the Supabase callback URL into **Authorized redirect URIs**. Copy the **Client ID** and **Client Secret** back into Supabase's Google provider form.
+3. In Supabase **Auth → URL Configuration → Redirect URLs**, allowlist `http://localhost:3000` (local) and the production origin.
+
+**Code changes:**
+
+- `app/sign-in/SignInForm.tsx` — add a "Continue with Google" button above the existing form. Uses the browser client (OAuth needs to run client-side so Supabase can manage the PKCE redirect):
+
+  ```tsx
+  const supabase = createSupabaseBrowserClient();
+  await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+  });
+  ```
+
+- [`app/auth/callback/route.ts`](app/auth/callback/route.ts) — no changes needed. The same `exchangeCodeForSession` PKCE handler already used for magic links works for OAuth.
+
+**Display-name handling (the only real gotcha):**
+
+The magic-link flow forces a `display_name` at signup. Google OAuth won't have that — Supabase populates `user_metadata.full_name` from the Google profile instead. Two paths:
+
+- **Quick:** in the `Dialectica_users` insert trigger (or post-callback hook), fall back to `user_metadata.full_name` when `display_name` is missing.
+- **Cleaner:** redirect first-time Google users to an `/onboarding` step that asks for a display name before letting them into `/`.
+
+**Remove dev shortcut:** the `signInAsMaxDev` server action and the "Sign in as Max" button in [`app/sign-in/`](app/sign-in/) exist as a stand-in while Google is unwired. Delete `lib/supabase/admin.ts` usage from `actions.ts` (or keep the admin client for other needs) and remove the dev form/button.
+
+**Acceptance:**
+
+1. Sign-in page shows "Continue with Google" above the email form.
+2. Clicking it bounces to Google's consent screen, then back to `/auth/callback`, which sets the session cookie and lands on `/`.
+3. A new Google user gets a `Dialectica_users` row with a populated `display_name` (from Google profile or onboarding step).
+4. `mpholsch@media.mit.edu` signing in via Google still gets `role = 'edit'` (the existing trigger keys on email, which Google provides).
+5. Existing magic-link flow continues to work unchanged.
+
+**Risk:** mixing auth methods for the same email — if Max signs up via magic link first, then tries Google, Supabase merges based on email by default. Verify behavior in a staging project before production.
 
 ## Deferred (post-event)
 

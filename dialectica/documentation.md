@@ -2,7 +2,7 @@
 
 > Source PRD: [`../Dialectica V6 PRD.md`](../Dialectica%20V6%20PRD.md) · Roadmap for unbuilt phases: [`ROADMAP.md`](ROADMAP.md)
 
-This document describes **what exists today** (Phases 0 + 1 + 2) and how the codebase is organized. For things that haven't been built yet, see [`ROADMAP.md`](ROADMAP.md).
+This document describes **what exists today** (Phases 0–5) and how the codebase is organized. For things that haven't been built yet, see [`ROADMAP.md`](ROADMAP.md).
 
 ---
 
@@ -235,19 +235,21 @@ The Figma reference screenshots and dev captures live in [`.screenshots/`](.scre
 
 ---
 
-## Auth + persistence (Phase 2)
+## Auth + persistence (Phase 2 → Phase 5)
 
-Auth and the `maps` table live in Supabase. Phase 2 is wired to **local Supabase** via the Supabase CLI (`supabase start` → containers on ports 54321 / 54322 / 54323 / 54324). The flow:
+Auth and the data tables live in Supabase. As of Phase 5 the app points at the **hosted Supabase project** `https://enokfgiwbgianwblplcn.supabase.co`. All tables use the `Dialectica_` prefix (mixed-case, so DDL double-quotes them and the JS client passes the exact string): `Dialectica_users`, `Dialectica_maps`, `Dialectica_map_access`, `Dialectica_stakes`, `Dialectica_annotations`.
 
 1. **First-time setup:**
-   - Ensure the local Supabase stack is running: `docker ps | grep supabase_kong_app` should show port 54321 → 8000.
-   - [`.env.local`](.env.local) is already populated with the default local keys.
-   - Apply schema: `docker cp db/schema.sql supabase_db_app:/tmp/ && docker exec supabase_db_app psql -U postgres -d postgres -f /tmp/schema.sql` (or paste it into Supabase Studio's SQL editor at http://127.0.0.1:54323).
+   - Populate [`.env.local`](.env.local) with the hosted URL and the `sb_publishable_*` publishable key (slotted under `NEXT_PUBLIC_SUPABASE_ANON_KEY` so existing client/server wrappers keep working).
+   - Fetch the project's `service_role` key from the Supabase dashboard → Project Settings → API and set `SUPABASE_SERVICE_ROLE_KEY`.
+   - Apply schema: open the SQL editor in Supabase Studio and run [`db/schema.sql`](db/schema.sql).
    - Seed the 6 fixture maps: `pnpm db:seed`.
-   - **Magic-link emails:** local Supabase doesn't actually send mail — links are caught by Inbucket at http://127.0.0.1:54324. Sign in, then open Inbucket to click the link.
-2. **Sign-in:** users enter email + display name on [`/sign-in`](app/sign-in/page.tsx); Supabase sends a magic link that hits [`/auth/callback`](app/auth/callback/route.ts); the PKCE exchange sets the session cookie. The trigger in [`db/schema.sql`](db/schema.sql) inserts a row in `public.users` on signup — `mpholsch@media.mit.edu` is hard-coded as `role = 'edit'`; everyone else defaults to `view`.
+   - Seed participants + stakes: `pnpm db:seed:stakes`.
+   - Phase 3 → Phase 5 migration (only relevant if you had JSONB annotations on the old local stack): `pnpm db:migrate:annotations`.
+2. **Sign-in:** users enter email + display name on [`/sign-in`](app/sign-in/page.tsx); Supabase sends a magic link that hits [`/auth/callback`](app/auth/callback/route.ts); the PKCE exchange sets the session cookie. The trigger in [`db/schema.sql`](db/schema.sql) inserts a row in `Dialectica_users` on signup — `mpholsch@media.mit.edu` is hard-coded as `role = 'edit'`; everyone else defaults to `view`.
 3. **Auth gate:** [`proxy.ts`](proxy.ts) (Next.js 16's renamed middleware) refreshes the Supabase session on every request and bounces unauthenticated users to `/sign-in`.
-4. **Mode:** [`currentMode()`](lib/data/users.ts) reads `users.role`. The homepage hides `+ NEW MAP` and the right-click rename/delete menu for view-mode users; mutations in [`lib/data/mutations.ts`](lib/data/mutations.ts) double-check on the server and RLS enforces the same in the DB.
+4. **Mode:** [`currentMode()`](lib/data/users.ts) reads `Dialectica_users.role`. The homepage hides `+ NEW MAP` and the right-click rename/delete menu for view-mode users; mutations in [`lib/data/mutations.ts`](lib/data/mutations.ts) double-check on the server and RLS enforces the same in the DB.
+5. **Realtime annotations (Phase 5):** the Phase 3 JSONB-backed `ArgMap.annotations` array is replaced by the `Dialectica_annotations` table. [`lib/data/annotations.ts`](lib/data/annotations.ts) handles reads/writes; [`lib/realtime/annotations.ts`](lib/realtime/annotations.ts) opens a Supabase Realtime channel per map so strokes propagate to other clients within ~200ms. RLS plus a client-side guard in [`useDrawingHandlers`](lib/canvas/useDrawingHandlers.ts) implement the §9.1 rule: view users can only erase their own strokes; edit users can erase any.
 
 ### Adding a new map
 

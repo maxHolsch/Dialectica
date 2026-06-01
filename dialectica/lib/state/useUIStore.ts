@@ -13,6 +13,15 @@ type HistoryAction =
   | { type: "create"; annotation: Annotation }
   | { type: "delete"; annotation: Annotation };
 
+// Phase 4 — side panel + heatmap split view. Stakes attach to a frame instance,
+// so the side panel always knows the (frameId, nodeId) pair it was opened from.
+export type SidePanelTarget = { frameId: string; nodeId: string };
+export type SidePanelMode = "compact" | "expanded";
+// Dialectica-side width of the split. Clamped to [0.15, 0.85] per PRD §5.4.
+export const HEATMAP_SPLIT_MIN = 0.15;
+export const HEATMAP_SPLIT_MAX = 0.85;
+export const HEATMAP_SPLIT_DEFAULT = 0.25;
+
 type UIStore = {
   // Mode + tool selection
   mode: CanvasMode;
@@ -25,6 +34,16 @@ type UIStore = {
   // Current map context — used to reset local state on map switch
   activeMapId: string | null;
   bindMap: (mapId: string) => void;
+
+  // Side panel (Phase 4) — null when no claim is selected.
+  sidePanelNode: SidePanelTarget | null;
+  sidePanelMode: SidePanelMode;
+  heatmapSplit: number; // 0..1, Dialectica-side width fraction
+  openSidePanel: (target: SidePanelTarget) => void;
+  closeSidePanel: () => void;
+  expandHeatmap: () => void;
+  restoreHeatmap: () => void;
+  setHeatmapSplit: (fraction: number) => void;
 
   // Optimistic annotation layer keyed by id. Live on top of the server-loaded
   // annotations from props; we merge by id when rendering.
@@ -65,8 +84,28 @@ export const useUIStore = create<UIStore>((set, get) => ({
       inFlightPoints: null,
       history: [],
       cursor: 0,
+      sidePanelNode: null,
+      sidePanelMode: "compact",
+      heatmapSplit: HEATMAP_SPLIT_DEFAULT,
     });
   },
+
+  sidePanelNode: null,
+  sidePanelMode: "compact",
+  heatmapSplit: HEATMAP_SPLIT_DEFAULT,
+  openSidePanel: (target) =>
+    set({ sidePanelNode: target, sidePanelMode: "compact" }),
+  closeSidePanel: () =>
+    set({ sidePanelNode: null, sidePanelMode: "compact" }),
+  expandHeatmap: () => set({ sidePanelMode: "expanded" }),
+  restoreHeatmap: () => set({ sidePanelMode: "compact" }),
+  setHeatmapSplit: (fraction) =>
+    set({
+      heatmapSplit: Math.min(
+        HEATMAP_SPLIT_MAX,
+        Math.max(HEATMAP_SPLIT_MIN, fraction),
+      ),
+    }),
 
   optimisticAdds: {},
   optimisticDeletes: {},
