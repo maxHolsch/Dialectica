@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -24,10 +24,17 @@ type MovableLabelEdgeData = {
 const OFFSET_MIN = -0.45;
 const OFFSET_MAX = 0.45;
 
+const clampOffset = (o: number) =>
+  Math.max(OFFSET_MIN, Math.min(OFFSET_MAX, o));
+
+// Stored offset is centered at 0 (midpoint) with range ±0.45. Convert to a
+// fraction of total path length where 0 = source end, 1 = target end.
+const offsetToFraction = (offset: number) => 0.5 + clampOffset(offset);
+
 /**
  * Smooth-step edge with an HTML label rendered on top. In move mode the label
- * becomes draggable along the source→target axis; the parent canvas persists
- * the resulting offset to the map JSON.
+ * becomes draggable along the actual rendered path (including any kinks);
+ * the parent canvas persists the resulting offset to the map JSON.
  */
 export function MovableLabelEdge({
   id,
@@ -40,6 +47,7 @@ export function MovableLabelEdge({
   data,
   markerEnd,
   style,
+  selected,
 }: EdgeProps) {
   const { screenToFlowPosition } = useReactFlow();
   const mode = useUIStore((s) => s.mode);
@@ -61,13 +69,29 @@ export function MovableLabelEdge({
     borderRadius: 14,
   });
 
-  // The label position interpolates along the straight source→target line,
-  // offset from the midpoint by `labelOffset`. labelOffset = 0 → midpoint;
-  // ±0.45 → near the respective endpoint.
-  const dx = targetX - sourceX;
-  const dy = targetY - sourceY;
-  const labelX = midX + dx * labelOffset;
-  const labelY = midY + dy * labelOffset;
+  // Detached <path> used purely for SVG geometry (getTotalLength /
+  // getPointAtLength) so the label can travel along the real rendered curve,
+  // including the corners produced by smooth-step routing. Rebuilt only when
+  // the path string itself changes.
+  const pathMetrics = useMemo(() => {
+    if (typeof document === "undefined") return null;
+    const el = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path",
+    );
+    el.setAttribute("d", edgePath);
+    return { el, length: el.getTotalLength() };
+  }, [edgePath]);
+
+  const { labelX, labelY } = useMemo(() => {
+    if (!pathMetrics || pathMetrics.length === 0) {
+      return { labelX: midX, labelY: midY };
+    }
+    const pt = pathMetrics.el.getPointAtLength(
+      pathMetrics.length * offsetToFraction(labelOffset),
+    );
+    return { labelX: pt.x, labelY: pt.y };
+  }, [pathMetrics, labelOffset, midX, midY]);
 
   const draggingRef = useRef<{ active: boolean; offset: number } | null>(null);
 
@@ -87,19 +111,47 @@ export function MovableLabelEdge({
     (e: React.PointerEvent<HTMLDivElement>) => {
       const drag = draggingRef.current;
       if (!drag?.active) return;
+      if (!pathMetrics || pathMetrics.length === 0) return;
       const flow = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      // Project (flow - midpoint) onto the source→target direction.
-      const ax = flow.x - midX;
-      const ay = flow.y - midY;
-      const len2 = dx * dx + dy * dy;
-      if (len2 < 1) return;
-      const proj = (ax * dx + ay * dy) / len2;
-      const clamped = Math.max(OFFSET_MIN, Math.min(OFFSET_MAX, proj));
+
+      // Find the path-length fraction whose point is closest to the pointer.
+      // Coarse sweep then a local refinement keeps the search cheap while
+      // tracking kinked smooth-step paths exactly.
+      const { el, length } = pathMetrics;
+      const coarse = 80;
+      let bestT = 0.5;
+      let bestDist = Infinity;
+      for (let i = 0; i <= coarse; i += 1) {
+        const t = i / coarse;
+        const pt = el.getPointAtLength(length * t);
+        const ddx = pt.x - flow.x;
+        const ddy = pt.y - flow.y;
+        const d = ddx * ddx + ddy * ddy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestT = t;
+        }
+      }
+      const refineSpan = 1 / coarse;
+      const refineSteps = 10;
+      for (let i = -refineSteps; i <= refineSteps; i += 1) {
+        const t = bestT + (i / refineSteps) * refineSpan;
+        if (t < 0 || t > 1) continue;
+        const pt = el.getPointAtLength(length * t);
+        const ddx = pt.x - flow.x;
+        const ddy = pt.y - flow.y;
+        const d = ddx * ddx + ddy * ddy;
+        if (d < bestDist) {
+          bestDist = d;
+          bestT = t;
+        }
+      }
+
+      const clamped = clampOffset(bestT - 0.5);
       drag.offset = clamped;
-      // Notify the parent for live optimistic update during drag.
       onLabelOffsetChange?.(id, clamped);
     },
-    [screenToFlowPosition, midX, midY, dx, dy, id, onLabelOffsetChange],
+    [pathMetrics, screenToFlowPosition, id, onLabelOffsetChange],
   );
 
   const onPointerUp = useCallback(
@@ -117,9 +169,16 @@ export function MovableLabelEdge({
 
   const draggable = mode === "move" && !!onLabelOffsetChange;
 
+  // When the user clicks to select an edge, paint it pure white so the
+  // selection is obvious against the dark canvas. The stroke reverts to the
+  // edge's normal style as soon as it's deselected.
+  const effectiveStyle = selected
+    ? { ...(style ?? {}), stroke: "#ffffff", strokeWidth: 2 }
+    : style;
+
   return (
     <>
-      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={style} />
+      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={effectiveStyle} />
       {label ? (
         <EdgeLabelRenderer>
           <div

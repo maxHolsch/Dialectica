@@ -13,8 +13,9 @@ import type { ArgMap, Frame, Annotation, HandleId } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, runAutoFormat } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
+import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
 
@@ -74,8 +75,8 @@ export function FrameCanvas({
       id: e.id,
       source: e.source,
       target: e.target,
-      sourceHandle: e.sourceHandle,
-      targetHandle: e.targetHandle,
+      sourceHandle: normalizeHandleId(e.sourceHandle),
+      targetHandle: normalizeHandleId(e.targetHandle),
       type: "labeled",
       markerEnd: e.undirected
         ? undefined
@@ -135,11 +136,33 @@ export function FrameCanvas({
     [map.id, frame.id],
   );
 
+  const router = useRouter();
+
+  const onDelete = useCallback(
+    (selection: { nodeIds: string[]; edgeIds: string[] }) => {
+      if (selection.nodeIds.length === 0 && selection.edgeIds.length === 0) {
+        return;
+      }
+      void applyDeletePatch(map.id, {
+        frameNodeIds:
+          selection.nodeIds.length > 0
+            ? { [frame.id]: selection.nodeIds }
+            : undefined,
+        frameEdgeIds:
+          selection.edgeIds.length > 0
+            ? { [frame.id]: selection.edgeIds }
+            : undefined,
+      })
+        .then(() => router.refresh())
+        .catch((err) => console.error("[frame] delete failed", err));
+    },
+    [map.id, frame.id, router],
+  );
+
   const moveHandlers: MoveHandlers | undefined = isEditMode
-    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset }
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
     : undefined;
 
-  const router = useRouter();
   const onAutoFormat = useCallback(
     async (strategy: LayoutStrategyId) => {
       try {

@@ -51,6 +51,8 @@ export type MoveHandlers = {
     newHandleId: string | null,
   ) => void;
   onEdgeLabelOffset: (edgeId: string, offset: number) => void;
+  /** Delete a current selection of content nodes and/or edges. */
+  onDelete: (selection: { nodeIds: string[]; edgeIds: string[] }) => void;
 };
 
 /**
@@ -172,6 +174,15 @@ function Canvas({
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
+  // Optimistically hide deleted content nodes/edges so the canvas updates
+  // instantly. The parent canvas re-renders with the post-delete map and the
+  // hidden ids become naturally absent from `nodes`/`edges`.
+  const [deletedNodeIds, setDeletedNodeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [deletedEdgeIds, setDeletedEdgeIds] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   // Reset session-local annotation state when the map changes.
   useEffect(() => {
@@ -218,14 +229,14 @@ function Canvas({
     color: userColor,
   });
 
-  // Delete / Backspace removes selected stroke (or text-box) nodes.
-  // We handle this ourselves rather than rely on React Flow's built-in
-  // `deleteKeyCode` so we go through the existing eraseAnnotation flow —
-  // optimistic delete, undo-history push, DB persist — in one path.
+  // Delete / Backspace removes selected stroke (or text-box) nodes, as well
+  // as content nodes / edges in move mode (edit-role users only). We handle
+  // this ourselves rather than rely on React Flow's built-in `deleteKeyCode`
+  // so strokes go through eraseAnnotation (optimistic + history) and content
+  // entities go through the parent canvas's onDelete handler.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Delete" && e.key !== "Backspace") return;
-      // Don't intercept while the user is typing inside a textbox / input.
       const t = e.target as HTMLElement | null;
       if (
         t &&
@@ -233,19 +244,55 @@ function Canvas({
       ) {
         return;
       }
-      const selected = reactFlow
-        .getNodes()
-        .filter((n) => n.selected && n.type === "stroke");
-      if (selected.length === 0) return;
+      const allNodes = reactFlow.getNodes();
+      const strokeSelected = allNodes.filter(
+        (n) => n.selected && n.type === "stroke",
+      );
+      const contentNodeSelected = allNodes.filter(
+        (n) => n.selected && n.type !== "stroke",
+      );
+      const edgeSelected = reactFlow.getEdges().filter((eg) => eg.selected);
+
+      if (
+        strokeSelected.length === 0 &&
+        contentNodeSelected.length === 0 &&
+        edgeSelected.length === 0
+      ) {
+        return;
+      }
       e.preventDefault();
-      for (const node of selected) {
+
+      for (const node of strokeSelected) {
         const ann = (node.data as { annotation?: Annotation }).annotation;
         if (ann) void drawing.eraseAnnotation(ann);
+      }
+      if (
+        moveHandlers &&
+        (contentNodeSelected.length > 0 || edgeSelected.length > 0)
+      ) {
+        const nodeIds = contentNodeSelected.map((n) => n.id);
+        const edgeIds = edgeSelected.map((eg) => eg.id);
+        // Optimistically hide before the server roundtrip resolves.
+        if (nodeIds.length > 0) {
+          setDeletedNodeIds((prev) => {
+            const next = new Set(prev);
+            for (const id of nodeIds) next.add(id);
+            return next;
+          });
+        }
+        if (edgeIds.length > 0) {
+          setDeletedEdgeIds((prev) => {
+            const next = new Set(prev);
+            for (const id of edgeIds) next.add(id);
+            return next;
+          });
+        }
+        moveHandlers.onDelete({ nodeIds, edgeIds });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [reactFlow, drawing]);
+  }, [reactFlow, drawing, moveHandlers]);
 
   // Merge server annotations with optimistic adds, filter by optimistic deletes.
   // Filter further by frameId scope: frame view sees only this frame's annotations.
@@ -292,17 +339,19 @@ function Canvas({
   // Strokes are draggable in select mode so the user can move them with a mouse/finger;
   // panning is taken over by 2-finger trackpad scroll (`panOnScroll`) below.
   const allNodes = useMemo<Node[]>(() => {
-    const contentNodes = nodes.map<Node>((n) => {
-      const override = nodeOverrides[n.id];
-      const position = override ?? n.position;
-      return {
-        ...n,
-        position,
-        // Edit-mode users get drag affordance on content nodes when the
-        // yellow move tool is selected.
-        draggable: mode === "move" && !!moveHandlers,
-      };
-    });
+    const contentNodes = nodes
+      .filter((n) => !deletedNodeIds.has(n.id))
+      .map<Node>((n) => {
+        const override = nodeOverrides[n.id];
+        const position = override ?? n.position;
+        return {
+          ...n,
+          position,
+          // Edit-mode users get drag affordance on content nodes when the
+          // yellow move tool is selected.
+          draggable: mode === "move" && !!moveHandlers,
+        };
+      });
     const strokeNodes = visibleAnnotations.map<Node>((a) => ({
       id: a.id,
       type: "stroke",
@@ -316,7 +365,14 @@ function Canvas({
       zIndex: 5,
     }));
     return [...contentNodes, ...strokeNodes];
-  }, [nodes, nodeOverrides, visibleAnnotations, mode, moveHandlers]);
+  }, [
+    nodes,
+    nodeOverrides,
+    visibleAnnotations,
+    mode,
+    moveHandlers,
+    deletedNodeIds,
+  ]);
 
   // Apply edge overrides + inject the per-edge label-offset callback so the
   // MovableLabelEdge can persist via the parent canvas without prop-drilling.
@@ -332,7 +388,14 @@ function Canvas({
   );
 
   const allEdges = useMemo<Edge[]>(() => {
-    return edges.map((e) => {
+    return edges
+      .filter(
+        (e) =>
+          !deletedEdgeIds.has(e.id) &&
+          !deletedNodeIds.has(e.source) &&
+          !deletedNodeIds.has(e.target),
+      )
+      .map((e) => {
       const override = edgeOverrides[e.id];
       const source = override?.source ?? e.source;
       const target = override?.target ?? e.target;
@@ -364,7 +427,15 @@ function Canvas({
         },
       };
     });
-  }, [edges, edgeOverrides, mode, moveHandlers, onEdgeLabelOffsetLocal]);
+  }, [
+    edges,
+    edgeOverrides,
+    mode,
+    moveHandlers,
+    onEdgeLabelOffsetLocal,
+    deletedNodeIds,
+    deletedEdgeIds,
+  ]);
 
   // Track stroke drags. During drag we optimistically update origin so the node
   // visually follows the cursor (React Flow respects the controlled `position`).
@@ -609,9 +680,6 @@ function Canvas({
         onNodeContextMenu={handleNodeContextMenu}
         onNodesChange={handleNodesChange}
         onReconnect={moveActive ? handleReconnect : undefined}
-        // Bigger drop target for endpoint drags. 10px is the default; 18px makes
-        // the yellow reconnect anchor easier to grab without overshooting.
-        reconnectRadius={moveActive ? 18 : undefined}
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable
@@ -631,13 +699,12 @@ function Canvas({
         <Background color="#1a1a1a" gap={32} size={1} />
       </ReactFlow>
       {moveActive ? (
-        // While the yellow move tool is selected: grab cursor on nodes plus a
-        // visible yellow ring around the reconnect anchors at edge endpoints
-        // (xyflow paints them transparent by default, so users can't see
-        // where to grab).
+        // While the yellow move tool is selected: grab cursor on nodes, and
+        // reveal the reconnect anchors only on edges the user has explicitly
+        // clicked (xyflow paints them transparent by default).
         <style
           dangerouslySetInnerHTML={{
-            __html: `[data-move-mode="1"] .react-flow__node{cursor:grab!important}[data-move-mode="1"] .react-flow__node.dragging,[data-move-mode="1"] .react-flow__node:active{cursor:grabbing!important}[data-move-mode="1"] .react-flow__edgeupdater{fill:#ffc943!important;fill-opacity:0.85!important;stroke:#7a5a00!important;stroke-width:1!important;cursor:grab!important}`,
+            __html: `[data-move-mode="1"] .react-flow__node{cursor:grab!important}[data-move-mode="1"] .react-flow__node.dragging,[data-move-mode="1"] .react-flow__node:active{cursor:grabbing!important}[data-move-mode="1"] .react-flow__edge.selected .react-flow__edgeupdater{fill:#ffc943!important;fill-opacity:0.85!important;stroke:#7a5a00!important;stroke-width:1!important;cursor:grab!important}`,
           }}
         />
       ) : null}

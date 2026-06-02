@@ -12,8 +12,9 @@ import {
 import type { ArgMap, Annotation, HandleId } from "@/lib/schema";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, runAutoFormat } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
+import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
 
@@ -73,8 +74,8 @@ export function CruxCanvas({
       id: e.id,
       source: e.source === "top" ? TOP_ID : e.source,
       target: e.target,
-      sourceHandle: e.sourceHandle,
-      targetHandle: e.targetHandle,
+      sourceHandle: normalizeHandleId(e.sourceHandle),
+      targetHandle: normalizeHandleId(e.targetHandle),
       type: "movable",
       markerEnd: e.undirected
         ? undefined
@@ -153,11 +154,26 @@ export function CruxCanvas({
     [map.id],
   );
 
+  const router = useRouter();
+
+  const onDelete = useCallback(
+    (selection: { nodeIds: string[]; edgeIds: string[] }) => {
+      // The crux view treats "top" as the top question; deleting the root is
+      // intentionally not supported, so drop it before persisting.
+      const cruxIds = selection.nodeIds.filter((id) => id !== "top");
+      const cruxEdgeIds = selection.edgeIds;
+      if (cruxIds.length === 0 && cruxEdgeIds.length === 0) return;
+      void applyDeletePatch(map.id, { cruxIds, cruxEdgeIds })
+        .then(() => router.refresh())
+        .catch((err) => console.error("[crux] delete failed", err));
+    },
+    [map.id, router],
+  );
+
   const moveHandlers: MoveHandlers | undefined = isEditMode
-    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset }
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
     : undefined;
 
-  const router = useRouter();
   const onAutoFormat = useCallback(
     async (strategy: LayoutStrategyId) => {
       try {

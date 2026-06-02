@@ -4,7 +4,15 @@ import type { Mode } from "@/lib/data/users";
 import { MapPreview } from "./MapPreview";
 import { MapCardWrapper } from "./MapCardWrapper";
 
-export function MapCard({ card, mode }: { card: MapCardData; mode: Mode }) {
+export function MapCard({
+  card,
+  mode,
+  index,
+}: {
+  card: MapCardData;
+  mode: Mode;
+  index: number;
+}) {
   return (
     <MapCardWrapper card={card} mode={mode}>
       <div
@@ -13,7 +21,7 @@ export function MapCard({ card, mode }: { card: MapCardData; mode: Mode }) {
           "transition-colors hover:border-dia-border-strong",
         )}
       >
-        <MapPreview kind={card.previewKind} />
+        <MapPreview kind={card.previewKind} index={index} />
         <VisibilityPill visibility={card.visibility} />
 
         <div className="border-t border-dia-border-subtle" />
