@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Pencil,
   Pen,
@@ -10,7 +10,9 @@ import {
   Undo2,
   Redo2,
   Move,
+  MousePointer2,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { clsx } from "clsx";
 import {
@@ -23,6 +25,11 @@ import {
   createAnnotation,
   deleteAnnotation,
 } from "@/lib/data/mutations";
+import {
+  LAYOUT_STRATEGIES,
+  DEFAULT_STRATEGY,
+  type LayoutStrategyId,
+} from "@/lib/layout/strategies";
 
 type Props = {
   mapId: string;
@@ -30,6 +37,11 @@ type Props = {
   isEditMode: boolean;
   /** Triggered when edit-mode user clicks ADD CLAIM. Phase 3 wires to addCrux. */
   onAddClaim?: () => void;
+  /**
+   * Triggered when edit-mode user picks an auto-format strategy. Returns a
+   * Promise so the button can show a busy state until the canvas refreshes.
+   */
+  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
 };
 
 /**
@@ -37,7 +49,12 @@ type Props = {
  * Layout matches Figma node 12:127 (edit) / 5:48 (view):
  *   [pencil][pen][highlighter][text]  |  [✥][✎][●]  |  [swatches]  |  [eraser][undo][redo]  |  (edit) [+ ADD CLAIM]
  */
-export function EditToolbar({ mapId, isEditMode, onAddClaim }: Props) {
+export function EditToolbar({
+  mapId,
+  isEditMode,
+  onAddClaim,
+  onAutoFormat,
+}: Props) {
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
   const color = useUIStore((s) => s.color);
@@ -229,6 +246,24 @@ export function EditToolbar({ mapId, isEditMode, onAddClaim }: Props) {
         >
           <Eraser className="size-4" strokeWidth={1.5} />
         </ModeButton>
+
+        {/* Edit-mode only: yellow move cursor — click & drag nodes/edges/labels */}
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={() => setMode(mode === "move" ? "select" : "move")}
+            aria-label="Move nodes and edges"
+            aria-pressed={mode === "move"}
+            className={clsx(
+              "flex size-9 items-center justify-center rounded-full transition-colors",
+              mode === "move"
+                ? "bg-[#ffc943]/20 text-[#ffc943] ring-1 ring-[#ffc943]"
+                : "text-[#ffc943] hover:bg-[#ffc943]/15",
+            )}
+          >
+            <MousePointer2 className="size-4" strokeWidth={1.75} />
+          </button>
+        )}
         <ModeButton onClick={onUndo} aria-label="Undo">
           <Undo2 className="size-4" strokeWidth={1.5} />
         </ModeButton>
@@ -246,9 +281,97 @@ export function EditToolbar({ mapId, isEditMode, onAddClaim }: Props) {
             >
               + ADD CLAIM
             </button>
+            {onAutoFormat ? <AutoFormatMenu onPick={onAutoFormat} /> : null}
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function AutoFormatMenu({
+  onPick,
+}: {
+  onPick: (strategy: LayoutStrategyId) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [lastStrategy, setLastStrategy] =
+    useState<LayoutStrategyId>(DEFAULT_STRATEGY);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  // Close on outside click / Escape so the menu doesn't trap focus.
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const handlePick = useCallback(
+    async (strategy: LayoutStrategyId) => {
+      setOpen(false);
+      setBusy(true);
+      setLastStrategy(strategy);
+      try {
+        await onPick(strategy);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [onPick],
+  );
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={busy}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="flex items-center gap-1 rounded-full border border-dashed border-[#ffc943] px-3 py-1.5 font-mono text-[11px] font-medium tracking-wide text-[#ffc943] transition-colors hover:bg-[#ffc943]/10 disabled:opacity-50"
+      >
+        {busy ? "FORMATTING…" : "AUTO-FORMAT"}
+        <ChevronDown className="size-3" strokeWidth={2} />
+      </button>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute bottom-full right-0 mb-2 min-w-[220px] rounded-lg border border-dia-border bg-[#111] p-1 shadow-lg"
+        >
+          {Object.values(LAYOUT_STRATEGIES).map((s) => (
+            <button
+              key={s.id}
+              role="menuitem"
+              type="button"
+              onClick={() => handlePick(s.id)}
+              className={clsx(
+                "block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-dia-surface-2",
+                s.id === lastStrategy ? "text-[#ffc943]" : "text-dia-fg-muted",
+              )}
+            >
+              <div className="font-mono text-[11px] tracking-wide">
+                {s.label}
+                {s.id === lastStrategy ? "  ·  last used" : ""}
+              </div>
+              <div className="mt-0.5 font-mono text-[10px] text-dia-fg-dim">
+                {s.description}
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import {
   MarkerType,
   type Node,
@@ -8,12 +9,14 @@ import {
   type NodeTypes,
   type EdgeTypes,
 } from "@xyflow/react";
-import type { ArgMap, Frame, Annotation } from "@/lib/schema";
+import type { ArgMap, Frame, Annotation, HandleId } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
-import { CanvasShell } from "@/components/canvas/CanvasShell";
+import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
+import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
+import { applyMovePatch, runAutoFormat } from "@/lib/data/mutations";
+import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
-import { LabeledEdge } from "./LabeledEdge";
 
 const NODE_TYPES: NodeTypes = {
   claim: ClaimNode,
@@ -21,7 +24,7 @@ const NODE_TYPES: NodeTypes = {
 };
 
 const EDGE_TYPES: EdgeTypes = {
-  labeled: LabeledEdge,
+  labeled: MovableLabelEdge,
 };
 
 export function FrameCanvas({
@@ -29,6 +32,8 @@ export function FrameCanvas({
   frame,
   annotations,
   userId,
+  displayName,
+  userColor,
   isEditMode,
   stakes,
 }: {
@@ -36,6 +41,8 @@ export function FrameCanvas({
   frame: Frame;
   annotations: Annotation[];
   userId: string;
+  displayName: string;
+  userColor: string;
   isEditMode: boolean;
   stakes: StakeMap;
 }) {
@@ -67,17 +74,83 @@ export function FrameCanvas({
       id: e.id,
       source: e.source,
       target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
       type: "labeled",
-      data: { label: e.label },
-      label: e.label,
       markerEnd: e.undirected
         ? undefined
         : { type: MarkerType.ArrowClosed, color: "#8a8a8a", width: 18, height: 18 },
       style: { stroke: "#8a8a8a", strokeWidth: 1.2 },
+      data: {
+        label: e.label,
+        labelOffset: e.labelOffset ?? 0,
+        variant: "frame" as const,
+      },
     }));
 
     return { nodes, edges };
   }, [map, frame, selectedNodeId]);
+
+  const onNodeMove = useCallback(
+    (nodeId: string, position: { x: number; y: number }) => {
+      void applyMovePatch(map.id, {
+        framePositions: { [frame.id]: { [nodeId]: position } },
+      }).catch((err) => console.error("[frame] persist node move failed", err));
+    },
+    [map.id, frame.id],
+  );
+
+  const onEdgeReconnect = useCallback(
+    (
+      edgeId: string,
+      side: "source" | "target",
+      newNodeId: string,
+      newHandleId: string | null,
+    ) => {
+      const handleKey = side === "source" ? "sourceHandle" : "targetHandle";
+      void applyMovePatch(map.id, {
+        frameEdges: {
+          [frame.id]: {
+            [edgeId]: {
+              [side]: newNodeId,
+              [handleKey]: (newHandleId as HandleId | null) ?? null,
+            },
+          },
+        },
+      }).catch((err) =>
+        console.error("[frame] persist edge reconnect failed", err),
+      );
+    },
+    [map.id, frame.id],
+  );
+
+  const onEdgeLabelOffset = useCallback(
+    (edgeId: string, offset: number) => {
+      void applyMovePatch(map.id, {
+        frameEdges: { [frame.id]: { [edgeId]: { labelOffset: offset } } },
+      }).catch((err) =>
+        console.error("[frame] persist edge label offset failed", err),
+      );
+    },
+    [map.id, frame.id],
+  );
+
+  const moveHandlers: MoveHandlers | undefined = isEditMode
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset }
+    : undefined;
+
+  const router = useRouter();
+  const onAutoFormat = useCallback(
+    async (strategy: LayoutStrategyId) => {
+      try {
+        await runAutoFormat(map.id, strategy);
+        router.refresh();
+      } catch (err) {
+        console.error("[frame] auto-format failed", err);
+      }
+    },
+    [map.id, router],
+  );
 
   return (
     <CanvasShell
@@ -89,8 +162,12 @@ export function FrameCanvas({
       mapId={map.id}
       frameId={frame.id}
       userId={userId}
+      displayName={displayName}
+      userColor={userColor}
       isEditMode={isEditMode}
+      onAutoFormat={isEditMode ? onAutoFormat : undefined}
       stakes={stakes}
+      moveHandlers={moveHandlers}
     />
   );
 }

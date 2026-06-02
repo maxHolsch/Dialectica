@@ -24,8 +24,25 @@ export const Node = z.object({
   id: z.string(),
   type: NodeType,
   text: z.string(),
+  // Phase 7 (DIA-AI-1) annotations on nodes produced by the AI pipeline.
+  // `isFactual` flags claims that the fact-check side layer may want to verify.
+  // `absorbed` records the raw restatements collapsed into this canonical claim
+  // by Stage 2 (dedup) — surfaced in the side panel for merge transparency.
+  isFactual: z.boolean().optional(),
+  absorbed: z.array(z.string()).optional(),
 });
 export type Node = z.infer<typeof Node>;
+
+// xyflow handle ids assigned by the auto-format layout. Each node renders
+// SLOTS_PER_SIDE source-only handles and the same number of target-only
+// handles per cardinal side (so the auto-format pass can fan multiple edges
+// out along one side instead of stacking them on a single anchor).
+// Shape: `${dir}-${side}` (legacy, single anchor) or `${dir}-${side}-${slot}`
+// (e.g. "src-top-2" = source handle, slot index 2 along the top side).
+export const HandleId = z
+  .string()
+  .regex(/^(src|tgt)-(top|bottom|left|right)(-\d+)?$/);
+export type HandleId = z.infer<typeof HandleId>;
 
 export const Edge = z.object({
   id: z.string(),
@@ -33,6 +50,18 @@ export const Edge = z.object({
   target: z.string(),
   undirected: z.boolean().optional(),
   label: z.string().optional(),
+  // Phase 7 (DIA-AI-1) — free-form relationship type from the open palette
+  // (supports, challenges, qualifies, reframes, depends-on, raises, …).
+  // Stored verbatim — no enum constraint, since Stage 4 may coin new labels.
+  relType: z.string().optional(),
+  // Offset of the edge label along the path, as a fraction in [-0.45, 0.45].
+  // 0 = center, positive = toward target, negative = toward source.
+  // Persisted when a user drags the label in move mode.
+  labelOffset: z.number().optional(),
+  // Auto-format output: which side of each node this edge attaches to. xyflow
+  // consumes these directly to route from the matching named Handle.
+  sourceHandle: HandleId.optional(),
+  targetHandle: HandleId.optional(),
 });
 export type Edge = z.infer<typeof Edge>;
 
@@ -103,6 +132,40 @@ export const Annotation = z.object({
 });
 export type Annotation = z.infer<typeof Annotation>;
 
+// Phase 7 (DIA-AI-1) — cross-question relationships rendered on the crux view
+// between cruxes. `shared_claim_ids` informs the visual "appears in multiple
+// frames" marker on those nodes.
+export const CrossLink = z.object({
+  from: z.string(),
+  to: z.string(),
+  type: z.string(),
+  note: z.string().optional(),
+  sharedClaimIds: z.array(z.string()).default([]),
+});
+export type CrossLink = z.infer<typeof CrossLink>;
+
+// Phase 7 momentum lens output. Stored on ArgMap.meta so the crux view can
+// emphasize the highest-leverage question and admin can surface latent
+// agreements without the canvas needing to know about them yet.
+export const Momentum = z.object({
+  highestLeverageQuestion: z.string(),
+  rationale: z.string(),
+  latentAgreements: z.array(
+    z.object({
+      claimIds: z.array(z.string()),
+      note: z.string(),
+    }),
+  ),
+});
+export type Momentum = z.infer<typeof Momentum>;
+
+export const FactCheckTodo = z.object({
+  claimId: z.string(),
+  claimText: z.string(),
+  whatToCheck: z.string(),
+});
+export type FactCheckTodo = z.infer<typeof FactCheckTodo>;
+
 // PRD §5.1 + §6 — The full map: top-level question + cruxes + frames + canonical nodes.
 // The top question is anchored by its text + position + (optional) size. If
 // `topQuestionFrameId` is set, clicking the top question in the crux view
@@ -120,6 +183,15 @@ export const ArgMap = z.object({
   nodes: z.record(z.string(), Node),
   frames: z.record(z.string(), Frame),
   annotations: z.array(Annotation).default([]),
+  // Phase 7 additions (all optional so pre-Phase-7 maps validate unchanged).
+  crossLinks: z.array(CrossLink).default([]),
+  meta: z
+    .object({
+      momentum: Momentum.optional(),
+      factCheckTodos: z.array(FactCheckTodo).default([]),
+      generationRunId: z.string().optional(),
+    })
+    .optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

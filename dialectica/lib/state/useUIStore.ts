@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import type { Annotation, StrokePoint } from "@/lib/schema";
 
-export type CanvasMode = "select" | "draw" | "erase";
+export type CanvasMode = "select" | "draw" | "erase" | "move";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
 // 4 swatches in view mode, plus white in edit mode (Figma 12:127). Index 0 = white.

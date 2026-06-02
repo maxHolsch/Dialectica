@@ -10,8 +10,11 @@ export async function proxy(request: NextRequest) {
 
   const isAuthRoute =
     pathname.startsWith("/sign-in") || pathname.startsWith("/auth/");
+  // Workflow DevKit talks to its own /.well-known/workflow/* endpoints from
+  // step/workflow callbacks — never gate or redirect those.
+  const isWorkflowInternal = pathname.startsWith("/.well-known/workflow/");
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isWorkflowInternal) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     url.searchParams.set("next", pathname);
@@ -30,8 +33,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals + static asset filenames; run on everything else
-    // so the session cookie stays fresh on every navigation.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    // Skip Next.js internals + static asset filenames + Workflow DevKit's
+    // internal endpoints. Run on everything else so the session cookie stays
+    // fresh on every navigation.
+    "/((?!_next/static|_next/image|favicon.ico|\\.well-known/workflow/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

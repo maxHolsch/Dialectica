@@ -1,7 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import type { NodeProps } from "@xyflow/react";
+import { NodeHandles } from "@/components/canvas/NodeHandles";
 
 // Figma 52:56 — dashed selection outline. CSS outline + outline-offset wraps
 // the node from the outside without affecting its layout box, so it scales
@@ -28,7 +29,7 @@ export const ClaimNode = memo(function ClaimNode({
       style={{ width: w, height: h, ...(selected ? SELECTED_OUTLINE : null) }}
     >
       <p className="font-mono text-[16px] leading-[1.5] text-black">{text}</p>
-      <SilentHandles />
+      <NodeHandles />
     </div>
   );
 });
@@ -51,18 +52,7 @@ export const QuestionNode = memo(function QuestionNode({
       <p className="font-mono text-[16px] italic leading-[1.5] text-black">
         {text}
       </p>
-      <SilentHandles />
+      <NodeHandles />
     </div>
   );
 });
-
-function SilentHandles() {
-  return (
-    <>
-      <Handle type="target" position={Position.Top} className="!h-0 !w-0 !border-0 !bg-transparent" isConnectable={false} />
-      <Handle type="source" position={Position.Bottom} className="!h-0 !w-0 !border-0 !bg-transparent" isConnectable={false} />
-      <Handle type="target" position={Position.Left} className="!h-0 !w-0 !border-0 !bg-transparent" isConnectable={false} />
-      <Handle type="source" position={Position.Right} className="!h-0 !w-0 !border-0 !bg-transparent" isConnectable={false} />
-    </>
-  );
-}

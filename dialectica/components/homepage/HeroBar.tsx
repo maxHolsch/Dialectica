@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createMap } from "@/lib/data/mutations";
 import type { Mode } from "@/lib/data/users";
 
@@ -10,9 +11,21 @@ export function HeroBar({ mode }: { mode: Mode }) {
       </p>
       <div className="flex shrink-0 items-center gap-2 pt-1">
         <SearchPill />
+        {mode === "edit" && <AdminLink />}
         {mode === "edit" && <NewMapButton />}
       </div>
     </div>
+  );
+}
+
+function AdminLink() {
+  return (
+    <Link
+      href="/admin"
+      className="flex h-11 items-center justify-center rounded-full border border-dia-border-strong px-4 font-mono text-[13px] tracking-[0.52px] text-dia-fg-muted hover:text-dia-fg"
+    >
+      ADMIN
+    </Link>
   );
 }
 

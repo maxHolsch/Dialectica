@@ -23,6 +23,7 @@ function stubMap(args: {
     topQuestionSize: { width: 291, height: 265 },
     topQuestionFrameId: `${id}-frame-top`,
     annotations: [],
+    crossLinks: [],
     createdAt,
     updatedAt,
     cruxes: [

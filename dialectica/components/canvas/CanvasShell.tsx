@@ -16,21 +16,42 @@ import {
   type NodeMouseHandler,
   type OnNodesChange,
   type NodePositionChange,
+  type Connection,
+  type OnReconnect,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { Annotation } from "@/lib/schema";
+import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { useDrawingHandlers } from "@/lib/canvas/useDrawingHandlers";
 import { createAnnotation } from "@/lib/data/mutations";
 import { subscribeToAnnotations } from "@/lib/realtime/annotations";
+import { useCursorChannel } from "@/lib/realtime/cursors";
 import { stakeKey, type StakeMap } from "@/lib/data/stakes-types";
 import { EditToolbar } from "./EditToolbar";
 import { StrokeNode } from "./StrokeNode";
 import { InFlightStrokeLayer } from "./InFlightStrokeLayer";
+import { RemoteCursorLayer } from "./RemoteCursorLayer";
 import {
   NodeContextMenu,
   type NodeContextMenuState,
 } from "@/components/frame/ContextMenu";
+
+/**
+ * Move-mode handlers supplied by the parent canvas. Each canvas (crux vs
+ * frame) translates these into the correct shape of `applyMovePatch` because
+ * the underlying JSON paths differ.
+ */
+export type MoveHandlers = {
+  onNodeMove: (nodeId: string, position: { x: number; y: number }) => void;
+  onEdgeReconnect: (
+    edgeId: string,
+    side: "source" | "target",
+    newNodeId: string,
+    newHandleId: string | null,
+  ) => void;
+  onEdgeLabelOffset: (edgeId: string, offset: number) => void;
+};
 
 /**
  * Shared React Flow canvas used by Crux view (DIA-VIEW-1) and Frame view (DIA-VIEW-2).
@@ -45,10 +66,14 @@ export function CanvasShell({
   mapId,
   frameId,
   userId,
+  displayName,
+  userColor,
   isEditMode,
   onNodeNavigate,
   onAddClaim,
+  onAutoFormat,
   stakes,
+  moveHandlers,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -58,11 +83,17 @@ export function CanvasShell({
   mapId: string;
   frameId?: string;
   userId: string;
+  displayName: string;
+  userColor: string;
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
+  /** Edit-mode only: fire auto-format with the chosen strategy and refresh. */
+  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
   /** Frame view only: stake aggregates keyed by `${frameId}::${nodeId}`. */
   stakes?: StakeMap;
+  /** Edit-mode only: handlers wiring move-mode interactions to persistence. */
+  moveHandlers?: MoveHandlers;
 }) {
   // Always include the stroke node type alongside whatever the caller passes.
   const mergedNodeTypes = useMemo<NodeTypes>(
@@ -81,10 +112,14 @@ export function CanvasShell({
         mapId={mapId}
         frameId={frameId}
         userId={userId}
+        displayName={displayName}
+        userColor={userColor}
         isEditMode={isEditMode}
         onNodeNavigate={onNodeNavigate}
         onAddClaim={onAddClaim}
+        onAutoFormat={onAutoFormat}
         stakes={stakes}
+        moveHandlers={moveHandlers}
       />
     </ReactFlowProvider>
   );
@@ -99,10 +134,14 @@ function Canvas({
   mapId,
   frameId,
   userId,
+  displayName,
+  userColor,
   isEditMode,
   onNodeNavigate,
   onAddClaim,
+  onAutoFormat,
   stakes,
+  moveHandlers,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -112,10 +151,14 @@ function Canvas({
   mapId: string;
   frameId?: string;
   userId: string;
+  displayName: string;
+  userColor: string;
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
+  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
   stakes?: StakeMap;
+  moveHandlers?: MoveHandlers;
 }) {
   const router = useRouter();
   const reactFlow = useReactFlow();
@@ -164,6 +207,15 @@ function Canvas({
     frameId,
     userId,
     isEditMode,
+  });
+
+  // Live cursor pub/sub. Coordinates travel in flow-space so they survive
+  // each peer's pan/zoom — the layer converts back to screen-space using
+  // the local viewport.
+  const cursorChannel = useCursorChannel(mapId, {
+    userId,
+    displayName,
+    color: userColor,
   });
 
   // Delete / Backspace removes selected stroke (or text-box) nodes.
@@ -216,10 +268,41 @@ function Canvas({
     return acc;
   }, [visibleAnnotations]);
 
+  // Move-mode local override layer: drag deltas applied on top of the
+  // map-derived `nodes`/`edges` props so the canvas updates instantly while
+  // the server persist round-trips. Cleared when the parent re-renders with
+  // fresh map data (the override matches what's already in the prop).
+  const [nodeOverrides, setNodeOverrides] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+  const [edgeOverrides, setEdgeOverrides] = useState<
+    Record<
+      string,
+      {
+        source?: string;
+        target?: string;
+        labelOffset?: number;
+        sourceHandle?: string | null;
+        targetHandle?: string | null;
+      }
+    >
+  >({});
+
   // Promote each annotation to a React Flow node alongside content nodes.
   // Strokes are draggable in select mode so the user can move them with a mouse/finger;
   // panning is taken over by 2-finger trackpad scroll (`panOnScroll`) below.
   const allNodes = useMemo<Node[]>(() => {
+    const contentNodes = nodes.map<Node>((n) => {
+      const override = nodeOverrides[n.id];
+      const position = override ?? n.position;
+      return {
+        ...n,
+        position,
+        // Edit-mode users get drag affordance on content nodes when the
+        // yellow move tool is selected.
+        draggable: mode === "move" && !!moveHandlers,
+      };
+    });
     const strokeNodes = visibleAnnotations.map<Node>((a) => ({
       id: a.id,
       type: "stroke",
@@ -232,12 +315,62 @@ function Canvas({
       // Annotations live above content nodes visually.
       zIndex: 5,
     }));
-    return [...nodes, ...strokeNodes];
-  }, [nodes, visibleAnnotations, mode]);
+    return [...contentNodes, ...strokeNodes];
+  }, [nodes, nodeOverrides, visibleAnnotations, mode, moveHandlers]);
+
+  // Apply edge overrides + inject the per-edge label-offset callback so the
+  // MovableLabelEdge can persist via the parent canvas without prop-drilling.
+  const onEdgeLabelOffsetLocal = useCallback(
+    (edgeId: string, offset: number) => {
+      setEdgeOverrides((prev) => ({
+        ...prev,
+        [edgeId]: { ...prev[edgeId], labelOffset: offset },
+      }));
+      moveHandlers?.onEdgeLabelOffset(edgeId, offset);
+    },
+    [moveHandlers],
+  );
+
+  const allEdges = useMemo<Edge[]>(() => {
+    return edges.map((e) => {
+      const override = edgeOverrides[e.id];
+      const source = override?.source ?? e.source;
+      const target = override?.target ?? e.target;
+      const sourceHandle =
+        override?.sourceHandle !== undefined
+          ? override.sourceHandle ?? undefined
+          : e.sourceHandle;
+      const targetHandle =
+        override?.targetHandle !== undefined
+          ? override.targetHandle ?? undefined
+          : e.targetHandle;
+      const labelOffset =
+        override?.labelOffset ??
+        (typeof e.data?.labelOffset === "number"
+          ? (e.data.labelOffset as number)
+          : 0);
+      return {
+        ...e,
+        source,
+        target,
+        sourceHandle,
+        targetHandle,
+        reconnectable:
+          mode === "move" && !!moveHandlers ? true : false,
+        data: {
+          ...(e.data ?? {}),
+          labelOffset,
+          onLabelOffsetChange: moveHandlers ? onEdgeLabelOffsetLocal : undefined,
+        },
+      };
+    });
+  }, [edges, edgeOverrides, mode, moveHandlers, onEdgeLabelOffsetLocal]);
 
   // Track stroke drags. During drag we optimistically update origin so the node
   // visually follows the cursor (React Flow respects the controlled `position`).
   // On release we also persist via createAnnotation (idempotent — replace by id).
+  // In move mode the same change events drive content-node drag persistence
+  // (cruxes, top question, frame nodes) through the parent's moveHandlers.
   const handleNodesChange: OnNodesChange = useCallback(
     (changes) => {
       for (const change of changes) {
@@ -245,20 +378,83 @@ function Canvas({
         const positionChange = change as NodePositionChange;
         if (!positionChange.position) continue;
         const annotation = annotationById[positionChange.id];
-        if (!annotation) continue; // content nodes (cruxTile etc.) — ignore
-        const moved: Annotation = {
-          ...annotation,
-          origin: positionChange.position,
-        };
-        addOptimistic(moved);
-        if (positionChange.dragging === false) {
-          void createAnnotation(mapId, moved).catch((err) =>
-            console.error("[canvas] persist annotation move failed", err),
-          );
+        if (annotation) {
+          const moved: Annotation = {
+            ...annotation,
+            origin: positionChange.position,
+          };
+          addOptimistic(moved);
+          if (positionChange.dragging === false) {
+            void createAnnotation(mapId, moved).catch((err) =>
+              console.error("[canvas] persist annotation move failed", err),
+            );
+          }
+          continue;
+        }
+        // Content node drag (move mode only). Track overrides for instant
+        // visual feedback; flush to server when the drag releases.
+        if (mode === "move" && moveHandlers) {
+          const next = positionChange.position;
+          setNodeOverrides((prev) => ({ ...prev, [positionChange.id]: next }));
+          if (positionChange.dragging === false) {
+            moveHandlers.onNodeMove(positionChange.id, next);
+          }
         }
       }
     },
-    [annotationById, addOptimistic, mapId],
+    [annotationById, addOptimistic, mapId, mode, moveHandlers],
+  );
+
+  // Edge reconnect (move mode). React Flow fires this when a user drags an
+  // edge endpoint onto a different node/handle. We detect which side moved by
+  // comparing old vs new connection, optimistically apply via overrides, and
+  // let the parent persist. Handle ids (e.g. "src-top") flow through too so
+  // xyflow routes the new edge to the same side the user dropped on.
+  const handleReconnect: OnReconnect = useCallback(
+    (oldEdge: Edge, newConnection: Connection) => {
+      if (!moveHandlers) return;
+      const sourceChanged =
+        oldEdge.source !== newConnection.source ||
+        (oldEdge.sourceHandle ?? null) !== (newConnection.sourceHandle ?? null);
+      const targetChanged =
+        oldEdge.target !== newConnection.target ||
+        (oldEdge.targetHandle ?? null) !== (newConnection.targetHandle ?? null);
+      if (sourceChanged && newConnection.source) {
+        const handle = newConnection.sourceHandle ?? null;
+        setEdgeOverrides((prev) => ({
+          ...prev,
+          [oldEdge.id]: {
+            ...prev[oldEdge.id],
+            source: newConnection.source!,
+            sourceHandle: handle,
+          },
+        }));
+        moveHandlers.onEdgeReconnect(
+          oldEdge.id,
+          "source",
+          newConnection.source,
+          handle,
+        );
+      }
+      if (targetChanged && newConnection.target) {
+        const handle = newConnection.targetHandle ?? null;
+        setEdgeOverrides((prev) => ({
+          ...prev,
+          [oldEdge.id]: {
+            ...prev[oldEdge.id],
+            target: newConnection.target!,
+            targetHandle: handle,
+          },
+        }));
+        moveHandlers.onEdgeReconnect(
+          oldEdge.id,
+          "target",
+          newConnection.target,
+          handle,
+        );
+      }
+    },
+    [moveHandlers],
   );
 
   const handleNodeClick: NodeMouseHandler = useCallback(
@@ -350,16 +546,28 @@ function Canvas({
     [mode, drawing, eraseAtPoint],
   );
 
+  const broadcastCursor = cursorChannel.broadcast;
   const handlePointerMove = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      // Broadcast every move regardless of mode — the hook throttles.
+      const flow = reactFlow.screenToFlowPosition({
+        x: e.clientX,
+        y: e.clientY,
+      });
+      broadcastCursor(flow.x, flow.y);
+
       if (eraseSessionRef.current.active) {
         eraseAtPoint(e.clientX, e.clientY);
         return;
       }
       drawing.onPointerMove(e);
     },
-    [drawing, eraseAtPoint],
+    [drawing, eraseAtPoint, reactFlow, broadcastCursor],
   );
+
+  const handlePointerLeave = useCallback(() => {
+    cursorChannel.signalLeave();
+  }, [cursorChannel]);
 
   const handlePointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -374,6 +582,7 @@ function Canvas({
   );
 
   const drawingActive = mode === "draw";
+  const moveActive = mode === "move" && !!moveHandlers;
 
   return (
     <div
@@ -381,17 +590,28 @@ function Canvas({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
       onClick={drawing.onPaneClick}
-      style={{ touchAction: drawingActive || mode === "erase" ? "none" : undefined }}
+      // Yellow grab cursor when move tool is active so the user can see
+      // they're in drag mode anywhere on the canvas.
+      data-move-mode={moveActive ? "1" : undefined}
+      style={{
+        touchAction: drawingActive || mode === "erase" ? "none" : undefined,
+        cursor: moveActive ? "grab" : undefined,
+      }}
     >
       <ReactFlow
         nodes={allNodes}
-        edges={edges}
+        edges={allEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
         onNodeContextMenu={handleNodeContextMenu}
         onNodesChange={handleNodesChange}
+        onReconnect={moveActive ? handleReconnect : undefined}
+        // Bigger drop target for endpoint drags. 10px is the default; 18px makes
+        // the yellow reconnect anchor easier to grab without overshooting.
+        reconnectRadius={moveActive ? 18 : undefined}
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable
@@ -410,12 +630,25 @@ function Canvas({
       >
         <Background color="#1a1a1a" gap={32} size={1} />
       </ReactFlow>
+      {moveActive ? (
+        // While the yellow move tool is selected: grab cursor on nodes plus a
+        // visible yellow ring around the reconnect anchors at edge endpoints
+        // (xyflow paints them transparent by default, so users can't see
+        // where to grab).
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `[data-move-mode="1"] .react-flow__node{cursor:grab!important}[data-move-mode="1"] .react-flow__node.dragging,[data-move-mode="1"] .react-flow__node:active{cursor:grabbing!important}[data-move-mode="1"] .react-flow__edgeupdater{fill:#ffc943!important;fill-opacity:0.85!important;stroke:#7a5a00!important;stroke-width:1!important;cursor:grab!important}`,
+          }}
+        />
+      ) : null}
       <InFlightStrokeLayer />
+      <RemoteCursorLayer cursors={cursorChannel.cursors} />
       <CanvasMinimap />
       <EditToolbar
         mapId={mapId}
         isEditMode={isEditMode}
         onAddClaim={onAddClaim}
+        onAutoFormat={onAutoFormat}
       />
       <NodeContextMenu
         state={contextMenu}

@@ -268,3 +268,87 @@ begin
     alter publication supabase_realtime add table public."Dialectica_annotations";
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Dialectica_generations: Phase 7 / DIA-AI-1. One row per generation run.
+-- A run starts when the admin uploads source material; the Vercel Workflow
+-- driving the pipeline writes back status + per-stage blob URLs as it
+-- progresses. Intermediate JSONs live in Vercel Blob (one file per stage), not
+-- in this table — the row just records pointers so the admin UI can fetch them.
+-- ---------------------------------------------------------------------------
+create table if not exists public."Dialectica_generations" (
+  id text primary key,
+  workflow_run_id text,
+  created_by uuid references public."Dialectica_users"(id) on delete set null,
+  source_kind text not null check (source_kind in ('text', 'audio')),
+  source_label text,
+  params jsonb not null,
+  status text not null default 'queued' check (
+    status in ('queued', 'transcribing', 'extracting', 'distilling', 'organizing', 'relating', 'fact_checking', 'mapping', 'succeeded', 'failed')
+  ),
+  error text,
+  -- Storage paths inside the private `dialectica_generations` bucket. Signed
+  -- URLs are minted on demand server-side; nothing client-visible is stored.
+  transcript_path text,
+  raw_claims_path text,
+  distilled_path text,
+  questions_path text,
+  relations_path text,
+  fact_check_path text,
+  -- Per-stage + total token usage and running USD cost. Written by the
+  -- workflow after each stage; rendered as the "Cost so far" tally in admin.
+  -- Shape: { model, perStage: { extract: StageUsage, ... }, total: StageUsage, totalUsd: number }
+  usage jsonb,
+  map_id text references public."Dialectica_maps"(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Idempotent migrations for projects that created `Dialectica_generations`
+-- before the column rename (`*_url` → `*_path`) and before the usage column
+-- existed. Safe to leave in place — `add column if not exists` is a no-op on
+-- columns that already exist.
+alter table public."Dialectica_generations"
+  add column if not exists transcript_path text,
+  add column if not exists raw_claims_path text,
+  add column if not exists distilled_path text,
+  add column if not exists questions_path text,
+  add column if not exists relations_path text,
+  add column if not exists fact_check_path text,
+  add column if not exists usage jsonb,
+  -- Needed so restart can reuse the original framing without re-asking.
+  add column if not exists title text,
+  add column if not exists top_question text,
+  -- Activity log. Append-only array of { at, stage, message }. Renders as a
+  -- collapsible timeline on the admin run page; each stage's most recent
+  -- entry also shows as the "how far along" line on the stage grid card.
+  add column if not exists log jsonb not null default '[]'::jsonb;
+
+create index if not exists "Dialectica_generations_created_at_idx"
+  on public."Dialectica_generations" (created_at desc);
+create index if not exists "Dialectica_generations_status_idx"
+  on public."Dialectica_generations" (status);
+
+alter table public."Dialectica_generations" enable row level security;
+
+-- Read: edit-role users see all runs (DIA-AI-4 admin is edit-gated).
+drop policy if exists "generations: read by edit role" on public."Dialectica_generations";
+create policy "generations: read by edit role"
+  on public."Dialectica_generations" for select
+  to authenticated
+  using (
+    exists (select 1 from public."Dialectica_users" u where u.id = auth.uid() and u.role = 'edit')
+  );
+
+-- Write: edit-role only. The workflow runs server-side with the service-role
+-- key, so it bypasses RLS anyway; this policy guards the admin UI's actions.
+drop policy if exists "generations: write by edit role" on public."Dialectica_generations";
+create policy "generations: write by edit role"
+  on public."Dialectica_generations" for all
+  to authenticated
+  using (
+    exists (select 1 from public."Dialectica_users" u where u.id = auth.uid() and u.role = 'edit')
+  )
+  with check (
+    exists (select 1 from public."Dialectica_users" u where u.id = auth.uid() and u.role = 'edit')
+  );

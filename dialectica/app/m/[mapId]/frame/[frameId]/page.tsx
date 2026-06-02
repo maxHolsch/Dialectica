@@ -49,6 +49,8 @@ export default async function FramePage({
           frame={frame}
           annotations={annotations}
           userId={user?.id ?? "anon"}
+          displayName={user?.displayName ?? "Anonymous"}
+          userColor={avatar.color}
           isEditMode={user?.role === "edit"}
           stakes={stakes}
         />

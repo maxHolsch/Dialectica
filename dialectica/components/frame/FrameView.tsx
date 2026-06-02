@@ -16,6 +16,8 @@ export function FrameView({
   frame,
   annotations,
   userId,
+  displayName,
+  userColor,
   isEditMode,
   stakes,
 }: {
@@ -23,6 +25,8 @@ export function FrameView({
   frame: Frame;
   annotations: Annotation[];
   userId: string;
+  displayName: string;
+  userColor: string;
   isEditMode: boolean;
   stakes: StakeMap;
 }) {
@@ -34,6 +38,8 @@ export function FrameView({
           frame={frame}
           annotations={annotations}
           userId={userId}
+          displayName={displayName}
+          userColor={userColor}
           isEditMode={isEditMode}
           stakes={stakes}
         />

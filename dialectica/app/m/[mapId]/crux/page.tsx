@@ -47,6 +47,8 @@ export default async function CruxPage({
           map={map}
           annotations={annotations}
           userId={user?.id ?? "anon"}
+          displayName={user?.displayName ?? "Anonymous"}
+          userColor={avatar.color}
           isEditMode={user?.role === "edit"}
         />
       </main>
