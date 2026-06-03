@@ -1,10 +1,27 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { MapPreviewKind } from "@/lib/data/maps";
+import { nightSkyImageForIndex } from "@/lib/data/nightSkyImages";
 
 /** Stylized preview tile rendered in the top half of a MapCard. */
-export function MapPreview({ kind }: { kind: MapPreviewKind }) {
+export function MapPreview({
+  kind,
+  index,
+}: {
+  kind: MapPreviewKind;
+  index: number;
+}) {
   return (
     <div className="relative h-[180px] w-full overflow-hidden bg-black">
+      {kind === "empty" && (
+        <Image
+          src={nightSkyImageForIndex(index)}
+          alt=""
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          className="object-cover"
+        />
+      )}
       {kind === "circles-3" && (
         <>
           <Circle className="left-[88px] top-[40px] size-16 bg-dia-mint" />
@@ -42,11 +59,6 @@ export function MapPreview({ kind }: { kind: MapPreviewKind }) {
           <Circle className="left-[220px] top-[18px] size-16 bg-dia-pink" />
           <Circle className="left-[180px] top-[90px] size-16 bg-dia-blue" />
         </>
-      )}
-      {kind === "empty" && (
-        <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-mono text-[11px] tracking-[1.32px] text-dia-border-strong">
-          EMPTY
-        </p>
       )}
     </div>
   );

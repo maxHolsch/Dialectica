@@ -92,7 +92,7 @@ SUB-QUESTION: ${subQuestion}
 WHAT A "CLAIM" IS HERE:
 - A standalone, free-form assertion that appears (or is strongly implied) in
   the transcript and that bears on the sub-question.
-- NOT pro/con. NOT for/against. A claim is just a position a participant took.
+- A claim is just a position a participant took. Claims can be in conflict with one another, the goal is to have a general representation of the argument at hand.
 - De-personalized — strip "I think", "she said", quotes, timestamps. The
   CLAIM is what survives the speaker.
 - Distinct from the other claims for this question. If two utterances boil
@@ -113,7 +113,7 @@ HARD RULES:
 - Use the canonical claim id "c1", "c2", … in order. (The pipeline will
   re-namespace these per-question downstream — your job is just to enumerate.)
 - Anchor every claim in the transcript. Do NOT invent positions no one took.
-- Keep claims short — ideally under 25 words each.
+- Keep claims short — ideally under 15 words each.
 
 INPUT: the transcript follows the "TRANSCRIPT:" line below.
 

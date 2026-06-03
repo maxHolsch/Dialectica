@@ -90,26 +90,85 @@ type Side = "top" | "bottom" | "left" | "right";
 /** Number of handle slots rendered per side per direction (src + tgt). */
 export const SLOTS_PER_SIDE = 5;
 
-/**
- * Direction the ray (dx, dy) leaves the centred rectangle through. Uses the
- * smaller intersection-time t along the ray against the box's half-extents,
- * so aspect-ratio is honoured: a wide-short node connecting to a node
- * directly above it picks "top", not "right".
- */
-function exitSide(
-  box: { width: number; height: number },
-  dx: number,
-  dy: number,
-): Side {
-  if (dx === 0 && dy === 0) return "right";
-  const tx = dx === 0 ? Infinity : box.width / 2 / Math.abs(dx);
-  const ty = dy === 0 ? Infinity : box.height / 2 / Math.abs(dy);
-  if (tx <= ty) return dx > 0 ? "right" : "left";
-  return dy > 0 ? "bottom" : "top";
-}
-
 function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
+}
+
+/**
+ * Pick the source + target sides for one edge as a COUPLED pair so xyflow's
+ * smoothstep edge produces the minimum number of kinks for the geometry:
+ *
+ *   - 0 kinks (straight line) when the nodes are axially aligned (one above
+ *     the other, or one beside the other, within ~30% of node size).
+ *   - 1 kink (L-shape) when the nodes are diagonal — one side is vertical,
+ *     the other horizontal, so the path is one straight segment + one turn.
+ *   - 2 kinks (Z-shape) — avoided by construction; only happens if the user
+ *     manually drags an endpoint to a side that doesn't match the geometry.
+ *
+ * Picking sides independently per endpoint (the previous approach) defaulted
+ * to both-vertical or both-horizontal for diagonal cases, which forces
+ * smoothstep into a Z. Coupling the choice fixes that.
+ */
+function chooseSides(
+  src: { x: number; y: number; width: number; height: number },
+  tgt: { x: number; y: number; width: number; height: number },
+): { srcSide: Side; tgtSide: Side } {
+  const sCx = src.x + src.width / 2;
+  const sCy = src.y + src.height / 2;
+  const tCx = tgt.x + tgt.width / 2;
+  const tCy = tgt.y + tgt.height / 2;
+  const dx = tCx - sCx;
+  const dy = tCy - sCy;
+  const ax = Math.abs(dx);
+  const ay = Math.abs(dy);
+
+  // "Axially aligned" — the off-axis displacement is small enough that an
+  // opposite-side connection produces a (near-)straight line. 30% of the
+  // smaller node's relevant extent is a practical threshold.
+  const xAligned = ax <= 0.3 * Math.min(src.width, tgt.width);
+  const yAligned = ay <= 0.3 * Math.min(src.height, tgt.height);
+
+  if (xAligned && !yAligned) {
+    // Nodes stacked vertically — straight top/bottom connection (0 kinks).
+    return dy >= 0
+      ? { srcSide: "bottom", tgtSide: "top" }
+      : { srcSide: "top", tgtSide: "bottom" };
+  }
+  if (yAligned && !xAligned) {
+    // Nodes side-by-side — straight left/right connection (0 kinks).
+    return dx >= 0
+      ? { srcSide: "right", tgtSide: "left" }
+      : { srcSide: "left", tgtSide: "right" };
+  }
+  if (xAligned && yAligned) {
+    // Nodes basically overlap — fall back to whichever axis has any room.
+    return ay >= ax
+      ? dy >= 0
+        ? { srcSide: "bottom", tgtSide: "top" }
+        : { srcSide: "top", tgtSide: "bottom" }
+      : dx >= 0
+        ? { srcSide: "right", tgtSide: "left" }
+        : { srcSide: "left", tgtSide: "right" };
+  }
+
+  // Diagonal — target is in a quadrant relative to source. 1-kink L-shape:
+  // one endpoint uses a vertical side, the other a horizontal side. The
+  // dominant displacement axis decides which side the source exits, the
+  // perpendicular axis decides which side the target enters.
+  if (ax >= ay) {
+    // Primarily horizontal — source leaves through right/left, target
+    // enters through top/bottom. Path: long horizontal, then short vertical.
+    return {
+      srcSide: dx > 0 ? "right" : "left",
+      tgtSide: dy > 0 ? "top" : "bottom",
+    };
+  }
+  // Primarily vertical — source leaves through top/bottom, target enters
+  // through left/right. Path: long vertical, then short horizontal.
+  return {
+    srcSide: dy > 0 ? "bottom" : "top",
+    tgtSide: dx > 0 ? "left" : "right",
+  };
 }
 
 /** Where along its chosen side does this edge naturally want to attach? */
@@ -195,7 +254,8 @@ function assignClosestSideHandles(
   const nodeById = new Map<string, LaidOutNode>();
   for (const n of nodes) nodeById.set(n.id, n);
 
-  // Pass 1: each edge picks closest sides and computes natural offsets.
+  // Pass 1: each edge picks a COUPLED (srcSide, tgtSide) pair that minimises
+  // smoothstep kinks, then computes the natural slot offset along each side.
   const infos: EdgeSideInfo[] = [];
   for (const e of edges) {
     const s = nodeById.get(e.source);
@@ -205,10 +265,7 @@ function assignClosestSideHandles(
     const sCy = s.y + s.height / 2;
     const tCx = t.x + t.width / 2;
     const tCy = t.y + t.height / 2;
-    const dx = tCx - sCx;
-    const dy = tCy - sCy;
-    const srcSide = exitSide(s, dx, dy);
-    const tgtSide = exitSide(t, -dx, -dy);
+    const { srcSide, tgtSide } = chooseSides(s, t);
     infos.push({
       edgeId: e.id,
       sourceId: e.source,

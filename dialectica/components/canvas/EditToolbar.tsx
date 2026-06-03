@@ -127,25 +127,34 @@ export function EditToolbar({
     return () => window.removeEventListener("keydown", onKey);
   }, [onUndo, onRedo]);
 
-  if (!expanded) {
-    return (
-      <div className="pointer-events-auto absolute bottom-7 left-1/2 z-20 -translate-x-1/2 select-none">
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          aria-label="Show annotation tools"
-          aria-expanded={false}
-          className="flex size-11 items-center justify-center rounded-full border border-dia-border bg-[#111] text-dia-fg-muted transition-colors hover:bg-dia-surface-2 hover:text-dia-fg"
-        >
-          <Pencil className="size-4" strokeWidth={1.5} />
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="pointer-events-auto absolute bottom-7 left-1/2 z-20 -translate-x-1/2 select-none">
-      <div className="flex h-14 items-center gap-1 rounded-full border border-dia-border bg-[#111] px-2">
+    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-14 -translate-x-1/2 select-none">
+      {/* Collapsed state: small round pencil button (Figma node 4:246) */}
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label="Show annotation tools"
+        aria-expanded={expanded}
+        className={clsx(
+          "absolute left-1/2 top-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dia-border bg-[#111] text-dia-fg-muted transition-[transform,opacity] duration-200 ease-out",
+          expanded
+            ? "pointer-events-none scale-75 opacity-0"
+            : "pointer-events-auto scale-100 opacity-100 hover:bg-dia-surface-2 hover:text-dia-fg",
+        )}
+      >
+        <Pencil className="size-4" strokeWidth={1.5} />
+      </button>
+
+      {/* Expanded state: full toolbar, anchored to the same center as the button */}
+      <div
+        className={clsx(
+          "absolute left-1/2 top-1/2 flex h-14 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-dia-border bg-[#111] px-2 transition-[transform,opacity] duration-200 ease-out",
+          expanded
+            ? "pointer-events-auto scale-100 opacity-100"
+            : "pointer-events-none scale-75 opacity-0",
+        )}
+        aria-hidden={!expanded}
+      >
         {/* Collapse toolbar */}
         <ModeButton
           onClick={() => setExpanded(false)}

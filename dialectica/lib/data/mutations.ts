@@ -208,6 +208,80 @@ export async function applyMovePatch(mapId: string, patch: MoveMapPatch) {
   if (error) throw new Error(error.message);
 }
 
+// Move-mode delete patch (DIA-EDIT-DELETE). Deletes nodes/edges from the map
+// JSON. Deleting a crux also removes any cruxEdges that reference it.
+// Deleting a frame node-instance also removes any frame edges that touch it.
+export type DeleteMapPatch = {
+  /** Crux ids to remove from `map.cruxes` (and from cruxEdges). */
+  cruxIds?: string[];
+  /** Edge ids to remove from `map.cruxEdges`. */
+  cruxEdgeIds?: string[];
+  /** frameId -> node ids to remove from that frame's nodeInstances. */
+  frameNodeIds?: Record<string, string[]>;
+  /** frameId -> edge ids to remove from that frame's edges. */
+  frameEdgeIds?: Record<string, string[]>;
+};
+
+export async function applyDeletePatch(mapId: string, patch: DeleteMapPatch) {
+  const user = await currentUser();
+  if (!user || user.role !== "edit") {
+    throw new Error("Only edit-role users can delete map entities.");
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data: row, error: readErr } = await supabase
+    .from("Dialectica_maps")
+    .select("data")
+    .eq("id", mapId)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!row) throw new Error(`Map ${mapId} not found`);
+
+  const map = ArgMap.parse(row.data);
+
+  if (patch.cruxIds && patch.cruxIds.length > 0) {
+    const dead = new Set(patch.cruxIds);
+    map.cruxes = map.cruxes.filter((c) => !dead.has(c.id));
+    // Cascade: remove any cruxEdges that referenced a deleted crux.
+    map.cruxEdges = map.cruxEdges.filter(
+      (e) => !dead.has(e.source) && !dead.has(e.target),
+    );
+  }
+  if (patch.cruxEdgeIds && patch.cruxEdgeIds.length > 0) {
+    const dead = new Set(patch.cruxEdgeIds);
+    map.cruxEdges = map.cruxEdges.filter((e) => !dead.has(e.id));
+  }
+  if (patch.frameNodeIds) {
+    for (const [frameId, nodeIds] of Object.entries(patch.frameNodeIds)) {
+      const frame = map.frames[frameId];
+      if (!frame || nodeIds.length === 0) continue;
+      const dead = new Set(nodeIds);
+      frame.nodeInstances = frame.nodeInstances.filter(
+        (inst) => !dead.has(inst.nodeId),
+      );
+      // Cascade: remove frame edges that referenced a removed node instance.
+      frame.edges = frame.edges.filter(
+        (e) => !dead.has(e.source) && !dead.has(e.target),
+      );
+    }
+  }
+  if (patch.frameEdgeIds) {
+    for (const [frameId, edgeIds] of Object.entries(patch.frameEdgeIds)) {
+      const frame = map.frames[frameId];
+      if (!frame || edgeIds.length === 0) continue;
+      const dead = new Set(edgeIds);
+      frame.edges = frame.edges.filter((e) => !dead.has(e.id));
+    }
+  }
+
+  map.updatedAt = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("Dialectica_maps")
+    .update({ data: map, updated_at: map.updatedAt })
+    .eq("id", mapId);
+  if (error) throw new Error(error.message);
+}
+
 // Phase 5: annotations live in the dedicated `Dialectica_annotations` table.
 // Inserts go via Supabase Realtime → other clients see strokes within ~200ms.
 // Upsert semantics: a re-save of the same id (drag-move, undo→redo) replaces
