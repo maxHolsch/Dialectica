@@ -26,9 +26,17 @@ export function avatarFor(user: AppUser) {
   return { initials: initials || "?", color: COLORS[h % COLORS.length]! };
 }
 
+const DEV_USER: AppUser = {
+  id: "dev-john",
+  email: "john@media.mit.edu",
+  displayName: "John",
+  role: "view",
+};
+
 // Returns the signed-in app user, or null if no session.
 // The proxy gates pages so most callers can assume non-null; defensive null still helps server-actions.
 export async function currentUser(): Promise<AppUser | null> {
+  if (process.env.SKIP_AUTH === "true") return DEV_USER;
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
