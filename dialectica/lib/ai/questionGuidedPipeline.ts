@@ -66,6 +66,8 @@ WHAT MAKES A GOOD SUB-QUESTION:
   not a passing remark.
 - Distinct from the others. Two sub-questions that boil down to the same thing
   should be one.
+- Easy to understand. 
+- Tiable to a decision or action if answered well, regardless of side chosen.
 
 HARD RULES:
 - Return ${target} sub-questions (you may emit ${Math.max(3, target - 2)}-${target + 2}
@@ -97,12 +99,14 @@ WHAT A "CLAIM" IS HERE:
   CLAIM is what survives the speaker.
 - Distinct from the other claims for this question. If two utterances boil
   down to the same assertion, ONE claim covers both.
+- Every claim should be reasonable: for example: "Return-to-office mandates, tracking, and policies suck the joy out of an inherently good experience" is not reasonable, because no one reasonable would call it inherently good. Return-to-office mandates, tracking, and policies suck the joy out of the experience.
 
 CALIBRATION:
 - Target ${target}. Emit 4-5 if the material supports it. Emit fewer (3) only
   when there genuinely aren't more distinct positions in the transcript.
 - These should be the load-bearing claims — the ones the conversation actually
   pivoted on, not asides.
+- Claims on the map should potentially be in contradiction with one another, showing the different sides of the argument. All claims should be the best version of their argument.
 
 OPTIONAL FLAGS:
 - "is_factual": true ONLY for claims that are empirically checkable (a number,
@@ -153,6 +157,7 @@ THE LABEL — THIS IS THE WHOLE POINT:
 - Reference the substance of the move, not just the existence of the relation.
 - Concrete, active, specific. If you cannot write a label that earns its
   edge, drop the connection. 3 sharp connections beat 6 flat ones.
+- please create 3-4 labels in total
 
 BAD (do not produce these):
 - "agrees" ← restates that the claims are related, not how
@@ -201,7 +206,7 @@ You have THREE things below:
 2. The central questions (cruxes), each with an id.
 3. The full list of claims, namespaced by question.
 
-GOAL: surface the connections that turn the cruxes from a flat list into a
+GOAL: surface 6-7 the connections that turn the cruxes from a flat list into a
 small story — where one sub-question's framing pre-supposes another, where
 resolving one would unlock another, where one reframes the territory the
 other is operating on.
