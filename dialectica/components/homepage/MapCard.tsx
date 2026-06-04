@@ -7,11 +7,9 @@ import { MapCardWrapper } from "./MapCardWrapper";
 export function MapCard({
   card,
   mode,
-  index,
 }: {
   card: MapCardData;
   mode: Mode;
-  index: number;
 }) {
   return (
     <MapCardWrapper card={card} mode={mode}>
@@ -21,7 +19,7 @@ export function MapCard({
           "transition-colors hover:border-dia-border-strong",
         )}
       >
-        <MapPreview kind={card.previewKind} index={index} />
+        <MapPreview kind={card.previewKind} id={card.id} />
         <VisibilityPill visibility={card.visibility} />
 
         <div className="border-t border-dia-border-subtle" />

@@ -11,8 +11,8 @@ export function MapGrid({
 }) {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {cards.map((card, index) => (
-        <MapCard key={card.id} card={card} mode={mode} index={index} />
+      {cards.map((card) => (
+        <MapCard key={card.id} card={card} mode={mode} />
       ))}
     </div>
   );

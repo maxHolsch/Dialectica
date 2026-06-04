@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { type NodeProps } from "@xyflow/react";
 import { getStroke } from "perfect-freehand";
 import {
@@ -10,18 +10,23 @@ import {
   toFreehandInput,
 } from "@/lib/canvas/freehand";
 import type { Annotation } from "@/lib/schema";
+import { createAnnotation } from "@/lib/data/mutations";
+import { useUIStore } from "@/lib/state/useUIStore";
 
 type StrokeNodeData = {
   annotation: Annotation;
   /** True when the active canvas mode is 'erase' — adds a hover affordance. */
   eraseHover: boolean;
+  /** True when the current user owns this annotation or is in edit mode. */
+  canEdit: boolean;
+  mapId: string;
 };
 
 function StrokeNodeImpl({ data }: NodeProps) {
-  const { annotation, eraseHover } = data as unknown as StrokeNodeData;
+  const { annotation, eraseHover, canEdit, mapId } = data as unknown as StrokeNodeData;
 
   if (annotation.tool === "textbox") {
-    return <TextBox annotation={annotation} eraseHover={eraseHover} />;
+    return <TextBox annotation={annotation} eraseHover={eraseHover} canEdit={canEdit} mapId={mapId} />;
   }
 
   return <FreehandStroke annotation={annotation} eraseHover={eraseHover} />;
@@ -76,11 +81,17 @@ function FreehandStroke({
 function TextBox({
   annotation,
   eraseHover,
+  canEdit,
+  mapId,
 }: {
   annotation: Annotation;
   eraseHover: boolean;
+  canEdit: boolean;
+  mapId: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const addOptimistic = useUIStore((s) => s.addOptimistic);
+  const lastDblClickRef = useRef<number>(0);
 
   // Uncontrolled contentEditable: write the initial text once, then let the DOM own it.
   // Re-rendering the children of a contentEditable resets the caret to the start.
@@ -91,7 +102,10 @@ function TextBox({
     if (el.innerText !== initial) {
       el.innerText = initial;
     }
-    // Focus newly-placed textbox + drop the caret at the end so the user can type/delete in place.
+    // Only auto-focus a freshly-placed textbox that belongs to the current user.
+    if (!canEdit) return;
+    const age = Date.now() - new Date(annotation.createdAt).getTime();
+    if (age > 3000) return;
     el.focus({ preventScroll: true });
     const range = document.createRange();
     range.selectNodeContents(el);
@@ -103,14 +117,44 @@ function TextBox({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const now = Date.now();
+    const el = ref.current;
+    if (!el) return;
+    if (now - lastDblClickRef.current < 600) {
+      // Second double-click: select all text
+      e.preventDefault();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
+    lastDblClickRef.current = now;
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const text = el.innerText;
+    const updated = { ...annotation, text };
+    addOptimistic(updated);
+    void createAnnotation(mapId, updated).catch((err) =>
+      console.error("[textbox] save text failed", err),
+    );
+  }, [annotation, mapId, addOptimistic]);
+
   return (
     <div
       ref={ref}
       role="textbox"
-      contentEditable={!eraseHover}
+      contentEditable={canEdit && !eraseHover}
       suppressContentEditableWarning
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
+      onDoubleClick={handleDoubleClick}
+      onBlur={handleBlur}
       className="font-mono text-[12px] leading-tight outline-none"
       style={{
         color: annotation.color,
@@ -121,7 +165,7 @@ function TextBox({
         border: eraseHover
           ? "1px dashed rgba(255,255,255,0.35)"
           : "1px dashed transparent",
-        cursor: eraseHover ? "crosshair" : "text",
+        cursor: eraseHover ? "crosshair" : canEdit ? "text" : "default",
       }}
     />
   );

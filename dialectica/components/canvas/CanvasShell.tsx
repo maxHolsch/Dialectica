@@ -356,10 +356,10 @@ function Canvas({
       id: a.id,
       type: "stroke",
       position: a.origin,
-      data: { annotation: a, eraseHover: mode === "erase" },
+      data: { annotation: a, eraseHover: mode === "erase" && (isEditMode || a.userId === userId), canEdit: isEditMode || a.userId === userId, mapId },
       width: a.width,
       height: a.height,
-      draggable: mode === "select",
+      draggable: mode === "select" && (isEditMode || a.userId === userId),
       selectable: mode === "select" || mode === "erase",
       // Annotations live above content nodes visually.
       zIndex: 5,
@@ -372,6 +372,8 @@ function Canvas({
     mode,
     moveHandlers,
     deletedNodeIds,
+    userId,
+    isEditMode,
   ]);
 
   // Apply edge overrides + inject the per-edge label-offset callback so the
