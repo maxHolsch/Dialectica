@@ -6,6 +6,7 @@ import {
   stage3Organize,
   stage4Relate,
   factCheckSideLayer,
+  stage5Quotes,
   DEFAULT_PARAMS,
   type PipelineParams,
   type RawClaim,
@@ -15,6 +16,7 @@ import {
   type CrossQuestionRelationship,
   type MomentumLens,
   type FactCheckTodoRaw,
+  type ClaimQuoteEntry,
 } from "./pipeline";
 import { mapToArgMap } from "./mapToArgMap";
 import { PipelineJsonError } from "./jsonParse";
@@ -235,6 +237,41 @@ async function stepFactCheck(
   }
 }
 
+async function stepQuotes(
+  runId: string,
+  distilled: { claims: DistilledClaim[] },
+  transcript: string,
+  params: PipelineParams,
+): Promise<{ claim_quotes: ClaimQuoteEntry[] }> {
+  "use step";
+  console.log(`[gen ${runId}] step:quotes claim_count=${distilled.claims.length} transcript_len=${transcript.length}`);
+  await updateRun(runId, { status: "quoting" });
+  await appendLog(
+    runId,
+    "quotes",
+    `starting Stage 5 (quote retrieval) · ${distilled.claims.length} claims · ${transcript.length.toLocaleString()} chars transcript`,
+  );
+  try {
+    const { result, usage } = await stage5Quotes(distilled, transcript, params);
+    const total = (result.claim_quotes ?? []).reduce(
+      (n, e) => n + (e.quotes?.length ?? 0),
+      0,
+    );
+    await appendLog(
+      runId,
+      "quotes",
+      `Stage 5 done · ${total} quotes across ${result.claim_quotes?.length ?? 0} claims`,
+    );
+    const path = await uploadStageBlob(runId, "quotes_path", result);
+    await updateRun(runId, { quotes_path: path });
+    await recordStageUsage(runId, "quotes", usage, params.model);
+    return result;
+  } catch (e) {
+    await persistPipelineFailure(runId, "quotes", e);
+    throw e;
+  }
+}
+
 async function stepBuildMap(
   runId: string,
   ownerId: string | null,
@@ -248,6 +285,7 @@ async function stepBuildMap(
     momentum: MomentumLens;
   },
   factCheck: { fact_check_todos: FactCheckTodoRaw[] },
+  quotes: { claim_quotes: ClaimQuoteEntry[] },
   layoutStrategy: LayoutStrategyId,
 ): Promise<string> {
   "use step";
@@ -267,6 +305,7 @@ async function stepBuildMap(
       cross_question_relationships: relations.cross_question_relationships,
       momentum: relations.momentum,
       fact_check_todos: factCheck.fact_check_todos,
+      claim_quotes: quotes.claim_quotes ?? [],
     },
   });
 
@@ -340,7 +379,10 @@ export async function runGenerationWorkflow(args: RunArgs) {
     questions,
     args.params,
   );
+  // Stage 5 and fact-check are independent — run sequentially here because
+  // the Workflow DevKit serializes steps, but both read only from distilled.
   const factCheck = await stepFactCheck(args.runId, distilled, args.params);
+  const quotes = await stepQuotes(args.runId, distilled, transcript, args.params);
 
   const mapId = await stepBuildMap(
     args.runId,
@@ -351,6 +393,7 @@ export async function runGenerationWorkflow(args: RunArgs) {
     questions,
     relations,
     factCheck,
+    quotes,
     resolveStrategy(args.layoutStrategy),
   );
 

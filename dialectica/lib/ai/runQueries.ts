@@ -38,6 +38,7 @@ export type RunRow = {
     | "organizing"
     | "relating"
     | "fact_checking"
+    | "quoting"
     | "mapping"
     | "succeeded"
     | "failed";
@@ -48,6 +49,7 @@ export type RunRow = {
   questions_path: string | null;
   relations_path: string | null;
   fact_check_path: string | null;
+  quotes_path: string | null;
   map_id: string | null;
   log: { at: string; stage: string; message: string }[] | null;
   created_at: string;

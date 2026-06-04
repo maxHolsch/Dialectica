@@ -19,6 +19,7 @@ export function subscribeToAnnotations(
   mapId: string,
   handlers: AnnotationChangeHandlers,
 ): () => void {
+  if (process.env.NEXT_PUBLIC_SKIP_AUTH === "true") return () => {};
   const supabase = createSupabaseBrowserClient();
   let cancelled = false;
   let channel: RealtimeChannel | null = null;

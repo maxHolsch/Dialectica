@@ -173,7 +173,7 @@ export default async function RunDetailPage(props: {
 
         <CostSection
           usage={run.usage}
-          model={(run.params.model ?? "claude-sonnet-4-6") as ModelId}
+          model={(run.params.model ?? "claude-sonnet-4.6") as ModelId}
         />
 
         <Section title="Pipeline parameters">

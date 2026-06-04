@@ -103,7 +103,7 @@ function FreeFormGenerationForm() {
   const [dedupLevel, setDedupLevel] = useState<DedupLevel>("conservative");
   const [nQuestions, setNQuestions] = useState(5);
   const [palette, setPalette] = useState(DEFAULT_PALETTE);
-  const [model, setModel] = useState<ModelId>("claude-sonnet-4-6");
+  const [model, setModel] = useState<ModelId>("claude-sonnet-4.6");
   const [effort, setEffort] = useState<Effort | "none">("none");
   const [layoutStrategy, setLayoutStrategy] =
     useState<LayoutStrategyId>(DEFAULT_STRATEGY);

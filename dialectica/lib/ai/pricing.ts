@@ -12,10 +12,10 @@
 // Reasoning tokens (extended thinking) are charged at the OUTPUT rate.
 
 export type ModelId =
-  | "claude-sonnet-4-6"
-  | "claude-opus-4-7"
-  | "claude-opus-4-8"
-  | "claude-haiku-4-5";
+  | "claude-sonnet-4.6"
+  | "claude-opus-4.7"
+  | "claude-opus-4.8"
+  | "claude-haiku-4.5";
 
 export type Effort = "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -28,19 +28,19 @@ export type ModelPrice = {
 
 export const MODEL_PRICING: Record<ModelId, ModelPrice> = {
   // $3 / $15 per million.
-  "claude-sonnet-4-6": { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
+  "claude-sonnet-4.6": { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
   // $15 / $75 per million.
-  "claude-opus-4-7": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
-  "claude-opus-4-8": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4.7": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
+  "claude-opus-4.8": { input: 15, output: 75, cacheRead: 1.5, cacheWrite: 18.75 },
   // $1 / $5 per million.
-  "claude-haiku-4-5": { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 },
+  "claude-haiku-4.5": { input: 1, output: 5, cacheRead: 0.1, cacheWrite: 1.25 },
 };
 
 export const AVAILABLE_MODELS: { id: ModelId; label: string }[] = [
-  { id: "claude-sonnet-4-6", label: "Sonnet 4.6 (default — fast + cheap)" },
-  { id: "claude-opus-4-7", label: "Opus 4.7" },
-  { id: "claude-opus-4-8", label: "Opus 4.8 (most capable)" },
-  { id: "claude-haiku-4-5", label: "Haiku 4.5 (cheapest)" },
+  { id: "claude-sonnet-4.6", label: "Sonnet 4.6 (default — fast + cheap)" },
+  { id: "claude-opus-4.7", label: "Opus 4.7" },
+  { id: "claude-opus-4.8", label: "Opus 4.8 (most capable)" },
+  { id: "claude-haiku-4.5", label: "Haiku 4.5 (cheapest)" },
 ];
 
 export const EFFORT_LEVELS: { id: Effort | "none"; label: string }[] = [

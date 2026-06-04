@@ -42,6 +42,8 @@ export function useCursorChannel(mapId: string, me: CursorIdentity) {
   const { userId: myId, displayName: myName, color: myColor } = me;
   const [cursors, setCursors] = useState<Record<string, RemoteCursor>>({});
 
+  const skipAuth = process.env.NEXT_PUBLIC_SKIP_AUTH === "true";
+
   const channelRef = useRef<RealtimeChannel | null>(null);
   const subscribedRef = useRef(false);
   const lastSentRef = useRef(0);
@@ -49,6 +51,7 @@ export function useCursorChannel(mapId: string, me: CursorIdentity) {
   const trailingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (skipAuth) return;
     const supabase = createSupabaseBrowserClient();
     let cancelled = false;
     let channel: RealtimeChannel | null = null;
@@ -135,6 +138,7 @@ export function useCursorChannel(mapId: string, me: CursorIdentity) {
 
   const broadcast = useCallback(
     (x: number, y: number) => {
+      if (skipAuth) return;
       lastPosRef.current = { x, y };
       const now = Date.now();
       const elapsed = now - lastSentRef.current;
@@ -164,17 +168,17 @@ export function useCursorChannel(mapId: string, me: CursorIdentity) {
       if (trailingTimeoutRef.current) return;
       trailingTimeoutRef.current = setTimeout(send, SEND_INTERVAL_MS - elapsed);
     },
-    [myId, myName, myColor],
+    [skipAuth, myId, myName, myColor],
   );
 
   const signalLeave = useCallback(() => {
-    if (!channelRef.current || !subscribedRef.current) return;
+    if (skipAuth || !channelRef.current || !subscribedRef.current) return;
     void channelRef.current.send({
       type: "broadcast",
       event: "leave",
       payload: { userId: myId },
     });
-  }, [myId]);
+  }, [skipAuth, myId]);
 
   return { cursors, broadcast, signalLeave };
 }

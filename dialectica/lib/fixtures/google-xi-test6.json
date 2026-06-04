@@ -1,0 +1,1925 @@
+{
+  "id": "map-gen-scenrv-mpy2o87r",
+  "meta": {
+    "momentum": {
+      "rationale": "Question-guided pipeline: cruxes were curator-selected, not inferred — no highest-leverage signal.",
+      "latentAgreements": [],
+      "highestLeverageQuestion": "q1"
+    },
+    "factCheckTodos": [],
+    "generationRunId": "gen-scenrv-mpy2o87r"
+  },
+  "nodes": {
+    "q1c1": {
+      "id": "q1c1",
+      "text": "AI enhances access to information and collective cognition but not genuine knowledge or expertise",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q1c2": {
+      "id": "q1c2",
+      "text": "AI obsolesces critical thinking, rote memorization, and the cognitive work of synthesis",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q1c3": {
+      "id": "q1c3",
+      "text": "AI retrieves the encyclopedia, Socratic method, oracle, and uninhibited appetite for knowledge",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q1c4": {
+      "id": "q1c4",
+      "text": "AI flips into cognitive surrender, lazy thinking, false confidence, and psychosis at the extreme",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q1c5": {
+      "id": "q1c5",
+      "text": "The cognition being enhanced is narrow, missing somatic, institutional, and intuitive human intelligence",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q2c1": {
+      "id": "q2c1",
+      "text": "AI enhances access to information but not actual knowledge or expertise.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q2c2": {
+      "id": "q2c2",
+      "text": "AI redefines expertise; many believe experts are no longer relevant.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q2c3": {
+      "id": "q2c3",
+      "text": "True expertise pushes boundaries of knowledge; AI only recombines what already exists.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q2c4": {
+      "id": "q2c4",
+      "text": "AI cannot capture somatic, intuitive, or institutional knowledge built through lived experience.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q2c5": {
+      "id": "q2c5",
+      "text": "AI lets anyone be an autodidact, giving ability to be expert without reason or earned mastery.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q3c1": {
+      "id": "q3c1",
+      "text": "A team is defined by shared mission, shared trust, shared identity, and shared history.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q3c2": {
+      "id": "q3c2",
+      "text": "When teams turn over every 21 days, they become cohorts or mere collections of people, not teams.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q3c3": {
+      "id": "q3c3",
+      "text": "A cohort assembles for a specific task and dissipates, while a team is dedicated and enduring.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q3c4": {
+      "id": "q3c4",
+      "text": "A team is a group working interconnectedly toward a common outcome, without needing to know each other.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q3c5": {
+      "id": "q3c5",
+      "text": "A real team works well together and finds value in collaboration, more like a band than a flash unit.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q4c1": {
+      "id": "q4c1",
+      "text": "The manager role is flipping from all-knowing expert to orchestrator and enabler of human and agent team members.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q4c2": {
+      "id": "q4c2",
+      "text": "The knowledge-hoarding technical manager is becoming obsolete; the orchestrator is the emerging figure.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q4c3": {
+      "id": "q4c3",
+      "text": "If an agent can manage you, it raises the question of why human management is needed at all.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q4c4": {
+      "id": "q4c4",
+      "text": "The manager's role shifts toward coaching humans and controlling the quality of output.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q4c5": {
+      "id": "q4c5",
+      "text": "AI empowers the decision-maker at the top while disempowering everyone not in the decision-making chair.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q5c1": {
+      "id": "q5c1",
+      "text": "AI enhances only a narrow definition of human cognition, missing somatic intelligence, institutional knowledge, and culture.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q5c2": {
+      "id": "q5c2",
+      "text": "Somatic, intuitive knowledge from years of hands-on practice cannot be captured in AI-generated procedures.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q5c3": {
+      "id": "q5c3",
+      "text": "Institutional knowledge is mostly lived experience and culture, not information, so AI cannot replace it.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q5c4": {
+      "id": "q5c4",
+      "text": "AI cannot replace human beings working together; humanity's biggest problems require people collaborating.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q5c5": {
+      "id": "q5c5",
+      "text": "True expertise pushes the boundaries of known knowledge; AI only patterns and recasts what already exists.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q6c1": {
+      "id": "q6c1",
+      "text": "AI obsolesces human utility value since machines outperform humans at nearly every utilitarian task",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q6c2": {
+      "id": "q6c2",
+      "text": "AI forces fundamental questions of meaning, retrieving existentialism, nihilism, and philosophical inquiry",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q6c3": {
+      "id": "q6c3",
+      "text": "Obsoleted utility threatens identity, leaving many feeling they're no longer valuable as humans",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q6c4": {
+      "id": "q6c4",
+      "text": "In a post-capitalist frame, freed time could enhance leisure and self-worth beyond extraction of value",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q6c5": {
+      "id": "q6c5",
+      "text": "AI enhances human purpose by amplifying agency, creativity, and craft as sources of meaning",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q7c1": {
+      "id": "q7c1",
+      "text": "Work is automatically fun and non-hierarchical in small companies, turning shitty past ~100-150 people",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q7c2": {
+      "id": "q7c2",
+      "text": "AI makes work more fun by removing minutiae, especially within a team",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q7c3": {
+      "id": "q7c3",
+      "text": "Policy mandates dictating when and how to use AI make it predictable and drain the joy",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q7c4": {
+      "id": "q7c4",
+      "text": "Return-to-office mandates, tracking, and policies suck the joy out of an inherently good experience",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q7c5": {
+      "id": "q7c5",
+      "text": "Top talent comes to the office for fun, meaningful conversation, and friendship with smart peers",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q8c1": {
+      "id": "q8c1",
+      "text": "Hiring should shift from credentials to demonstrated ability to make things",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q8c2": {
+      "id": "q8c2",
+      "text": "Hire for thirst to learn and adaptability, not years of specific experience",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q8c3": {
+      "id": "q8c3",
+      "text": "Education should be redesigned around later life stages, not stop after high school or college",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q8c4": {
+      "id": "q8c4",
+      "text": "The old social contract—school, major, secure job—is collapsing before our eyes",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q8c5": {
+      "id": "q8c5",
+      "text": "Performance standards and metrics must be reimagined away from output-based vanity KPIs",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q9c1": {
+      "id": "q9c1",
+      "text": "AI doesn't take jobs; it amplifies the corporatism that invented employment.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q9c2": {
+      "id": "q9c2",
+      "text": "AI doesn't make students cheat; it amplifies education's existing metric-and-competition ground.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q9c3": {
+      "id": "q9c3",
+      "text": "Focusing on the technology itself obscures the larger institutional systems it challenges.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q9c4": {
+      "id": "q9c4",
+      "text": "People will eventually distinguish AI the tool from the institutions AI amplifies.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q9c5": {
+      "id": "q9c5",
+      "text": "AI's harms come from how it's mandated by policy, not from the tool itself.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q10c1": {
+      "id": "q10c1",
+      "text": "Team dynamics should be more lateral and collaborative, less hierarchical and dominant.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q10c2": {
+      "id": "q10c2",
+      "text": "AI obsolesces silos by forcing cross-disciplinary teams to actually work together.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q10c3": {
+      "id": "q10c3",
+      "text": "The hierarchical knowledge-hoarding manager is becoming obsolete; the orchestrator-enabler is emerging.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q10c4": {
+      "id": "q10c4",
+      "text": "AI empowers individual decision-makers, making team power asymmetric rather than collaborative.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    },
+    "q10c5": {
+      "id": "q10c5",
+      "text": "True teams need shared mission, trust, and identity, not just short-lived reshuffled cohorts.",
+      "type": "claim",
+      "absorbed": [],
+      "isFactual": false
+    }
+  },
+  "title": "Google Xi Test6",
+  "cruxes": [
+    {
+      "id": "q1",
+      "size": {
+        "width": 301,
+        "height": 122
+      },
+      "frameId": "q1",
+      "position": {
+        "x": 92,
+        "y": 287
+      },
+      "question": "What does AI enhance, obsolesce, retrieve, and flip in human cognition?"
+    },
+    {
+      "id": "q2",
+      "size": {
+        "width": 318,
+        "height": 122
+      },
+      "frameId": "q2",
+      "position": {
+        "x": 755,
+        "y": 399
+      },
+      "question": "How does AI reshape what counts as expertise versus access to information?"
+    },
+    {
+      "id": "q3",
+      "size": {
+        "width": 310,
+        "height": 122
+      },
+      "frameId": "q3",
+      "position": {
+        "x": 3545,
+        "y": 459
+      },
+      "question": "What distinguishes a true team from a cohort or flash collection of people?"
+    },
+    {
+      "id": "q4",
+      "size": {
+        "width": 310,
+        "height": 100
+      },
+      "frameId": "q4",
+      "position": {
+        "x": 4253,
+        "y": 307
+      },
+      "question": "How is the role of the manager changing in an AI-augmented team?"
+    },
+    {
+      "id": "q5",
+      "size": {
+        "width": 293,
+        "height": 122
+      },
+      "frameId": "q5",
+      "position": {
+        "x": 1469.6666666666667,
+        "y": 287
+      },
+      "question": "What human capacities—somatic, institutional, cultural—does AI fail to capture or replace?"
+    },
+    {
+      "id": "q6",
+      "size": {
+        "width": 310,
+        "height": 122
+      },
+      "frameId": "q6",
+      "position": {
+        "x": 1464,
+        "y": 479
+      },
+      "question": "How does AI affect people's sense of purpose, meaning, and value when utility is obsoleted?"
+    },
+    {
+      "id": "q7",
+      "size": {
+        "width": 310,
+        "height": 122
+      },
+      "frameId": "q7",
+      "position": {
+        "x": 2165,
+        "y": 653
+      },
+      "question": "What makes work fun, and how do scale, mandates, and policy drain that joy?"
+    },
+    {
+      "id": "q8",
+      "size": {
+        "width": 310,
+        "height": 122
+      },
+      "frameId": "q8",
+      "position": {
+        "x": 2851,
+        "y": 673
+      },
+      "question": "How should hiring, education, and the social contract be reimagined for an AI world?"
+    },
+    {
+      "id": "q9",
+      "size": {
+        "width": 318,
+        "height": 143
+      },
+      "frameId": "q9",
+      "position": {
+        "x": 755,
+        "y": 662
+      },
+      "question": "Whether AI amplifies the technology itself or the institutions and incentives behind it?"
+    },
+    {
+      "id": "q10",
+      "size": {
+        "width": 301,
+        "height": 122
+      },
+      "frameId": "q10",
+      "position": {
+        "x": 4932,
+        "y": 367
+      },
+      "question": "Should teams be structured to be more lateral and collaborative rather than hierarchical?"
+    }
+  ],
+  "frames": {
+    "q1": {
+      "id": "q1",
+      "edges": [
+        {
+          "id": "q1-e0",
+          "label": "Trades information access for lost synthesis",
+          "source": "q1c1",
+          "target": "q1c2",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-3"
+        },
+        {
+          "id": "q1-e1",
+          "label": "Pushed to extreme, becomes cognitive surrender",
+          "source": "q1c1",
+          "target": "q1c4",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-4"
+        },
+        {
+          "id": "q1-e2",
+          "label": "Reframes enhancement as old form returning",
+          "source": "q1c3",
+          "target": "q1c1",
+          "relType": "",
+          "sourceHandle": "src-right-1",
+          "targetHandle": "tgt-left-4"
+        },
+        {
+          "id": "q1-e3",
+          "label": "Offloading hardens into lazy thinking",
+          "source": "q1c2",
+          "target": "q1c4",
+          "relType": "",
+          "sourceHandle": "src-right-3",
+          "targetHandle": "tgt-left-0"
+        },
+        {
+          "id": "q1-e4",
+          "label": "Narrows what counts as enhanced cognition",
+          "source": "q1c5",
+          "target": "q1c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
+        },
+        {
+          "id": "q1-e5",
+          "label": "Names somatic intelligence as what's actually retrieved",
+          "source": "q1c5",
+          "target": "q1c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-1"
+        }
+      ],
+      "cruxId": "q1",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 314,
+            "height": 160
+          },
+          "nodeId": "q1c1",
+          "position": {
+            "x": 1509,
+            "y": 211
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q1c2",
+          "position": {
+            "x": 2199,
+            "y": 184
+          }
+        },
+        {
+          "size": {
+            "width": 295,
+            "height": 184
+          },
+          "nodeId": "q1c3",
+          "position": {
+            "x": 823,
+            "y": 226
+          }
+        },
+        {
+          "size": {
+            "width": 304,
+            "height": 160
+          },
+          "nodeId": "q1c4",
+          "position": {
+            "x": 2930,
+            "y": 211
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q1c5",
+          "position": {
+            "x": 92,
+            "y": 211
+          }
+        }
+      ]
+    },
+    "q2": {
+      "id": "q2",
+      "edges": [
+        {
+          "id": "q2-e0",
+          "label": "Exposes hollowness behind claimed expertise",
+          "source": "q2c1",
+          "target": "q2c2",
+          "relType": "",
+          "sourceHandle": "src-right-3",
+          "targetHandle": "tgt-left-1"
+        },
+        {
+          "id": "q2-e1",
+          "label": "Illustrates access mistaken for knowledge",
+          "source": "q2c5",
+          "target": "q2c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        },
+        {
+          "id": "q2-e2",
+          "label": "Defends frontier expertise against dismissal",
+          "source": "q2c3",
+          "target": "q2c2",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        },
+        {
+          "id": "q2-e3",
+          "label": "Grounds irreducible expertise in lived experience",
+          "source": "q2c4",
+          "target": "q2c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q2-e4",
+          "label": "Names what access leaves out",
+          "source": "q2c4",
+          "target": "q2c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q2-e5",
+          "label": "Severs ability from earned mastery",
+          "source": "q2c5",
+          "target": "q2c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-3"
+        }
+      ],
+      "cruxId": "q2",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 314,
+            "height": 136
+          },
+          "nodeId": "q2c1",
+          "position": {
+            "x": 830.3333333333334,
+            "y": 100
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 136
+          },
+          "nodeId": "q2c2",
+          "position": {
+            "x": 1541,
+            "y": 123
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q2c3",
+          "position": {
+            "x": 824,
+            "y": 306
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q2c4",
+          "position": {
+            "x": 92,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q2c5",
+          "position": {
+            "x": 92,
+            "y": 322
+          }
+        }
+      ]
+    },
+    "q3": {
+      "id": "q3",
+      "edges": [
+        {
+          "id": "q3-e0",
+          "label": "Supplies criteria the 21-day churn fails",
+          "source": "q3c1",
+          "target": "q3c2",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q3-e1",
+          "label": "Instances churn as cohort dissipation",
+          "source": "q3c2",
+          "target": "q3c3",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q3-e2",
+          "label": "Strips relational bonds from definition",
+          "source": "q3c4",
+          "target": "q3c1",
+          "relType": "",
+          "sourceHandle": "src-right-3",
+          "targetHandle": "tgt-left-1"
+        },
+        {
+          "id": "q3-e3",
+          "label": "Reinserts trust against bare interconnection",
+          "source": "q3c1",
+          "target": "q3c4",
+          "relType": "",
+          "sourceHandle": "src-left-1",
+          "targetHandle": "tgt-right-3"
+        },
+        {
+          "id": "q3-e4",
+          "label": "Counters churn with band-like durability",
+          "source": "q3c5",
+          "target": "q3c2",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q3-e5",
+          "label": "Adds 'works well together' to criteria",
+          "source": "q3c5",
+          "target": "q3c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        }
+      ],
+      "cruxId": "q3",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q3c1",
+          "position": {
+            "x": 854,
+            "y": 231
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q3c2",
+          "position": {
+            "x": 1576,
+            "y": 417
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q3c3",
+          "position": {
+            "x": 2285,
+            "y": 417
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q3c4",
+          "position": {
+            "x": 132,
+            "y": 187
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q3c5",
+          "position": {
+            "x": 132,
+            "y": 417
+          }
+        }
+      ]
+    },
+    "q4": {
+      "id": "q4",
+      "edges": [
+        {
+          "id": "q4-e0",
+          "label": "Names emerging figure replacing",
+          "source": "q4c2",
+          "target": "q4c1",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q4-e1",
+          "label": "Specifies new function as",
+          "source": "q4c1",
+          "target": "q4c4",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q4-e2",
+          "label": "Threatens to dissolve orchestrator role",
+          "source": "q4c3",
+          "target": "q4c1",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q4-e3",
+          "label": "Recasts orchestration as power concentration",
+          "source": "q4c5",
+          "target": "q4c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        },
+        {
+          "id": "q4-e4",
+          "label": "Undercuts coaching framing with hierarchy",
+          "source": "q4c5",
+          "target": "q4c4",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-3"
+        }
+      ],
+      "cruxId": "q4",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 333,
+            "height": 184
+          },
+          "nodeId": "q4c1",
+          "position": {
+            "x": 794,
+            "y": 334
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 184
+          },
+          "nodeId": "q4c2",
+          "position": {
+            "x": 92,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q4c3",
+          "position": {
+            "x": 101,
+            "y": 346
+          }
+        },
+        {
+          "size": {
+            "width": 314,
+            "height": 160
+          },
+          "nodeId": "q4c4",
+          "position": {
+            "x": 1503,
+            "y": 544
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 184
+          },
+          "nodeId": "q4c5",
+          "position": {
+            "x": 92,
+            "y": 576
+          }
+        }
+      ]
+    },
+    "q5": {
+      "id": "q5",
+      "edges": [
+        {
+          "id": "q5-e0",
+          "label": "Supplies somatic case for",
+          "source": "q5c2",
+          "target": "q5c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
+        },
+        {
+          "id": "q5-e1",
+          "label": "Supplies institutional case for",
+          "source": "q5c3",
+          "target": "q5c1",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q5-e2",
+          "label": "Sharpens cognition gap as",
+          "source": "q5c5",
+          "target": "q5c1",
+          "relType": "",
+          "sourceHandle": "src-right-1",
+          "targetHandle": "tgt-left-4"
+        },
+        {
+          "id": "q5-e3",
+          "label": "Grounds collaboration claim in lived culture",
+          "source": "q5c3",
+          "target": "q5c4",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-3"
+        },
+        {
+          "id": "q5-e4",
+          "label": "Illustrates frontier knowledge AI lacks",
+          "source": "q5c2",
+          "target": "q5c5",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-1"
+        }
+      ],
+      "cruxId": "q5",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 324,
+            "height": 184
+          },
+          "nodeId": "q5c1",
+          "position": {
+            "x": 1499,
+            "y": 432
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q5c2",
+          "position": {
+            "x": 92,
+            "y": 463
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q5c3",
+          "position": {
+            "x": 765,
+            "y": 131
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 184
+          },
+          "nodeId": "q5c4",
+          "position": {
+            "x": 1499,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 184
+          },
+          "nodeId": "q5c5",
+          "position": {
+            "x": 769.5,
+            "y": 478
+          }
+        }
+      ]
+    },
+    "q6": {
+      "id": "q6",
+      "edges": [
+        {
+          "id": "q6-e0",
+          "label": "Translates lost utility into identity threat",
+          "source": "q6c1",
+          "target": "q6c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q6-e1",
+          "label": "Triggers existential reckoning over meaning",
+          "source": "q6c1",
+          "target": "q6c2",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q6-e2",
+          "label": "Drives the nihilism it provokes",
+          "source": "q6c3",
+          "target": "q6c2",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        },
+        {
+          "id": "q6-e3",
+          "label": "Reframes obsoleted utility as liberation",
+          "source": "q6c4",
+          "target": "q6c3",
+          "relType": "",
+          "sourceHandle": "src-right-1",
+          "targetHandle": "tgt-left-3"
+        },
+        {
+          "id": "q6-e4",
+          "label": "Relocates value from utility to craft",
+          "source": "q6c5",
+          "target": "q6c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        },
+        {
+          "id": "q6-e5",
+          "label": "Specifies what freed time enables",
+          "source": "q6c5",
+          "target": "q6c4",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-1"
+        }
+      ],
+      "cruxId": "q6",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q6c1",
+          "position": {
+            "x": 823,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 184
+          },
+          "nodeId": "q6c2",
+          "position": {
+            "x": 2234,
+            "y": 157
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q6c3",
+          "position": {
+            "x": 1555,
+            "y": 289
+          }
+        },
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q6c4",
+          "position": {
+            "x": 823,
+            "y": 322
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q6c5",
+          "position": {
+            "x": 92,
+            "y": 295
+          }
+        }
+      ]
+    },
+    "q7": {
+      "id": "q7",
+      "edges": [
+        {
+          "id": "q7-e0",
+          "label": "Names what mandates invert",
+          "source": "q7c2",
+          "target": "q7c3",
+          "relType": "",
+          "sourceHandle": "src-left-2",
+          "targetHandle": "tgt-right-2"
+        },
+        {
+          "id": "q7-e1",
+          "label": "Generalizes mandate pattern beyond AI",
+          "source": "q7c4",
+          "target": "q7c3",
+          "relType": "",
+          "sourceHandle": "src-right-3",
+          "targetHandle": "tgt-left-1"
+        },
+        {
+          "id": "q7-e2",
+          "label": "Locates fun where minutiae stays low",
+          "source": "q7c1",
+          "target": "q7c2",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q7-e3",
+          "label": "Supplies what scale erodes",
+          "source": "q7c5",
+          "target": "q7c1",
+          "relType": "",
+          "labelOffset": -0.05124999999999996,
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q7-e4",
+          "label": "Mandated tracking displaces peer connection",
+          "source": "q7c3",
+          "target": "q7c5",
+          "relType": "",
+          "labelOffset": -0.0625,
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        }
+      ],
+      "cruxId": "q7",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 324,
+            "height": 160
+          },
+          "nodeId": "q7c1",
+          "position": {
+            "x": 2257,
+            "y": 119
+          }
+        },
+        {
+          "size": {
+            "width": 304,
+            "height": 136
+          },
+          "nodeId": "q7c2",
+          "position": {
+            "x": 2965,
+            "y": 131
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q7c3",
+          "position": {
+            "x": 816,
+            "y": 119
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q7c4",
+          "position": {
+            "x": 92,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q7c5",
+          "position": {
+            "x": 1540,
+            "y": 119
+          }
+        }
+      ]
+    },
+    "q8": {
+      "id": "q8",
+      "edges": [
+        {
+          "id": "q8-e0",
+          "label": "Collapsing credential path forces ability-based hiring",
+          "source": "q8c4",
+          "target": "q8c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-3"
+        },
+        {
+          "id": "q8-e1",
+          "label": "Broken track demands lifelong education redesign",
+          "source": "q8c4",
+          "target": "q8c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q8-e2",
+          "label": "Extends making to learning capacity",
+          "source": "q8c1",
+          "target": "q8c2",
+          "relType": "",
+          "sourceHandle": "src-right-3",
+          "targetHandle": "tgt-left-1"
+        },
+        {
+          "id": "q8-e3",
+          "label": "Adaptability hiring requires outcome over output metrics",
+          "source": "q8c2",
+          "target": "q8c5",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q8-e4",
+          "label": "Later-stage learning supplies the adaptable candidates",
+          "source": "q8c3",
+          "target": "q8c2",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        }
+      ],
+      "cruxId": "q8",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 324,
+            "height": 136
+          },
+          "nodeId": "q8c1",
+          "position": {
+            "x": 782.5,
+            "y": 92
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 136
+          },
+          "nodeId": "q8c2",
+          "position": {
+            "x": 1495,
+            "y": 115
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q8c3",
+          "position": {
+            "x": 778,
+            "y": 298
+          }
+        },
+        {
+          "size": {
+            "width": 295,
+            "height": 160
+          },
+          "nodeId": "q8c4",
+          "position": {
+            "x": 92,
+            "y": 107
+          }
+        },
+        {
+          "size": {
+            "width": 314,
+            "height": 160
+          },
+          "nodeId": "q8c5",
+          "position": {
+            "x": 2226,
+            "y": 103
+          }
+        }
+      ]
+    },
+    "q9": {
+      "id": "q9",
+      "edges": [
+        {
+          "id": "q9-e0",
+          "label": "Yields jobs-corporatism reading as instance",
+          "source": "q9c3",
+          "target": "q9c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
+        },
+        {
+          "id": "q9-e1",
+          "label": "Yields cheating-as-education-ground instance",
+          "source": "q9c3",
+          "target": "q9c2",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q9-e2",
+          "label": "Repeats amplification move on schools",
+          "source": "q9c1",
+          "target": "q9c2",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-4"
+        },
+        {
+          "id": "q9-e3",
+          "label": "Names the discernment people lack",
+          "source": "q9c3",
+          "target": "q9c4",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q9-e4",
+          "label": "Locates harm in mandate, not tool",
+          "source": "q9c4",
+          "target": "q9c5",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
+        },
+        {
+          "id": "q9-e5",
+          "label": "Specifies the amplified institution as policy",
+          "source": "q9c5",
+          "target": "q9c1",
+          "relType": "",
+          "sourceHandle": "src-right-1",
+          "targetHandle": "tgt-left-4"
+        }
+      ],
+      "cruxId": "q9",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 304,
+            "height": 136
+          },
+          "nodeId": "q9c1",
+          "position": {
+            "x": 2230,
+            "y": 177
+          }
+        },
+        {
+          "size": {
+            "width": 295,
+            "height": 184
+          },
+          "nodeId": "q9c2",
+          "position": {
+            "x": 2918,
+            "y": 363
+          }
+        },
+        {
+          "size": {
+            "width": 314,
+            "height": 160
+          },
+          "nodeId": "q9c3",
+          "position": {
+            "x": 92,
+            "y": 188
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q9c4",
+          "position": {
+            "x": 804,
+            "y": 188
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 136
+          },
+          "nodeId": "q9c5",
+          "position": {
+            "x": 1535,
+            "y": 200
+          }
+        }
+      ]
+    },
+    "q10": {
+      "id": "q10",
+      "edges": [
+        {
+          "id": "q10-e0",
+          "label": "Supplies mechanism for flattening hierarchy",
+          "source": "q10c2",
+          "target": "q10c1",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-top-0"
+        },
+        {
+          "id": "q10-e1",
+          "label": "Names the role shift enabling lateralness",
+          "source": "q10c3",
+          "target": "q10c1",
+          "relType": "",
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-4"
+        },
+        {
+          "id": "q10-e2",
+          "label": "Counters lateral hope with asymmetric power",
+          "source": "q10c4",
+          "target": "q10c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
+        },
+        {
+          "id": "q10-e3",
+          "label": "Recasts orchestrator as concentrated authority",
+          "source": "q10c4",
+          "target": "q10c3",
+          "relType": "",
+          "sourceHandle": "src-right-4",
+          "targetHandle": "tgt-left-1"
+        },
+        {
+          "id": "q10-e4",
+          "label": "Conditions lateralness on durable bonds",
+          "source": "q10c5",
+          "target": "q10c1",
+          "relType": "",
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-bottom-0"
+        }
+      ],
+      "cruxId": "q10",
+      "nodeInstances": [
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q10c1",
+          "position": {
+            "x": 1487,
+            "y": 452
+          }
+        },
+        {
+          "size": {
+            "width": 314,
+            "height": 160
+          },
+          "nodeId": "q10c2",
+          "position": {
+            "x": 787,
+            "y": 226
+          }
+        },
+        {
+          "size": {
+            "width": 314,
+            "height": 184
+          },
+          "nodeId": "q10c3",
+          "position": {
+            "x": 787,
+            "y": 456
+          }
+        },
+        {
+          "size": {
+            "width": 333,
+            "height": 160
+          },
+          "nodeId": "q10c4",
+          "position": {
+            "x": 92,
+            "y": 441
+          }
+        },
+        {
+          "size": {
+            "width": 276,
+            "height": 184
+          },
+          "nodeId": "q10c5",
+          "position": {
+            "x": 825,
+            "y": 710
+          }
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-06-03T12:59:25.610Z",
+  "cruxEdges": [
+    {
+      "id": "cx-0",
+      "label": "Sharpens the knowledge-versus-access split",
+      "source": "q1",
+      "target": "q2",
+      "relType": "",
+      "labelOffset": 0.21375,
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-top-0"
+    },
+    {
+      "id": "cx-1",
+      "label": "Exposes blind spots of",
+      "source": "q1",
+      "target": "q5",
+      "relType": "",
+      "labelOffset": 0.24749999999999994,
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-left-2"
+    },
+    {
+      "id": "cx-2",
+      "label": "Grounds expertise in uncapturable",
+      "source": "q2",
+      "target": "q5",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-bottom-0"
+    },
+    {
+      "id": "cx-3",
+      "label": "Obsoleted expertise destabilizes",
+      "source": "q2",
+      "target": "q6",
+      "relType": "",
+      "labelOffset": 0.2662499999999999,
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-top-0"
+    },
+    {
+      "id": "cx-4",
+      "label": "Routes lost meaning into",
+      "source": "q6",
+      "target": "q3",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-left-3"
+    },
+    {
+      "id": "cx-5",
+      "label": "Makes human collaboration irreplaceable for",
+      "source": "q5",
+      "target": "q3",
+      "relType": "",
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-top-0"
+    },
+    {
+      "id": "cx-6",
+      "label": "Recasts who orchestrates the",
+      "source": "q3",
+      "target": "q4",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-bottom-0"
+    },
+    {
+      "id": "cx-7",
+      "label": "Orchestrator shift fuels flattening of",
+      "source": "q4",
+      "target": "q10",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-top-0"
+    },
+    {
+      "id": "cx-8",
+      "label": "Decision-maker power threatens lateral",
+      "source": "q4",
+      "target": "q10",
+      "relType": "",
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-top-4"
+    },
+    {
+      "id": "cx-9",
+      "label": "Defines the cohesion lateral teams need",
+      "source": "q3",
+      "target": "q10",
+      "relType": "",
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-bottom-0"
+    },
+    {
+      "id": "cx-10",
+      "label": "Locates joy-killer in mandates not tool",
+      "source": "q9",
+      "target": "q7",
+      "relType": "",
+      "sourceHandle": "src-right-2",
+      "targetHandle": "tgt-left-3"
+    },
+    {
+      "id": "cx-11",
+      "label": "Names the collapsing institutional ground",
+      "source": "q9",
+      "target": "q8",
+      "relType": "",
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-left-4"
+    },
+    {
+      "id": "cx-12",
+      "label": "Scale and policy demand rethinking",
+      "source": "q7",
+      "target": "q8",
+      "relType": "",
+      "sourceHandle": "src-right-3",
+      "targetHandle": "tgt-left-0"
+    },
+    {
+      "id": "cx-13",
+      "label": "Reframes purpose as fun and play",
+      "source": "q6",
+      "target": "q7",
+      "relType": "",
+      "sourceHandle": "src-right-4",
+      "targetHandle": "tgt-top-0"
+    },
+    {
+      "id": "cx-14",
+      "label": "Hire-for-the-team reframes what binds",
+      "source": "q8",
+      "target": "q3",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-bottom-0"
+    },
+    {
+      "id": "cx-15",
+      "label": "Institutional amplification reframes purpose crisis",
+      "source": "q9",
+      "target": "q6",
+      "relType": "",
+      "sourceHandle": "src-right-0",
+      "targetHandle": "tgt-bottom-0"
+    }
+  ],
+  "updatedAt": "2026-06-04T15:24:13.580Z",
+  "crossLinks": [
+    {
+      "to": "q2",
+      "from": "q1",
+      "note": "Sharpens the knowledge-versus-access split",
+      "type": "",
+      "sharedClaimIds": [
+        "q1c1",
+        "q2c1"
+      ]
+    },
+    {
+      "to": "q5",
+      "from": "q1",
+      "note": "Exposes blind spots of",
+      "type": "",
+      "sharedClaimIds": [
+        "q1c5",
+        "q5c1"
+      ]
+    },
+    {
+      "to": "q5",
+      "from": "q2",
+      "note": "Grounds expertise in uncapturable",
+      "type": "",
+      "sharedClaimIds": [
+        "q2c4",
+        "q5c2",
+        "q5c5"
+      ]
+    },
+    {
+      "to": "q6",
+      "from": "q2",
+      "note": "Obsoleted expertise destabilizes",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q3",
+      "from": "q6",
+      "note": "Routes lost meaning into",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q3",
+      "from": "q5",
+      "note": "Makes human collaboration irreplaceable for",
+      "type": "",
+      "sharedClaimIds": [
+        "q5c4"
+      ]
+    },
+    {
+      "to": "q4",
+      "from": "q3",
+      "note": "Recasts who orchestrates the",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q10",
+      "from": "q4",
+      "note": "Orchestrator shift fuels flattening of",
+      "type": "",
+      "sharedClaimIds": [
+        "q4c2",
+        "q10c3"
+      ]
+    },
+    {
+      "to": "q10",
+      "from": "q4",
+      "note": "Decision-maker power threatens lateral",
+      "type": "",
+      "sharedClaimIds": [
+        "q4c5",
+        "q10c4"
+      ]
+    },
+    {
+      "to": "q10",
+      "from": "q3",
+      "note": "Defines the cohesion lateral teams need",
+      "type": "",
+      "sharedClaimIds": [
+        "q3c1",
+        "q10c5"
+      ]
+    },
+    {
+      "to": "q7",
+      "from": "q9",
+      "note": "Locates joy-killer in mandates not tool",
+      "type": "",
+      "sharedClaimIds": [
+        "q9c5",
+        "q7c3"
+      ]
+    },
+    {
+      "to": "q8",
+      "from": "q9",
+      "note": "Names the collapsing institutional ground",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q8",
+      "from": "q7",
+      "note": "Scale and policy demand rethinking",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q7",
+      "from": "q6",
+      "note": "Reframes purpose as fun and play",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q3",
+      "from": "q8",
+      "note": "Hire-for-the-team reframes what binds",
+      "type": "",
+      "sharedClaimIds": []
+    },
+    {
+      "to": "q6",
+      "from": "q9",
+      "note": "Institutional amplification reframes purpose crisis",
+      "type": "",
+      "sharedClaimIds": []
+    }
+  ],
+  "annotations": [],
+  "topQuestion": "Preserve and build the value of humans thinking together, and make that preservation something organizations can see, use, and fund.",
+  "topQuestionSize": {
+    "width": 318,
+    "height": 165
+  },
+  "topQuestionPosition": {
+    "x": 92,
+    "y": 92
+  }
+}
