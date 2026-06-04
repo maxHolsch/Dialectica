@@ -2,7 +2,6 @@ import { FatalError } from "workflow";
 import {
   stage1ExtractClaimsByQuestion,
   stage2RelateWithinQuestions,
-  stage3RelateCrossQuestions,
   assembleQuestionGuidedOutput,
   type QuestionWithClaims,
 } from "./questionGuidedPipeline";
@@ -169,19 +168,9 @@ async function stepRelate(
     );
     await recordStageUsage(runId, "relate", within.usage, params.model);
 
-    await appendLog(
-      runId,
-      "relate",
-      `within-question connections done · drawing cross-question connections between cruxes (transcript-grounded)`,
-    );
-    const cross = await stage3RelateCrossQuestions(transcript, groups, params);
-    // Cross-question call records under the same `relate` stage bucket;
-    // recordStageUsage accumulates per-stage so both contributions show up.
-    await recordStageUsage(runId, "relate", cross.usage, params.model);
-
     const relationsPayload = {
       relationships: within.result,
-      cross_question_relationships: cross.result,
+      cross_question_relationships: [],
       momentum: {
         highest_leverage_question: groups[0]?.questionId ?? "",
         rationale:
@@ -195,9 +184,9 @@ async function stepRelate(
     await appendLog(
       runId,
       "relate",
-      `relate done · ${within.result.length} within-question · ${cross.result.length} cross-question`,
+      `relate done · ${within.result.length} within-question connections`,
     );
-    return { within: within.result, cross: cross.result };
+    return { within: within.result, cross: [] };
   } catch (e) {
     await persistPipelineFailure(runId, "relate", e);
     throw e;

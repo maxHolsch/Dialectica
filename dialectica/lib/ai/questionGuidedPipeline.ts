@@ -48,7 +48,7 @@ export const PROMPT_PROPOSE_QUESTIONS = ({
 }: {
   topQuestion: string;
   target: number;
-}) => `You are proposing the central sub-questions of a discussion.
+}) =>`You are proposing the central sub-questions of a discussion.
 
 INPUT: a top-level question the participants were trying to answer, and the
 full transcript of the discussion. Your job: read the transcript and surface
@@ -59,15 +59,24 @@ which ones become the cruxes of the argument map.
 TOP-LEVEL QUESTION: ${topQuestion}
 
 WHAT MAKES A GOOD SUB-QUESTION:
-- Anchored in this transcript. Not a generic question about the topic.
-- Open-ended. "What…", "How…", "Why…", "When…", "Whether…". Never a yes/no.
-- Neutral. Does NOT presuppose a side. Multiple positions can plausibly answer it.
-- Substantive. The kind of thing the conversation kept circling back to —
+- A live tension, not a topic. Find the axis the room actually split on — where
+  thoughtful people in the transcript gave genuinely different answers. The best
+  sub-questions have an implicit "versus" inside them (X or Y? strengthens or
+  erodes? this role or that one?).
+- Anchored in the ARGUMENT, not just the vocabulary. The connection to the
+  top-level question need not be literal or direct — a question can avoid the
+  words "team" or "future" entirely and still be the crux. What matters is that
+  resolving it changes the answer to the top-level question.
+- Open-ended. Start with "What / How / Why / When / Whether", OR frame it
+  conditionally: "If [something the transcript treats as true or likely], then
+  what…". Never a yes/no.
+- Neutral. Does NOT presuppose which side is right. Multiple positions voiced in
+  the room can plausibly answer it.
+- Substantive and recurring. Something the conversation kept circling back to —
   not a passing remark.
-- Distinct from the others. Two sub-questions that boil down to the same thing
-  should be one.
-- Easy to understand. 
-- Tiable to a decision or action if answered well, regardless of side chosen.
+- Distinct. Two sub-questions that boil down to the same crux should be one.
+- Easy to understand on first read.
+- Tied to a decision or action if answered well, whichever side one lands on.
 
 HARD RULES:
 - Return ${target} sub-questions (you may emit ${Math.max(3, target - 2)}-${target + 2}
