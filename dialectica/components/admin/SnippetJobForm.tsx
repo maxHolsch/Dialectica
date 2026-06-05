@@ -17,7 +17,7 @@ import {
 // progress.
 
 const DEFAULT_MAP_ID = "google-xi-test7";
-const DEFAULT_AUDIO_PATH = "google-xi-test7/recording.mp3";
+const DEFAULT_AUDIO_PATH = "google-xi-test7.mp3";
 
 export function SnippetJobForm({
   maps,

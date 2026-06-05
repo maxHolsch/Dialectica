@@ -72,6 +72,7 @@ export function FrameCanvas({
           // drawer for the right (frame, node) pair.
           frameId: frame.id,
           hasSnippets: !!canonical?.snippets?.length,
+          snippetCount: canonical?.snippets?.length ?? 0,
         },
         width: size.width,
         height: size.height,

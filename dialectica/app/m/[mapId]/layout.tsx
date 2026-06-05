@@ -3,6 +3,7 @@ import { getMap } from "@/lib/data/maps";
 import { currentUser, avatarFor } from "@/lib/data/users";
 import { listAnnotationsForMap } from "@/lib/data/annotations";
 import { CruxCanvas } from "@/components/crux/CruxCanvas";
+import { LivePill } from "@/components/topbar/LivePill";
 
 /**
  * Persistent map layout — the CruxCanvas stays mounted across crux↔frame
@@ -34,9 +35,19 @@ export default async function MapLayout({
         displayName={user?.displayName ?? "Anonymous"}
         userColor={avatar.color}
         isEditMode={user?.role === "edit"}
+        hideClose={!user}
       />
       {/* Frame view mounts here as a fixed overlay; null on crux route */}
       {children}
+      {user ? (
+        <div className="pointer-events-auto fixed right-6 top-5 z-[60]">
+          <LivePill
+            channelKey={`map:${mapId}`}
+            userId={user.id}
+            displayName={user.displayName}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import "server-only";
 import { ArgMap, type MapSummary } from "@/lib/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { isArtifactUnlocked } from "@/lib/artifact";
 import { STUB_MAPS } from "@/lib/fixtures/stub-maps";
 import seedMap from "@/lib/fixtures/seed-map.json";
 import tetradMap from "@/lib/fixtures/tetrad-map.json";
@@ -177,8 +179,19 @@ export async function getMap(id: string): Promise<ArgMap | null> {
       .eq("id", id)
       .maybeSingle();
     if (error) throw error;
-    if (!data) return null;
-    return ArgMap.parse(data.data);
+    if (data) return ArgMap.parse(data.data);
+    // Artifact mode: signed-out viewer with a valid unlock cookie can still
+    // read this one map. RLS would otherwise hide it, so use the admin client.
+    if (await isArtifactUnlocked(id)) {
+      const admin = createSupabaseAdminClient();
+      const { data: adminData } = await admin
+        .from("Dialectica_maps")
+        .select("data")
+        .eq("id", id)
+        .maybeSingle();
+      if (adminData) return ArgMap.parse(adminData.data);
+    }
+    return null;
   } catch {
     if (id === "seed-001") return ArgMap.parse(seedMap);
     const stub = STUB_MAPS.find((m) => m.id === id);

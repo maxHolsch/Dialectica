@@ -221,6 +221,9 @@ export const ArgMap = z.object({
       // is the full recording length. Written by the snippet pipeline.
       audio: z
         .object({
+          // Storage bucket + object path; the client mints a signed URL via
+          // /api/maps/[mapId]/audio (works for public or private buckets).
+          bucket: z.string().optional(),
           path: z.string(),
           publicUrl: z.string().optional(),
           durationMs: z.number().optional(),

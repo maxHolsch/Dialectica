@@ -85,10 +85,15 @@ export function FrameView({
       {/* Header layer — floats above the canvas overlay. No div-level fade;
           each child animation ends at opacity 0 so cleanup is self-contained. */}
       <div className="pointer-events-none fixed inset-0 z-[150]">
-        {/* White gradient backing */}
+        {/* White backing — flat white in the header area, then a long, smooth
+            fade so there's no visible edge where it meets the dot grid. */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
+          style={{
+            height: 220,
+            background:
+              "linear-gradient(to bottom, white 0%, white 60%, rgba(255,255,255,0) 100%)",
+          }}
         />
 
         {/* Back button */}

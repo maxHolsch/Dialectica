@@ -63,7 +63,7 @@ export function SidePanel({
   return (
     <aside
       style={{ width: 320, minWidth: 320, flexShrink: 0 }}
-      className="relative flex h-full min-w-0 flex-col overflow-hidden border-l border-dia-border bg-[#0a0a0a]"
+      className="relative flex h-full min-w-0 flex-col overflow-hidden border-l border-dia-border bg-transparent"
       aria-label="Claim detail"
     >
       <header className="flex items-start justify-between gap-3 px-4 pt-4">

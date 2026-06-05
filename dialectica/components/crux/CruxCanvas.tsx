@@ -37,6 +37,7 @@ export function CruxCanvas({
   displayName,
   userColor,
   isEditMode,
+  hideClose = false,
 }: {
   map: ArgMap;
   annotations: Annotation[];
@@ -44,6 +45,7 @@ export function CruxCanvas({
   displayName: string;
   userColor: string;
   isEditMode: boolean;
+  hideClose?: boolean;
 }) {
   // Hide header during frame-view back-transition to avoid colliding with the
   // morphing header text in FrameView, which occupies the same screen position.
@@ -214,13 +216,15 @@ export function CruxCanvas({
 
   return (
     <div className="relative h-full w-full">
-      <Link
-        href="/"
-        className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-        style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
-      >
-        <X size={18} weight="regular" />
-      </Link>
+      {hideClose ? null : (
+        <Link
+          href="/"
+          className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+        >
+          <X size={18} weight="regular" />
+        </Link>
+      )}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
         style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}

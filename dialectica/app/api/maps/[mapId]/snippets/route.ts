@@ -15,10 +15,11 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 // Storage bucket holding the conversation recordings (one compressed file per
-// conversation). Public so the <audio> element can stream + range-seek directly.
+// conversation). Served via signed URLs (/api/maps/[mapId]/audio), so it can be
+// public or private.
 const AUDIO_BUCKET = "dialectica-audio";
 // Sensible defaults for the Google Xi Test7 recording (tetrad_room_recording).
-const DEFAULT_AUDIO_PATH = "google-xi-test7/recording.mp3";
+const DEFAULT_AUDIO_PATH = "google-xi-test7.mp3";
 const DEFAULT_AUDIO_DURATION_MS = 13_594_000; // 3:46:34
 
 function runIdSlug(): string {
@@ -72,11 +73,6 @@ export async function POST(
     return NextResponse.json({ error: `map ${mapId} not found` }, { status: 404 });
   }
 
-  // Public URL for the recording (the file itself is uploaded out-of-band).
-  const audioPublicUrl = admin.storage
-    .from(AUDIO_BUCKET)
-    .getPublicUrl(audioPath).data.publicUrl;
-
   const runId = runIdSlug();
   const { error: insertErr } = await admin.from("Dialectica_generations").insert({
     id: runId,
@@ -100,7 +96,7 @@ export async function POST(
       model,
       effort,
       audioPath,
-      audioPublicUrl,
+      audioBucket: AUDIO_BUCKET,
       audioDurationMs,
       snippetRange,
       batchSize,

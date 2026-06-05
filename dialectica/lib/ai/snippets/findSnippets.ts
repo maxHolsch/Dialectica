@@ -8,7 +8,11 @@ import {
   emptyUsage,
 } from "../pricing";
 import type { ClaimSnippet } from "@/lib/schema";
-import type { IndexedTranscript } from "./transcript";
+import { trimToWordCap, type IndexedTranscript } from "./transcript";
+
+// Hard cap on snippet length. Utterances longer than this are trimmed (text +
+// audio span) to the first MAX_SNIPPET_WORDS words.
+export const MAX_SNIPPET_WORDS = 100;
 
 // Standalone snippet stage: for each claim, ask the model for the top-N most
 // related utterances from the indexed transcript, returned BY ID so we can map
@@ -39,6 +43,7 @@ HARD RULES:
 - Return ONLY utterance IDs that appear verbatim in the transcript (e.g. "U0042"). Never invent IDs.
 - Rank MOST related first. Return an empty list if none fit.
 - Pick standalone, on-topic moments — prefer where a speaker directly articulates the idea over passing mentions.
+- Prefer concise utterances. Snippets are capped at ~70 words (longer ones get trimmed), so favor moments that make the point within that length over long monologues.
 - "relevance" is one short clause (≤15 words) on HOW the utterance relates to the claim. Do not restate the claim.
 - Use the claim IDs exactly as given.
 
@@ -127,13 +132,16 @@ export async function findSnippets(
         const utt = transcript.lookup.get(id);
         if (!utt) continue; // drop hallucinated / unknown ids
         seen.add(id);
+        // Cap snippet length at MAX_SNIPPET_WORDS, trimming the audio span to
+        // match so what's shown equals what's heard.
+        const { text, endMs } = trimToWordCap(utt, MAX_SNIPPET_WORDS);
         resolved.push({
           rank: resolved.length + 1,
           speakerName: utt.speakerName,
           speakerLabel: utt.speakerLabel,
-          text: utt.text,
+          text,
           startMs: utt.startMs,
-          endMs: utt.endMs,
+          endMs,
           relevance: u.relevance?.trim() || undefined,
         });
         if (resolved.length >= range.max) break;

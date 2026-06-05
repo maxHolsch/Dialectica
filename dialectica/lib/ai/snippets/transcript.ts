@@ -9,12 +9,15 @@ import namedUtterances from "@/db/tetrad-utterances.named.json";
 // agree with the audio recording because `db/tetrad-utterances.named.json` is
 // the AssemblyAI "named" pass whose offsets match tetrad_room_recording.flac.
 
+export type WordTiming = { text: string; start: number; end: number };
+
 export type NamedUtterance = {
   speaker: string; // diarization label (A, B, …)
   speaker_name: string; // resolved identity
   text: string;
   start: number; // ms
   end: number; // ms
+  words?: WordTiming[];
 };
 
 export type ResolvedUtterance = {
@@ -24,6 +27,9 @@ export type ResolvedUtterance = {
   speakerName: string;
   speakerLabel: string;
   text: string;
+  // Per-word timings — used to trim long utterances to a word cap while
+  // keeping the audio span aligned with the trimmed text.
+  words: WordTiming[];
 };
 
 // "U" + zero-padded index keeps ids fixed-width and easy for the model to copy.
@@ -73,9 +79,38 @@ export function buildIndexedTranscript(
       speakerName,
       speakerLabel: u.speaker,
       text,
+      words: u.words ?? [],
     });
     lines.push(`[${id} | ${speakerName} | ${msToTimestamp(u.start)}]: ${text}`);
   });
 
   return { text: lines.join("\n"), lookup, utteranceCount: lookup.size };
+}
+
+/**
+ * Trim an utterance to at most `maxWords`, keeping the audio span aligned with
+ * the trimmed text by ending at the kept words' last timestamp. Appends an
+ * ellipsis when truncated. Falls back to a proportional estimate if word
+ * timings are missing.
+ */
+export function trimToWordCap(
+  utt: ResolvedUtterance,
+  maxWords: number,
+): { text: string; endMs: number } {
+  const words = utt.words;
+  if (!words.length) {
+    const tokens = utt.text.split(/\s+/).filter(Boolean);
+    if (tokens.length <= maxWords) return { text: utt.text, endMs: utt.endMs };
+    const frac = maxWords / tokens.length;
+    return {
+      text: tokens.slice(0, maxWords).join(" ") + "…",
+      endMs: Math.round(utt.startMs + frac * (utt.endMs - utt.startMs)),
+    };
+  }
+  if (words.length <= maxWords) return { text: utt.text, endMs: utt.endMs };
+  const kept = words.slice(0, maxWords);
+  return {
+    text: kept.map((w) => w.text).join(" ") + "…",
+    endMs: kept[kept.length - 1].end,
+  };
 }

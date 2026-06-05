@@ -17,10 +17,12 @@ export function SnippetAudioPlayer({
   src,
   startMs,
   endMs,
+  tint,
 }: {
   src: string | null;
   startMs: number;
   endMs: number;
+  tint?: string;
 }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -67,9 +69,21 @@ export function SnippetAudioPlayer({
     void a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   }, [playing, src, startS, endS]);
 
+  const tintStyle = tint
+    ? {
+        button: { backgroundColor: `${tint}26`, color: tint },
+        track: { backgroundColor: `${tint}33` },
+        fill: { backgroundColor: tint },
+        label: { color: tint, opacity: 0.75 },
+      }
+    : null;
+
   if (!src) {
     return (
-      <p className="font-mono text-[10px] uppercase tracking-[1px] text-dia-fg-dim">
+      <p
+        className="font-mono text-[10px] uppercase tracking-[1px] text-dia-fg-dim"
+        style={tintStyle?.label}
+      >
         audio unavailable
       </p>
     );
@@ -88,7 +102,12 @@ export function SnippetAudioPlayer({
         type="button"
         onClick={toggle}
         aria-label={playing ? "Pause snippet" : "Play snippet"}
-        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-dia-surface-2 text-dia-fg transition-colors hover:bg-dia-mint hover:text-black"
+        className={
+          tint
+            ? "flex size-8 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-80"
+            : "flex size-8 shrink-0 items-center justify-center rounded-full bg-dia-surface-2 text-dia-fg transition-colors hover:bg-dia-mint hover:text-black"
+        }
+        style={tintStyle?.button}
       >
         {playing ? (
           <Pause className="size-3.5" strokeWidth={1.5} />
@@ -96,13 +115,27 @@ export function SnippetAudioPlayer({
           <Play className="size-3.5 translate-x-[1px]" strokeWidth={1.5} />
         )}
       </button>
-      <div className="h-1 flex-1 overflow-hidden rounded-full bg-dia-surface-2">
+      <div
+        className={
+          tint
+            ? "h-1 flex-1 overflow-hidden rounded-full"
+            : "h-1 flex-1 overflow-hidden rounded-full bg-dia-surface-2"
+        }
+        style={tintStyle?.track}
+      >
         <div
-          className="h-full bg-dia-mint transition-[width] duration-100"
-          style={{ width: `${progress * 100}%` }}
+          className={
+            tint
+              ? "h-full transition-[width] duration-100"
+              : "h-full bg-dia-mint transition-[width] duration-100"
+          }
+          style={{ width: `${progress * 100}%`, ...(tintStyle?.fill ?? {}) }}
         />
       </div>
-      <span className="shrink-0 font-mono text-[10px] tabular-nums text-dia-fg-dim">
+      <span
+        className="shrink-0 font-mono text-[10px] tabular-nums text-dia-fg-dim"
+        style={tintStyle?.label}
+      >
         {clock(endMs - startMs)}
       </span>
     </div>

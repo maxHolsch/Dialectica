@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CornersOut } from "@phosphor-icons/react";
 import {
@@ -597,11 +597,19 @@ function Canvas({
   );
 
   const handleNodeClick: NodeMouseHandler = useCallback(
-    (_, node) => {
+    (event, node) => {
       // Eraser: clicking any stroke node deletes that annotation.
       if (mode === "erase" && node.type === "stroke") {
         const ann = (node.data as { annotation?: Annotation }).annotation;
         if (ann) void drawing.eraseAnnotation(ann);
+        return;
+      }
+      // Drawing tool: textbox click over a content node should place the
+      // textbox at the click position (like freehand strokes go over nodes).
+      // onPaneClick doesn't fire when the click lands on a node, so we
+      // forward it here.
+      if (mode === "draw" && node.type !== "stroke") {
+        drawing.onPaneClick(event as unknown as ReactMouseEvent<HTMLDivElement>);
         return;
       }
       if (mode !== "select" || node.type === "stroke") return;

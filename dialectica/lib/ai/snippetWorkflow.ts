@@ -29,8 +29,8 @@ export type SnippetRunArgs = {
   effort: Effort | "none";
   /** Storage object path of the recording these snippets index into. */
   audioPath: string;
-  /** Set when the audio bucket is public (client plays it directly). */
-  audioPublicUrl?: string;
+  /** Bucket holding the recording (signed on demand by the audio route). */
+  audioBucket?: string;
   audioDurationMs?: number;
   /** Snippets per claim: aim for `ideal`, bounded by [min, max]. */
   snippetRange?: { ideal: number; min: number; max: number };
@@ -115,7 +115,7 @@ async function stepGenerateSnippets(args: SnippetRunArgs): Promise<{
       ...(raw.meta ?? {}),
       audio: {
         path: args.audioPath,
-        ...(args.audioPublicUrl ? { publicUrl: args.audioPublicUrl } : {}),
+        ...(args.audioBucket ? { bucket: args.audioBucket } : {}),
         ...(args.audioDurationMs ? { durationMs: args.audioDurationMs } : {}),
       },
     };

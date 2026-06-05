@@ -22,21 +22,29 @@ const SELECTED_OUTLINE: React.CSSProperties = {
 function SnippetQuoteButton({
   frameId,
   nodeId,
+  count,
 }: {
   frameId: string;
   nodeId: string;
+  count: number;
 }) {
   const openSnippetDrawer = useUIStore((s) => s.openSnippetDrawer);
+  const openSidePanel = useUIStore((s) => s.openSidePanel);
+  const label =
+    count > 0
+      ? `Top ${count} related ${count === 1 ? "snippet" : "snippets"}`
+      : "Where this was said";
   return (
     <button
       type="button"
-      aria-label="Show related transcript snippets"
-      title="Where this was said"
+      aria-label={label}
+      title={label}
       className="nodrag nopan absolute bottom-2 right-3 flex h-8 w-8 items-end justify-center leading-none text-black/35 transition-colors hover:text-black"
       style={{ fontFamily: "var(--font-quote)", fontSize: 34 }}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
+        openSidePanel({ frameId, nodeId });
         openSnippetDrawer({ frameId, nodeId });
       }}
     >
@@ -54,6 +62,7 @@ export const ClaimNode = memo(function ClaimNode({
   const text = (data?.text as string) ?? "";
   const selected = (data?.selected as boolean) ?? false;
   const hasSnippets = (data?.hasSnippets as boolean) ?? false;
+  const snippetCount = (data?.snippetCount as number) ?? 0;
   const frameId = (data?.frameId as string | undefined) ?? undefined;
   const w = width ?? 368;
   return (
@@ -63,7 +72,7 @@ export const ClaimNode = memo(function ClaimNode({
     >
       <p className="font-serif text-[16px] leading-[1.5] text-black">{text}</p>
       {hasSnippets && frameId ? (
-        <SnippetQuoteButton frameId={frameId} nodeId={id} />
+        <SnippetQuoteButton frameId={frameId} nodeId={id} count={snippetCount} />
       ) : null}
       <NodeHandles />
     </div>
