@@ -28,7 +28,12 @@ type StakeRow = {
 };
 
 export async function listStakesForMap(mapId: string): Promise<StakeMap> {
-  if (process.env.SKIP_AUTH === "true") return {};
+  if (process.env.SKIP_AUTH === "true") {
+    const { devStakeMap } = await import("./dev-stake-store");
+    const out: StakeMap = {};
+    for (const [key, bucket] of devStakeMap.entries()) out[key] = bucket;
+    return out;
+  }
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },

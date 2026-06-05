@@ -12,6 +12,8 @@ import { useUIStore } from "@/lib/state/useUIStore";
 
 type MovableLabelEdgeData = {
   label?: string;
+  /** Longer relationship description shown in the expanded pill (frame view only). */
+  relType?: string;
   labelOffset?: number;
   curvature?: number;
   /** Persist the new offset when the user releases a label drag. */
@@ -39,6 +41,8 @@ const offsetToFraction = (offset: number) => 0.5 + clampOffset(offset);
  */
 export function MovableLabelEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -50,16 +54,20 @@ export function MovableLabelEdge({
   style,
   selected,
 }: EdgeProps) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const mode = useUIStore((s) => s.mode);
+  const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
+  const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
   const edgeData = (data ?? {}) as MovableLabelEdgeData;
   const label = typeof edgeData.label === "string" ? edgeData.label : undefined;
+  const relType = typeof edgeData.relType === "string" ? edgeData.relType : undefined;
   const labelOffset = typeof edgeData.labelOffset === "number"
     ? edgeData.labelOffset
     : 0;
   const onLabelOffsetChange = edgeData.onLabelOffsetChange;
   const variant = edgeData.variant ?? "frame";
   const curvature = typeof edgeData.curvature === "number" ? edgeData.curvature : 0.25;
+  const isExpanded = expandedEdgeId === id;
 
   const [edgePath, midX, midY] = getBezierPath({
     sourceX,
@@ -170,6 +178,26 @@ export function MovableLabelEdge({
   );
 
   const draggable = mode === "move" && !!onLabelOffsetChange;
+  const clickable = mode === "select" && variant === "frame" && !!relType;
+
+  const handleLabelClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!clickable) return;
+      e.stopPropagation();
+      if (isExpanded) {
+        setExpandedEdgeId(null);
+      } else {
+        setExpandedEdgeId(id);
+        fitView({
+          nodes: [{ id: source }, { id: target }],
+          padding: 0.35,
+          duration: 500,
+          maxZoom: 1.1,
+        });
+      }
+    },
+    [clickable, isExpanded, setExpandedEdgeId, id, fitView, source, target],
+  );
 
   // When the user clicks to select an edge, paint it pure white so the
   // selection is obvious against the dark canvas. The stroke reverts to the
@@ -186,25 +214,26 @@ export function MovableLabelEdge({
           <div
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              cursor: draggable ? "grab" : undefined,
+              cursor: draggable ? "grab" : clickable ? "pointer" : undefined,
               touchAction: draggable ? "none" : undefined,
-              // React Flow's `.react-flow__edgelabel-renderer` parent sets
-              // pointer-events: none for the layer, so each label must opt in
-              // explicitly to receive drag events.
               pointerEvents: "auto",
+              zIndex: isExpanded ? 50 : undefined,
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
+            onClick={handleLabelClick}
             className={
               variant === "crux"
                 ? "nodrag nopan absolute rounded bg-[#f4f0e8] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#1a1a1a]" +
                   (draggable ? " ring-1 ring-[#ffc943]" : "")
+                : isExpanded
+                ? "nodrag nopan absolute rounded-full border border-[#AAAAAA] bg-white px-4 py-2 font-serif italic text-[12px] leading-[1.45] text-dia-fg select-none"
                 : "nodrag nopan absolute rounded bg-dia-bg px-2 py-0.5 text-center font-serif italic text-[12px] leading-[1.45] text-dia-fg-muted" +
                   (draggable ? " ring-1 ring-[#ffc943]" : "")
             }
           >
-            {label}
+            {isExpanded ? relType : label}
           </div>
         </EdgeLabelRenderer>
       ) : null}

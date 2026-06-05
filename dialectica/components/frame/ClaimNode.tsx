@@ -8,9 +8,9 @@ import { NodeHandles } from "@/components/canvas/NodeHandles";
 // the node from the outside without affecting its layout box, so it scales
 // to any width/height the node is given.
 const SELECTED_OUTLINE: React.CSSProperties = {
-  outline: "2px dashed #a8c5e6",
-  outlineOffset: 14,
-  borderRadius: 4,
+  outline: "2px solid #a8c5e6",
+  outlineOffset: 0,
+  borderRadius: 12,
 };
 
 /** Solid mint claim tile in the frame view. Figma node 2:15. */

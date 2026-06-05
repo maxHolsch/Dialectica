@@ -45,6 +45,10 @@ type UIStore = {
   restoreHeatmap: () => void;
   setHeatmapSplit: (fraction: number) => void;
 
+  // Expanded edge label — null when no edge label is expanded.
+  expandedEdgeId: string | null;
+  setExpandedEdgeId: (id: string | null) => void;
+
   // Optimistic annotation layer keyed by id. Live on top of the server-loaded
   // annotations from props; we merge by id when rendering.
   optimisticAdds: Record<string, Annotation>;
@@ -87,6 +91,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       sidePanelNode: null,
       sidePanelMode: "compact",
       heatmapSplit: HEATMAP_SPLIT_DEFAULT,
+      expandedEdgeId: null,
     });
   },
 
@@ -94,9 +99,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
   sidePanelMode: "compact",
   heatmapSplit: HEATMAP_SPLIT_DEFAULT,
   openSidePanel: (target) =>
-    set({ sidePanelNode: target, sidePanelMode: "compact" }),
+    set({ sidePanelNode: target, sidePanelMode: "compact", expandedEdgeId: null }),
   closeSidePanel: () =>
     set({ sidePanelNode: null, sidePanelMode: "compact" }),
+
+  expandedEdgeId: null,
+  setExpandedEdgeId: (id) => set({ expandedEdgeId: id, sidePanelNode: null }),
   expandHeatmap: () => set({ sidePanelMode: "expanded" }),
   restoreHeatmap: () => set({ sidePanelMode: "compact" }),
   setHeatmapSplit: (fraction) =>

@@ -191,8 +191,11 @@
 }
 
 /* After initial animations complete, new nodes/edges render instantly — no replay flash */
-.canvas-drawn .react-flow__node { animation: none; opacity: 1; }
+.canvas-drawn .react-flow__node { animation: none; opacity: 1; transition: opacity 200ms ease; }
 .canvas-drawn .react-flow__edge-path { animation: none; stroke-dasharray: none; opacity: 1; }
+
+/* Tile focus mode — dims non-selected nodes/edges so the selected tile stands out */
+.canvas-drawn.canvas-tile-focused .react-flow__edges { opacity: 0.12; transition: opacity 200ms ease; }
 
 /* Cursor — set --canvas-cursor on the wrapper div; applies to every React Flow layer */
 .react-flow__pane,
@@ -200,6 +203,10 @@
 .react-flow__edge,
 .react-flow__edge-interaction {
   cursor: var(--canvas-cursor, auto) !important;
+}
+/* Buttons inside the canvas inherit cursor from their container (overrides UA default) */
+[data-canvas-mode] button {
+  cursor: inherit !important;
 }
 
 /* Draw / erase mode — suppress pointer events on content so strokes pass through */

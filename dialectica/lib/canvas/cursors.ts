@@ -5,24 +5,26 @@
 // viewBox is 0 0 256 256 (standard Phosphor space), rendered at 24×24 px.
 // Hotspot coordinates are in 24px space.
 
+const SIZE = 20; // rendered px (down from 24 — slightly more compact)
+const SCALE = SIZE / 24;
+
 function make(fillD: string, primaryD: string, hx: number, hy: number): string {
-  // Split compound path (multiple sub-paths) into separate <path> elements so
-  // each sub-path fills solid white. A single compound path with reversed-winding
-  // sub-paths creates transparent holes via the nonzero fill rule.
+  // Split compound path into separate <path> elements so each sub-path fills
+  // solid white. Reversed-winding sub-paths create transparent holes otherwise.
   const fillPaths = fillD
     .split(/(?=M)/)
     .filter(Boolean)
     .map((d) => `<path d="${d.trim()}" fill="white"/>`)
     .join("");
   const svg = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 256">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 256 256">`,
     `<defs><filter id="sh"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.4)"/></filter></defs>`,
     `<g filter="url(#sh)">`,
     fillPaths,
     `<path d="${primaryD}" fill="black"/>`,
     `</g></svg>`,
   ].join("");
-  return `url('data:image/svg+xml,${encodeURIComponent(svg)}') ${hx} ${hy}, auto`;
+  return `url('data:image/svg+xml,${encodeURIComponent(svg)}') ${Math.round(hx * SCALE)} ${Math.round(hy * SCALE)}, auto`;
 }
 
 export const CURSORS = {
@@ -52,6 +54,13 @@ export const CURSORS = {
     "M253.66,106.34a8,8,0,0,0-11.32,0L192,156.69,107.31,72l50.35-50.34a8,8,0,1,0-11.32-11.32L96,60.69A16,16,0,0,0,93.18,79.5L72,100.69a16,16,0,0,0,0,22.62L76.69,128,18.34,186.34a8,8,0,0,0,3.13,13.25l72,24A7.88,7.88,0,0,0,96,224a8,8,0,0,0,5.66-2.34L136,187.31l4.69,4.69a16,16,0,0,0,22.62,0l21.18-21.18A16,16,0,0,0,203.31,168l50.35-50.34A8,8,0,0,0,253.66,106.34ZM152,180.69,83.31,112,104,91.31,172.69,160Z",
     "M253.66,106.34a8,8,0,0,0-11.32,0L192,156.69,109.66,74.34h0L107.31,72l50.35-50.34a8,8,0,1,0-11.32-11.32L96,60.69A16,16,0,0,0,93.18,79.5L72,100.69a16,16,0,0,0,0,22.62L76.69,128,18.34,186.34a8,8,0,0,0,3.13,13.25l72,24A7.88,7.88,0,0,0,96,224a8,8,0,0,0,5.66-2.34L136,187.31l4.69,4.69a16,16,0,0,0,22.62,0l21.18-21.18A16,16,0,0,0,203.31,168l50.35-50.34A8,8,0,0,0,253.66,106.34ZM93.84,206.85l-55-18.35L88,139.31,124.69,176ZM152,180.69l-10.34-10.35h0l-48-48h0L83.31,112,104,91.31,172.69,160Z",
     2, 18,
+  ),
+
+  // Hand pointing — tip of index finger is top-center, hotspot ~(11,3) at 24px
+  pointer: make(
+    "M224,104v50.93c0,46.2-36.85,84.55-83,85.06A83.71,83.71,0,0,1,80.6,215.4C58.79,192.33,34.15,136,34.15,136a16,16,0,0,1,6.53-22.23c7.66-4,17.1-.84,21.4,6.62l21,36.44a6.09,6.09,0,0,0,6,3.09l.12,0A8.19,8.19,0,0,0,96,151.74V32a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V104a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25V88a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V112a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25v-7.28c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,224,104Z",
+    "M196,88a27.86,27.86,0,0,0-13.35,3.39A28,28,0,0,0,144,74.7V44a28,28,0,0,0-56,0v80l-3.82-6.13A28,28,0,0,0,35.73,146l4.67,8.23C74.81,214.89,89.05,240,136,240a88.1,88.1,0,0,0,88-88V116A28,28,0,0,0,196,88Zm12,64a72.08,72.08,0,0,1-72,72c-37.63,0-47.84-18-81.68-77.68l-4.69-8.27,0-.05A12,12,0,0,1,54,121.61a11.88,11.88,0,0,1,6-1.6,12,12,0,0,1,10.41,6,1.76,1.76,0,0,0,.14.23l18.67,30A8,8,0,0,0,104,152V44a12,12,0,0,1,24,0v68a8,8,0,0,0,16,0V100a12,12,0,0,1,24,0v20a8,8,0,0,0,16,0v-4a12,12,0,0,1,24,0Z",
+    11, 3,
   ),
 
   // Eraser — active edge is bottom-left, hotspot ~(4,17) at 24px

@@ -132,7 +132,7 @@ export function EditToolbar({
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
             : "pointer-events-none translate-y-1 scale-95 opacity-0",
         )}
-        style={{ ...SHADOW, cursor: CURSORS.select }}
+        style={{ ...SHADOW, cursor: CURSORS.pointer }}
         aria-hidden={!subOpen}
       >
         {/* Drawing implements */}
@@ -179,25 +179,13 @@ export function EditToolbar({
           </>
         )}
 
-        {isEditMode && (
-          <>
-            <Divider />
-            <button
-              type="button"
-              onClick={onAddClaim}
-              className="rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black"
-            >
-              + ADD CLAIM
-            </button>
-            {onAutoFormat ? <AutoFormatMenu onPick={onAutoFormat} /> : null}
-          </>
-        )}
+        {/* Add claim and Reformat buttons hidden for now */}
       </div>
 
       {/* Main pill — always visible */}
       <div
         className="pointer-events-auto flex h-12 items-center gap-1 rounded-full border border-[#EEEEEE] bg-white px-2"
-        style={{ ...SHADOW, cursor: CURSORS.select }}
+        style={{ ...SHADOW, cursor: CURSORS.pointer }}
       >
         {/* Cursor / select mode */}
         <button

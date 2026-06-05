@@ -6,7 +6,6 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import type { ArgMap, Frame, Annotation } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { FrameCanvas } from "./FrameCanvas";
-import { SidePanel } from "./SidePanel";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
 
 const ENTER_MS = 220;
@@ -81,7 +80,6 @@ export function FrameView({
             onReady={() => setReady(true)}
           />
         </div>
-        <SidePanel map={map} stakes={stakes} isEditMode={isEditMode} />
       </div>
 
       {/* Header layer — floats above the canvas overlay. No div-level fade;

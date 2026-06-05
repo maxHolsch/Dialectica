@@ -304,6 +304,40 @@ export async function toggleStake(
   frameId: string,
   nodeId: string,
 ): Promise<{ staked: boolean }> {
+  if (process.env.SKIP_AUTH === "true") {
+    const { devStakeMap } = await import("./dev-stake-store");
+    const user = await currentUser();
+    const uid = user?.id ?? "anon";
+    const key = `${frameId}::${nodeId}`;
+    const bucket = devStakeMap.get(key) ?? { count: 0, stakers: [], selfStaked: false };
+    const alreadyStaked = bucket.stakers.some((s) => s.id === uid);
+    if (alreadyStaked) {
+      const next = {
+        count: Math.max(0, bucket.count - 1),
+        stakers: bucket.stakers.filter((s) => s.id !== uid),
+        selfStaked: false,
+      };
+      devStakeMap.set(key, next);
+      revalidatePath(`/m/${mapId}/frame/${frameId}`);
+      return { staked: false };
+    }
+    const next = {
+      count: bucket.count + 1,
+      stakers: [
+        ...bucket.stakers,
+        {
+          id: uid,
+          displayName: user?.displayName ?? "Anonymous",
+          email: user?.email ?? "",
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      selfStaked: true,
+    };
+    devStakeMap.set(key, next);
+    revalidatePath(`/m/${mapId}/frame/${frameId}`);
+    return { staked: true };
+  }
   const user = await currentUser();
   if (!user) throw new Error("Sign in required to stake a claim.");
   const supabase = await createSupabaseServerClient();
