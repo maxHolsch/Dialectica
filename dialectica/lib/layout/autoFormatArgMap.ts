@@ -15,12 +15,44 @@
 //   - annotations, crossLinks, meta, createdAt, id, title
 
 import type { ArgMap, Edge, HandleId } from "@/lib/schema";
-import { runElkLayout, type ElkEdgeIn, type ElkNodeIn } from "./elkAdapter";
+import { runElkLayout, type ElkEdgeIn, type ElkNodeIn, type LaidOut } from "./elkAdapter";
 import { measureWrappedText } from "./measureText";
 import {
   DEFAULT_STRATEGY,
   type LayoutStrategyId,
 } from "./strategies";
+
+// Usable canvas dimensions after the fixed header is subtracted.
+// Used to score which ELK direction fills the viewport better.
+const VIEWPORT_W = 1200;
+const VIEWPORT_H = 640;
+
+// Run layered-down and layered-right in parallel and return whichever
+// produces a layout that fills the viewport more (higher min-scale factor).
+async function pickBestFrameLayout(
+  nodes: ElkNodeIn[],
+  edges: ElkEdgeIn[],
+): Promise<{ strategyId: LayoutStrategyId; layout: LaidOut }> {
+  const [down, right] = await Promise.all([
+    runElkLayout(nodes, edges, "layered-down"),
+    runElkLayout(nodes, edges, "layered-right"),
+  ]);
+
+  const score = (layout: LaidOut) => {
+    const w = Math.max(...layout.nodes.map((n) => n.x + n.width));
+    const h = Math.max(...layout.nodes.map((n) => n.y + n.height));
+    // Higher score = layout fills more of the viewport = larger nodes on screen.
+    return Math.min(VIEWPORT_W / w, VIEWPORT_H / h);
+  };
+
+  const downScore = down ? score(down) : 0;
+  const rightScore = right ? score(right) : 0;
+
+  if (rightScore > downScore && right) {
+    return { strategyId: "layered-right", layout: right };
+  }
+  return { strategyId: "layered-down", layout: down! };
+}
 
 
 // Text rendering parameters per node "kind". These mirror the Tailwind classes
@@ -204,34 +236,28 @@ export async function autoFormatArgMap(
       label: measureLabel(e.label),
     }));
 
-    const frameLayout = await runElkLayout(
-      frameElkNodes,
-      frameElkEdges,
-      strategy,
-    );
+    const { strategyId: frameStrategy, layout: frameLayout } =
+      await pickBestFrameLayout(frameElkNodes, frameElkEdges);
+    log(`  frame ${frameId} → ${frameStrategy}`);
 
     const positions = new Map<string, { x: number; y: number }>();
     const sizes = new Map<string, { width: number; height: number }>();
-    if (frameLayout) {
-      for (const n of frameLayout.nodes) {
-        positions.set(n.id, {
-          x: n.x + FRAME_ORIGIN.x,
-          y: n.y + FRAME_ORIGIN.y,
-        });
-        sizes.set(n.id, { width: n.width, height: n.height });
-      }
+    for (const n of frameLayout.nodes) {
+      positions.set(n.id, {
+        x: n.x + FRAME_ORIGIN.x,
+        y: n.y + FRAME_ORIGIN.y,
+      });
+      sizes.set(n.id, { width: n.width, height: n.height });
     }
     const edgeHandles = new Map<
       string,
       { sourceHandle: HandleId; targetHandle: HandleId }
     >();
-    if (frameLayout) {
-      for (const e of frameLayout.edges) {
-        edgeHandles.set(e.id, {
-          sourceHandle: e.sourceHandle,
-          targetHandle: e.targetHandle,
-        });
-      }
+    for (const e of frameLayout.edges) {
+      edgeHandles.set(e.id, {
+        sourceHandle: e.sourceHandle,
+        targetHandle: e.targetHandle,
+      });
     }
 
     const nextNodeInstances = frame.nodeInstances.map((inst) => ({

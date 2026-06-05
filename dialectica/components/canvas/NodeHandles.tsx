@@ -11,7 +11,7 @@ import { useUIStore } from "@/lib/state/useUIStore";
 // so they're invisible — they only exist as attachment anchors.
 //
 // SLOTS_PER_SIDE here MUST match the constant in lib/layout/elkAdapter.ts.
-const SLOT_PCTS = [10, 30, 50, 70, 90] as const;
+const SLOT_PCTS = [50] as const;
 
 const CLS = "!h-0 !w-0 !border-0 !bg-transparent";
 

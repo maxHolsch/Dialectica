@@ -5,9 +5,11 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
+  getStraightPath,
   getNodesBounds,
   getViewportForBounds,
   useReactFlow,
+  Position,
   type EdgeProps,
 } from "@xyflow/react";
 import { useUIStore } from "@/lib/state/useUIStore";
@@ -79,15 +81,17 @@ export function MovableLabelEdge({
     return () => clearTimeout(timer);
   }, [isExpandedOrHovered]);
 
-  const [edgePath, midX, midY] = getBezierPath({
-    sourceX,
-    sourceY,
-    sourcePosition,
-    targetX,
-    targetY,
-    targetPosition,
-    curvature,
-  });
+  // Direct connections (handles face each other: right→left, bottom→top, etc.)
+  // draw as a straight line. Turning connections keep the bezier.
+  const isDirect =
+    (sourcePosition === Position.Right && targetPosition === Position.Left) ||
+    (sourcePosition === Position.Left && targetPosition === Position.Right) ||
+    (sourcePosition === Position.Bottom && targetPosition === Position.Top) ||
+    (sourcePosition === Position.Top && targetPosition === Position.Bottom);
+
+  const [edgePath, midX, midY] = isDirect
+    ? getStraightPath({ sourceX, sourceY, targetX, targetY })
+    : getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature });
 
   const pathMetrics = useMemo(() => {
     if (typeof document === "undefined") return null;
