@@ -14,8 +14,11 @@ export async function proxy(request: NextRequest) {
   // Workflow DevKit talks to its own /.well-known/workflow/* endpoints from
   // step/workflow callbacks — never gate or redirect those.
   const isWorkflowInternal = pathname.startsWith("/.well-known/workflow/");
+  // Dev-only internal scripts (e.g. layout backfill) call /api/internal/*
+  // directly without a session — only reachable in development anyway.
+  const isInternalApi = pathname.startsWith("/api/internal/");
 
-  if (!user && !isAuthRoute && !isWorkflowInternal) {
+  if (!user && !isAuthRoute && !isWorkflowInternal && !isInternalApi) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     url.searchParams.set("next", pathname);

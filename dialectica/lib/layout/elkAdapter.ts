@@ -112,6 +112,7 @@ function clamp(v: number, lo: number, hi: number): number {
 function chooseSides(
   src: { x: number; y: number; width: number; height: number },
   tgt: { x: number; y: number; width: number; height: number },
+  flowHint?: "down" | "right",
 ): { srcSide: Side; tgtSide: Side } {
   const sCx = src.x + src.width / 2;
   const sCy = src.y + src.height / 2;
@@ -155,6 +156,16 @@ function chooseSides(
   // one endpoint uses a vertical side, the other a horizontal side. The
   // dominant displacement axis decides which side the source exits, the
   // perpendicular axis decides which side the target enters.
+  //
+  // For layered-down layouts: when the target is primarily below the source,
+  // always enter the target from the top so edges flow cleanly downward
+  // instead of arriving at the left/right side corners.
+  if (flowHint === "down" && dy > 0) {
+    return { srcSide: "bottom", tgtSide: "top" };
+  }
+  if (flowHint === "down" && dy < 0) {
+    return { srcSide: "top", tgtSide: "bottom" };
+  }
   if (ax >= ay) {
     // Primarily horizontal — source leaves through right/left, target
     // enters through top/bottom. Path: long horizontal, then short vertical.
@@ -201,11 +212,15 @@ type EdgeSideInfo = {
  * side. Sorted by natural offset so the visual order matches geometry and
  * crossings stay minimal.
  *
- * If 1 edge: snap to the slot nearest the natural offset (so a single edge
- * still points at its target rather than always landing in the middle).
- * If >1 edges: spread evenly across [0..N-1], preserving the sort order.
- * If >N edges: some slots will carry more than one edge — unavoidable, but
- * still better than every edge stacking on a single anchor.
+ * Uses a center-first distribution: edges always prefer the center slot and
+ * expand outward symmetrically only as needed. This keeps edges close to the
+ * middle of each node face — the "clean center entry" look.
+ *
+ *   1 edge  → [50%]
+ *   2 edges → [30%, 70%]
+ *   3 edges → [30%, 50%, 70%]
+ *   4 edges → [10%, 30%, 70%, 90%]
+ *   5 edges → [10%, 30%, 50%, 70%, 90%]
  */
 function assignSlots(
   group: Array<{ edgeId: string; offset: number }>,
@@ -213,19 +228,22 @@ function assignSlots(
   const out = new Map<string, number>();
   if (group.length === 0) return out;
   group.sort((a, b) => a.offset - b.offset);
-  if (group.length === 1) {
-    const e = group[0];
-    out.set(
-      e.edgeId,
-      clamp(Math.floor(e.offset * SLOTS_PER_SIDE), 0, SLOTS_PER_SIDE - 1),
-    );
-    return out;
+
+  // Build center-out slot list for up to SLOTS_PER_SIDE edges.
+  const center = Math.floor(SLOTS_PER_SIDE / 2);
+  const centerOut: number[] = [];
+  if (group.length % 2 === 1) centerOut.push(center);
+  for (let d = 1; centerOut.length < Math.min(group.length, SLOTS_PER_SIDE); d++) {
+    if (center - d >= 0) centerOut.push(center - d);
+    if (centerOut.length < Math.min(group.length, SLOTS_PER_SIDE) && center + d < SLOTS_PER_SIDE) {
+      centerOut.push(center + d);
+    }
   }
+  const slots = centerOut.slice(0, group.length).sort((a, b) => a - b);
+
   if (group.length <= SLOTS_PER_SIDE) {
-    // Spread evenly across all available slots.
     for (let i = 0; i < group.length; i++) {
-      const slot = Math.round((i * (SLOTS_PER_SIDE - 1)) / (group.length - 1));
-      out.set(group[i].edgeId, slot);
+      out.set(group[i].edgeId, slots[i]);
     }
   } else {
     // More edges than slots — bucket into the N available positions.
@@ -246,10 +264,15 @@ function assignSlots(
  *   targetHandle = `tgt-${side}-${slot}`  — same, from the target's POV
  *
  * Slots distribute edges that share a (node, side) so they don't stack.
+ *
+ * `flowHint` — pass "down" for layered-down layouts so diagonal edges
+ * always enter the target from the top (not left/right), keeping the
+ * downward-flow visual clean.
  */
 function assignClosestSideHandles(
   nodes: LaidOutNode[],
   edges: Array<{ id: string; source: string; target: string }>,
+  flowHint?: "down" | "right",
 ): Map<string, { sourceHandle: HandleId; targetHandle: HandleId }> {
   const nodeById = new Map<string, LaidOutNode>();
   for (const n of nodes) nodeById.set(n.id, n);
@@ -265,7 +288,7 @@ function assignClosestSideHandles(
     const sCy = s.y + s.height / 2;
     const tCx = t.x + t.width / 2;
     const tCy = t.y + t.height / 2;
-    const { srcSide, tgtSide } = chooseSides(s, t);
+    const { srcSide, tgtSide } = chooseSides(s, t, flowHint);
     infos.push({
       edgeId: e.id,
       sourceId: e.source,
@@ -393,7 +416,8 @@ export async function runElkLayout(
   }));
 
   // Closest-side + slot assignment over ELK's chosen positions.
-  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges);
+  const flowHint = strategyId === "layered-down" ? "down" : strategyId === "layered-right" ? "right" : undefined;
+  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges, flowHint);
 
   const laidEdges: LaidOutEdge[] = [];
   for (const edge of result.edges ?? []) {

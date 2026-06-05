@@ -59,7 +59,7 @@ export function MovableLabelEdge({
     : 0;
   const onLabelOffsetChange = edgeData.onLabelOffsetChange;
   const variant = edgeData.variant ?? "frame";
-  const curvature = typeof edgeData.curvature === "number" ? edgeData.curvature : 0.25;
+  const curvature = typeof edgeData.curvature === "number" ? edgeData.curvature : 0;
   const isExpanded = expandedEdgeId === id;
 
   // Local hover state — shows expanded pill but does NOT trigger fitView or fade.
@@ -170,7 +170,7 @@ export function MovableLabelEdge({
   );
 
   const draggable = mode === "move" && !!onLabelOffsetChange;
-  const interactive = mode === "select" && variant === "frame" && !!relType;
+  const interactive = mode === "select" && variant === "frame" && !!label;
 
   // Dim this pill when a different edge label is click-expanded.
   // Hovering over a dimmed pill lifts the dim so the user can still read it.
@@ -276,7 +276,7 @@ export function MovableLabelEdge({
                   ...(draggable ? { outline: "1px solid #ffc943", outlineOffset: "1px" } : {}),
                 }}
               >
-                {showFull ? relType : label}
+                {showFull ? label : relType}
               </div>
             )}
           </div>
