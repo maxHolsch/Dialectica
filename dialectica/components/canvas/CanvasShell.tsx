@@ -174,7 +174,17 @@ function Canvas({
   const handleInit = useCallback(() => {
     setCanvasReady(true);
     onReady?.();
-  }, [onReady]);
+    // The frame view has a fixed two-line header covering ~100px at the top.
+    // After fitView centers the content in the full viewport, shift the fitted
+    // position down by half the header height so nodes are centered in the
+    // visible area below the header rather than partially hidden behind it.
+    if (frameId) {
+      requestAnimationFrame(() => {
+        const vp = reactFlow.getViewport();
+        reactFlow.setViewport({ ...vp, y: vp.y + 50 });
+      });
+    }
+  }, [onReady, frameId, reactFlow]);
   const mode = useUIStore((s) => s.mode);
   const optimisticAdds = useUIStore((s) => s.optimisticAdds);
   const optimisticDeletes = useUIStore((s) => s.optimisticDeletes);
