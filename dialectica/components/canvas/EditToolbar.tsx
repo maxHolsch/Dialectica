@@ -112,28 +112,28 @@ export function EditToolbar({
   }, [onUndo, onRedo]);
 
   return (
-    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-10 -translate-x-1/2 select-none">
-      {/* Collapsed: 32×32 circle, matches back-button style */}
+    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-12 -translate-x-1/2 select-none">
+      {/* Collapsed: 48×48 circle, matches back-button style */}
       <button
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Show annotation tools"
         aria-expanded={expanded}
         className={clsx(
-          "absolute left-1/2 top-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#EEEEEE] bg-white text-black transition-all duration-300 ease-out",
+          "absolute left-1/2 top-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#EEEEEE] bg-white text-black transition-all duration-300 ease-out",
           expanded
             ? "pointer-events-none scale-90 opacity-0"
             : "pointer-events-auto scale-100 opacity-100 hover:bg-black/5",
         )}
         style={SHADOW}
       >
-        <PencilSimple size={16} />
+        <PencilSimple size={18} />
       </button>
 
       {/* Expanded pill */}
       <div
         className={clsx(
-          "absolute left-1/2 top-1/2 flex h-10 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white px-1.5 transition-all duration-300 ease-out",
+          "absolute left-1/2 top-1/2 flex h-12 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white px-1.5 transition-all duration-300 ease-out",
           expanded
             ? "pointer-events-auto scale-100 opacity-100"
             : "pointer-events-none scale-90 opacity-0",

@@ -208,9 +208,9 @@ export function CruxCanvas({
       <Link
         href="/"
         className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-        style={{ top: 32, left: 32, width: 40, height: 40, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+        style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
       >
-        <ArrowLeft size={16} weight="regular" />
+        <ArrowLeft size={18} weight="regular" />
       </Link>
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
