@@ -48,10 +48,14 @@ function RemoteCursorView({
         transition: "transform 80ms linear",
       }}
     >
-      <CursorSvg color={cursor.color} />
+      <CursorSvg color={cursor.color} uid={cursor.userId} />
       <span
-        className="absolute left-4 top-4 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium text-black shadow-sm"
-        style={{ backgroundColor: cursor.color }}
+        className="absolute left-4 top-4 whitespace-nowrap rounded-md px-1.5 py-0.5 text-black shadow-sm"
+        style={{
+          backgroundColor: cursor.color,
+          fontSize: 12,
+          fontFamily: "var(--font-dm-sans), 'DM Sans', sans-serif",
+        }}
       >
         {cursor.displayName}
       </span>
@@ -59,24 +63,26 @@ function RemoteCursorView({
   );
 }
 
-// Placeholder SVG — swap with the project's cursor shape; only the `fill`
-// needs to read `color`.
-function CursorSvg({ color }: { color: string }) {
+// Same Phosphor "select" arrow paths used in lib/canvas/cursors.ts —
+// white silhouette underneath, collaborator color on top.
+const SELECT_FILL =
+  "M220.49,207.8,207.8,220.49a12,12,0,0,1-17,0l-56.57-56.57L115,214.08l-.13.33A15.84,15.84,0,0,1,100.26,224l-.78,0a15.82,15.82,0,0,1-14.41-11L32.8,52.92A15.95,15.95,0,0,1,52.92,32.8L213,85.07a16,16,0,0,1,1.41,29.8l-.33.13-50.16,19.27,56.57,56.56A12,12,0,0,1,220.49,207.8Z";
+const SELECT_OUTLINE =
+  "M168,132.69,214.08,115l.33-.13A16,16,0,0,0,213,85.07L52.92,32.8A15.95,15.95,0,0,0,32.8,52.92L85.07,213a15.82,15.82,0,0,0,14.41,11l.78,0a15.84,15.84,0,0,0,14.61-9.59l.13-.33L132.69,168,184,219.31a16,16,0,0,0,22.63,0l12.68-12.68a16,16,0,0,0,0-22.63ZM195.31,208,144,156.69a16,16,0,0,0-26,4.93c0,.11-.09.22-.13.32l-17.65,46L48,48l159.85,52.2-45.95,17.64-.32.13a16,16,0,0,0-4.93,26h0L208,195.31Z";
+
+function CursorSvg({ color, uid }: { color: string; uid: string }) {
+  const filterId = `rcs-${uid}`;
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 18 18"
-      fill="none"
-      style={{ display: "block" }}
-    >
-      <path
-        d="M2 2L9 16L11 10L16 8L2 2Z"
-        fill={color}
-        stroke="black"
-        strokeWidth="1"
-        strokeLinejoin="round"
-      />
+    <svg width="20" height="20" viewBox="0 0 256 256" style={{ display: "block" }}>
+      <defs>
+        <filter id={filterId}>
+          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="rgba(0,0,0,0.35)" />
+        </filter>
+      </defs>
+      <g filter={`url(#${filterId})`}>
+        <path d={SELECT_FILL} fill="white" />
+        <path d={SELECT_OUTLINE} fill={color} />
+      </g>
     </svg>
   );
 }
