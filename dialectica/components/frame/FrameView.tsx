@@ -111,15 +111,15 @@ export function FrameView({
           {/* Parent question — morphs from small/dim to full-size on exit */}
           <button
             onClick={goBack}
-            className="pointer-events-auto cursor-pointer whitespace-nowrap font-serif text-[13px] text-dia-fg hover:opacity-70"
+            className="pointer-events-auto cursor-pointer whitespace-nowrap font-serif text-[13px] hover:opacity-70"
             style={
               exiting
-                ? { background: "none", border: "none", padding: 0,
+                ? { color: "#727272", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-exit ${EXIT_MS}ms ease-in-out forwards` }
                 : ready
-                ? { background: "none", border: "none", padding: 0,
+                ? { color: "#727272", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-enter ${ENTER_MS}ms ease-in-out forwards` }
-                : { background: "none", border: "none", padding: 0,
+                : { color: "#727272", background: "none", border: "none", padding: 0,
                     opacity: 1, transform: "scale(1.54) translateY(4px)" }
             }
           >

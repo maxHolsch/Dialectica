@@ -6,8 +6,8 @@ import type { Annotation, StrokePoint } from "@/lib/schema";
 export type CanvasMode = "select" | "draw" | "erase" | "move";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
-// 4 swatches in view mode, plus white in edit mode (Figma 12:127). Index 0 = white.
-export const SWATCHES = ["#ffffff", "#cdf4d3", "#ffc2ec", "#c2e5ff", "#dcccff"];
+// 4 swatches in view mode, plus white in edit mode. Index 0 = white.
+export const SWATCHES = ["#000000", "#54A96D", "#F4652C", "#0D90D3", "#885CBF"];
 
 type HistoryAction =
   | { type: "create"; annotation: Annotation }
@@ -69,7 +69,7 @@ type UIStore = {
 export const useUIStore = create<UIStore>((set, get) => ({
   mode: "select",
   tool: "pen",
-  color: "#ffffff",
+  color: "#000000",
   setMode: (mode) => set({ mode }),
   setTool: (tool) => set({ tool, mode: "draw" }),
   setColor: (color) => set({ color }),
