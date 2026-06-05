@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "@phosphor-icons/react";
+import { X } from "@phosphor-icons/react";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
 import {
   MarkerType,
@@ -210,11 +210,11 @@ export function CruxCanvas({
         className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
         style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
       >
-        <ArrowLeft size={18} weight="regular" />
+        <X size={18} weight="regular" />
       </Link>
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
-        style={{ height: 100, background: "linear-gradient(to bottom, white 0%, transparent 100%)" }}
+        style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
       />
       <div
         className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center"

@@ -5,13 +5,9 @@ import {
   PencilSimple,
   Pen,
   Highlighter,
-  TextT,
   Eraser,
-  ArrowCounterClockwise,
-  ArrowClockwise,
-  Hand,
+  Broom,
   Cursor,
-  CaretLeft,
   CaretDown,
 } from "@phosphor-icons/react";
 import { clsx } from "clsx";
@@ -21,6 +17,7 @@ import {
   type DrawingTool,
   type CanvasMode,
 } from "@/lib/state/useUIStore";
+import { CURSORS } from "@/lib/canvas/cursors";
 import {
   createAnnotation,
   deleteAnnotation,
@@ -36,6 +33,7 @@ type Props = {
   isEditMode: boolean;
   onAddClaim?: () => void;
   onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  onClear?: () => void;
 };
 
 const SHADOW = { boxShadow: "0 1px 6px rgba(0,0,0,0.07)" };
@@ -45,6 +43,7 @@ export function EditToolbar({
   isEditMode,
   onAddClaim,
   onAutoFormat,
+  onClear,
 }: Props) {
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
@@ -56,9 +55,7 @@ export function EditToolbar({
   const redo = useUIStore((s) => s.redo);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
-  const [expanded, setExpanded] = useState(false);
-
-  const swatches = isEditMode ? SWATCHES : SWATCHES.slice(1);
+  const [subOpen, setSubOpen] = useState(false);
 
   const onUndo = useCallback(async () => {
     const action = undo();
@@ -67,9 +64,13 @@ export function EditToolbar({
       if (action.type === "create") {
         removeOptimistic(action.annotation.id);
         await deleteAnnotation(mapId, action.annotation.id);
-      } else {
+      } else if (action.type === "delete") {
         addOptimistic(action.annotation);
         await createAnnotation(mapId, action.annotation);
+      } else {
+        // undo clear — restore all deleted annotations
+        for (const ann of action.annotations) addOptimistic(ann);
+        await Promise.all(action.annotations.map((ann) => createAnnotation(mapId, ann)));
       }
     } catch (err) {
       console.error("[toolbar] undo failed", err);
@@ -83,9 +84,13 @@ export function EditToolbar({
       if (action.type === "create") {
         addOptimistic(action.annotation);
         await createAnnotation(mapId, action.annotation);
-      } else {
+      } else if (action.type === "delete") {
         removeOptimistic(action.annotation.id);
         await deleteAnnotation(mapId, action.annotation.id);
+      } else {
+        // redo clear — delete all annotations again
+        for (const ann of action.annotations) removeOptimistic(ann.id);
+        await Promise.all(action.annotations.map((ann) => deleteAnnotation(mapId, ann.id)));
       }
     } catch (err) {
       console.error("[toolbar] redo failed", err);
@@ -111,73 +116,40 @@ export function EditToolbar({
     return () => window.removeEventListener("keydown", onKey);
   }, [onUndo, onRedo]);
 
-  return (
-    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-12 -translate-x-1/2 select-none">
-      {/* Collapsed: 48×48 circle, matches back-button style */}
-      <button
-        type="button"
-        onClick={() => setExpanded(true)}
-        aria-label="Show annotation tools"
-        aria-expanded={expanded}
-        className={clsx(
-          "absolute left-1/2 top-1/2 flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#EEEEEE] bg-white text-black transition-all duration-300 ease-out",
-          expanded
-            ? "pointer-events-none scale-90 opacity-0"
-            : "pointer-events-auto scale-100 opacity-100 hover:bg-black/5",
-        )}
-        style={SHADOW}
-      >
-        <PencilSimple size={18} />
-      </button>
+  const drawIcon =
+    mode === "erase" ? <Eraser size={18} /> :
+    tool === "pen" ? <Pen size={18} /> :
+    tool === "highlighter" ? <Highlighter size={18} /> :
+    <PencilSimple size={18} />;
 
-      {/* Expanded pill */}
+  return (
+    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 select-none">
+      {/* Sub-toolbar — floats above the main pill when Draw is active */}
       <div
         className={clsx(
-          "absolute left-1/2 top-1/2 flex h-12 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white px-1.5 transition-all duration-300 ease-out",
-          expanded
-            ? "pointer-events-auto scale-100 opacity-100"
-            : "pointer-events-none scale-90 opacity-0",
+          "flex h-12 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white pl-2 pr-2.5 transition-all duration-200 ease-out",
+          subOpen
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none translate-y-1 scale-95 opacity-0",
         )}
-        style={SHADOW}
-        aria-hidden={!expanded}
+        style={{ ...SHADOW, cursor: CURSORS.select }}
+        aria-hidden={!subOpen}
       >
-        {/* Collapse */}
-        <Btn onClick={() => setExpanded(false)} aria-label="Hide annotation tools">
-          <CaretLeft size={16} />
-        </Btn>
-        <Divider />
-
-        {/* Drawing tools */}
+        {/* Drawing implements */}
         <ToolButton tool="pencil" active={mode === "draw" && tool === "pencil"} onClick={() => setTool("pencil")} aria-label="Pencil">
-          <PencilSimple size={16} />
+          <PencilSimple size={18} />
         </ToolButton>
-        <ToolButton tool="pen" active={mode === "draw" && tool === "pen"} onClick={() => setTool("pen")} aria-label="Pen">
-          <Pen size={16} />
+        <ToolButton tool="pen" active={mode === "draw" && tool === "pen"} onClick={() => setTool("pen")} aria-label="Marker">
+          <Pen size={18} />
         </ToolButton>
         <ToolButton tool="highlighter" active={mode === "draw" && tool === "highlighter"} onClick={() => setTool("highlighter")} aria-label="Highlighter">
-          <Highlighter size={16} />
+          <Highlighter size={18} />
         </ToolButton>
-        <ToolButton tool="textbox" active={mode === "draw" && tool === "textbox"} onClick={() => setTool("textbox")} aria-label="Text box">
-          <TextT size={16} />
-        </ToolButton>
-
-        <Divider />
-
-        {/* Mode buttons */}
-        <Btn active={mode === "select"} onClick={() => setMode("select")} aria-label="Select / pan mode">
-          <Hand size={16} />
-        </Btn>
-        <Btn active={mode === "draw"} onClick={() => setMode("draw")} aria-label="Drawing mode">
-          <PencilSimple size={16} />
-        </Btn>
-        <span aria-label="Current color" className="flex size-7 items-center justify-center">
-          <span className="block size-3.5 rounded-full border border-[#EEEEEE]" style={{ background: color }} />
-        </span>
 
         <Divider />
 
         {/* Color swatches */}
-        {swatches.map((swatch) => (
+        {SWATCHES.map((swatch) => (
           <button
             key={swatch}
             type="button"
@@ -195,33 +167,17 @@ export function EditToolbar({
         <Divider />
 
         <Btn active={mode === "erase"} onClick={() => setMode("erase")} aria-label="Eraser">
-          <Eraser size={16} />
+          <Eraser size={18} />
         </Btn>
 
-        {/* Edit-mode only: move cursor for dragging nodes/edges */}
-        {isEditMode && (
-          <button
-            type="button"
-            onClick={() => setMode(mode === "move" ? "select" : "move")}
-            aria-label="Move nodes and edges"
-            aria-pressed={mode === "move"}
-            className={clsx(
-              "flex size-7 items-center justify-center rounded-full transition-colors",
-              mode === "move"
-                ? "bg-[#ffc943]/20 text-[#ffc943] ring-1 ring-[#ffc943]"
-                : "text-[#ffc943] hover:bg-[#ffc943]/15",
-            )}
-          >
-            <Cursor size={16} />
-          </button>
+        {onClear && (
+          <>
+            <Divider />
+            <Btn onClick={onClear} aria-label="Clear all drawings">
+              <Broom size={18} />
+            </Btn>
+          </>
         )}
-
-        <Btn onClick={onUndo} aria-label="Undo">
-          <ArrowCounterClockwise size={16} />
-        </Btn>
-        <Btn onClick={onRedo} aria-label="Redo">
-          <ArrowClockwise size={16} />
-        </Btn>
 
         {isEditMode && (
           <>
@@ -236,6 +192,44 @@ export function EditToolbar({
             {onAutoFormat ? <AutoFormatMenu onPick={onAutoFormat} /> : null}
           </>
         )}
+      </div>
+
+      {/* Main pill — always visible */}
+      <div
+        className="pointer-events-auto flex h-12 items-center gap-1 rounded-full border border-[#EEEEEE] bg-white px-2"
+        style={{ ...SHADOW, cursor: CURSORS.select }}
+      >
+        {/* Cursor / select mode */}
+        <button
+          type="button"
+          onClick={() => { setMode("select"); setSubOpen(false); }}
+          aria-label="Select / pan mode"
+          aria-pressed={mode === "select"}
+          className={clsx(
+            "flex size-9 items-center justify-center transition-colors",
+            mode === "select"
+              ? "rounded-full bg-[#F9F9F9] text-black"
+              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+          )}
+        >
+          <Cursor size={18} />
+        </button>
+
+        {/* Draw — icon reflects current drawing tool */}
+        <button
+          type="button"
+          onClick={() => { if (subOpen) { setSubOpen(false); } else { setSubOpen(true); if (mode !== "draw" && mode !== "erase") setMode("draw"); } }}
+          aria-label="Drawing tools"
+          aria-pressed={mode === "draw" || mode === "erase"}
+          className={clsx(
+            "flex size-9 items-center justify-center transition-colors",
+            mode === "draw" || mode === "erase"
+              ? "rounded-full bg-[#F9F9F9] text-black"
+              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+          )}
+        >
+          {drawIcon}
+        </button>
       </div>
     </div>
   );
@@ -345,8 +339,10 @@ function ToolButton({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "flex size-7 items-center justify-center rounded-full transition-colors",
-        active ? "bg-black/10 text-black" : "text-black/50 hover:bg-black/5 hover:text-black",
+        "flex size-7 items-center justify-center transition-colors",
+        active
+          ? "rounded-full bg-[#F9F9F9] text-black"
+          : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
       )}
       {...rest}
     >
@@ -372,8 +368,10 @@ function Btn({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "flex size-7 items-center justify-center rounded-full transition-colors",
-        active ? "bg-black/10 text-black" : "text-black/50 hover:bg-black/5 hover:text-black",
+        "flex size-7 items-center justify-center transition-colors",
+        active
+          ? "rounded-full bg-[#F9F9F9] text-black"
+          : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
       )}
       {...rest}
     >

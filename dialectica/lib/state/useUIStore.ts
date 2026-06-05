@@ -6,12 +6,12 @@ import type { Annotation, StrokePoint } from "@/lib/schema";
 export type CanvasMode = "select" | "draw" | "erase" | "move";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
-// 4 swatches in view mode, plus white in edit mode. Index 0 = white.
-export const SWATCHES = ["#000000", "#54A96D", "#F4652C", "#0D90D3", "#885CBF"];
+export const SWATCHES = ["#0D90D3", "#54A96D", "#F4652C", "#885CBF"];
 
 type HistoryAction =
   | { type: "create"; annotation: Annotation }
-  | { type: "delete"; annotation: Annotation };
+  | { type: "delete"; annotation: Annotation }
+  | { type: "clear"; annotations: Annotation[] };
 
 // Phase 4 — side panel + heatmap split view. Stakes attach to a frame instance,
 // so the side panel always knows the (frameId, nodeId) pair it was opened from.
@@ -69,7 +69,7 @@ type UIStore = {
 export const useUIStore = create<UIStore>((set, get) => ({
   mode: "select",
   tool: "pen",
-  color: "#000000",
+  color: "#0D90D3",
   setMode: (mode) => set({ mode }),
   setTool: (tool) => set({ tool, mode: "draw" }),
   setColor: (color) => set({ color }),

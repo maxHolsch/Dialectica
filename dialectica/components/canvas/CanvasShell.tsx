@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
+import { CornersOut } from "@phosphor-icons/react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -23,8 +24,9 @@ import "@xyflow/react/dist/style.css";
 import type { Annotation } from "@/lib/schema";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { useUIStore } from "@/lib/state/useUIStore";
+import { CURSORS } from "@/lib/canvas/cursors";
 import { useDrawingHandlers } from "@/lib/canvas/useDrawingHandlers";
-import { createAnnotation } from "@/lib/data/mutations";
+import { createAnnotation, deleteAnnotation } from "@/lib/data/mutations";
 import { subscribeToAnnotations } from "@/lib/realtime/annotations";
 import { useCursorChannel } from "@/lib/realtime/cursors";
 import { stakeKey, type StakeMap } from "@/lib/data/stakes-types";
@@ -171,9 +173,13 @@ function Canvas({
   const router = useRouter();
   const reactFlow = useReactFlow();
   const [canvasReady, setCanvasReady] = useState(false);
+  const [canvasAnimDone, setCanvasAnimDone] = useState(false);
   const handleInit = useCallback(() => {
     setCanvasReady(true);
     onReady?.();
+    // Switch to canvas-drawn after entry animations complete so re-rendered
+    // nodes/edges don't replay the animation (which looks like a flash).
+    setTimeout(() => setCanvasAnimDone(true), 400);
     // The frame view has a fixed two-line header covering ~100px at the top.
     // After fitView centers the content in the full viewport, shift the fitted
     // position down by half the header height so nodes are centered in the
@@ -185,7 +191,19 @@ function Canvas({
       });
     }
   }, [onReady, frameId, reactFlow]);
+
+  const handleFitView = useCallback(() => {
+    reactFlow.fitView({ padding: 0.25 });
+    if (frameId) {
+      requestAnimationFrame(() => {
+        const vp = reactFlow.getViewport();
+        reactFlow.setViewport({ ...vp, y: vp.y + 50 });
+      });
+    }
+  }, [reactFlow, frameId]);
   const mode = useUIStore((s) => s.mode);
+  const tool = useUIStore((s) => s.tool);
+  const pushHistory = useUIStore((s) => s.pushHistory);
   const optimisticAdds = useUIStore((s) => s.optimisticAdds);
   const optimisticDeletes = useUIStore((s) => s.optimisticDeletes);
   const bindMap = useUIStore((s) => s.bindMap);
@@ -358,6 +376,9 @@ function Canvas({
     >
   >({});
 
+  const drawingActive = mode === "draw";
+  const moveActive = mode === "move" && !!moveHandlers;
+
   // Promote each annotation to a React Flow node alongside content nodes.
   // Strokes are draggable in select mode so the user can move them with a mouse/finger;
   // panning is taken over by 2-finger trackpad scroll (`panOnScroll`) below.
@@ -441,8 +462,7 @@ function Canvas({
         target,
         sourceHandle,
         targetHandle,
-        reconnectable:
-          mode === "move" && !!moveHandlers ? true : false,
+        reconnectable: moveActive,
         data: {
           ...(e.data ?? {}),
           labelOffset,
@@ -453,8 +473,7 @@ function Canvas({
   }, [
     edges,
     edgeOverrides,
-    mode,
-    moveHandlers,
+    moveActive,
     onEdgeLabelOffsetLocal,
     deletedNodeIds,
     deletedEdgeIds,
@@ -683,24 +702,36 @@ function Canvas({
     [drawing],
   );
 
-  const drawingActive = mode === "draw";
-  const moveActive = mode === "move" && !!moveHandlers;
+  const handleClear = useCallback(async () => {
+    if (visibleAnnotations.length === 0) return;
+    pushHistory({ type: "clear", annotations: visibleAnnotations });
+    for (const ann of visibleAnnotations) removeOptimistic(ann.id);
+    await Promise.all(visibleAnnotations.map((ann) => deleteAnnotation(mapId, ann.id)));
+  }, [visibleAnnotations, pushHistory, removeOptimistic, mapId]);
+
+  const activeCursor =
+    moveActive ? undefined :
+    mode === "erase" ? CURSORS.eraser :
+    mode === "draw" && tool === "pen" ? CURSORS.pen :
+    mode === "draw" && tool === "highlighter" ? CURSORS.highlighter :
+    mode === "draw" ? CURSORS.pencil :
+    CURSORS.select;
 
   return (
     <div
-      className={`relative h-full w-full bg-dia-bg ${canvasReady ? "canvas-loaded" : "canvas-loading"}`}
+      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerLeave}
       onClick={drawing.onPaneClick}
-      // Yellow grab cursor when move tool is active so the user can see
-      // they're in drag mode anywhere on the canvas.
       data-move-mode={moveActive ? "1" : undefined}
+      data-canvas-mode={mode}
       style={{
         touchAction: drawingActive || mode === "erase" ? "none" : undefined,
-        cursor: moveActive ? "grab" : undefined,
-      }}
+        cursor: moveActive ? "grab" : activeCursor,
+        "--canvas-cursor": moveActive ? "grab" : (activeCursor ?? "auto"),
+      } as React.CSSProperties}
     >
       <ReactFlow
         nodes={allNodes}
@@ -723,7 +754,7 @@ function Canvas({
         zoomOnPinch
         onInit={handleInit}
         fitView
-        fitViewOptions={{ padding: 0.18 }}
+        fitViewOptions={{ padding: 0.25 }}
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           style: { stroke: "#3a3a3a", strokeWidth: 1.5 },
@@ -743,11 +774,21 @@ function Canvas({
       ) : null}
       <InFlightStrokeLayer />
       <RemoteCursorLayer cursors={cursorChannel.cursors} />
+      <button
+        type="button"
+        onClick={handleFitView}
+        aria-label="Fit view"
+        className="pointer-events-auto absolute bottom-7 right-7 z-20 flex items-center justify-center rounded-full bg-white text-black/50 transition-colors hover:text-black"
+        style={{ width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", cursor: CURSORS.select }}
+      >
+        <CornersOut size={18} />
+      </button>
       <EditToolbar
         mapId={mapId}
         isEditMode={isEditMode}
         onAddClaim={onAddClaim}
         onAutoFormat={onAutoFormat}
+        onClear={handleClear}
       />
       <NodeContextMenu
         state={contextMenu}

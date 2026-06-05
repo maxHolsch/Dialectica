@@ -90,7 +90,7 @@ export function FrameView({
         {/* White gradient backing */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: 100, background: "linear-gradient(to bottom, white 0%, transparent 100%)" }}
+          style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
         />
 
         {/* Back button */}

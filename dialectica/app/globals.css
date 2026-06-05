@@ -189,3 +189,27 @@
   animation: edge-draw 320ms ease-in-out both;
   animation-delay: 40ms;
 }
+
+/* After initial animations complete, new nodes/edges render instantly — no replay flash */
+.canvas-drawn .react-flow__node { animation: none; opacity: 1; }
+.canvas-drawn .react-flow__edge-path { animation: none; stroke-dasharray: none; opacity: 1; }
+
+/* Cursor — set --canvas-cursor on the wrapper div; applies to every React Flow layer */
+.react-flow__pane,
+.react-flow__node,
+.react-flow__edge,
+.react-flow__edge-interaction {
+  cursor: var(--canvas-cursor, auto) !important;
+}
+
+/* Draw / erase mode — suppress pointer events on content so strokes pass through */
+[data-canvas-mode="draw"] .react-flow__node,
+[data-canvas-mode="draw"] .react-flow__edge,
+[data-canvas-mode="draw"] .react-flow__edge-interaction {
+  pointer-events: none !important;
+}
+[data-canvas-mode="erase"] .react-flow__node:not(.react-flow__node-stroke),
+[data-canvas-mode="erase"] .react-flow__edge,
+[data-canvas-mode="erase"] .react-flow__edge-interaction {
+  pointer-events: none !important;
+}
