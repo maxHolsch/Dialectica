@@ -591,114 +591,114 @@
       "edges": [
         {
           "id": "q2-e0",
-          "label": "Exposes hollowness behind claimed expertise",
+          "label": "Implies",
           "source": "q2c1",
           "target": "q2c2",
           "relType": "",
-          "sourceHandle": "src-right-3",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e1",
-          "label": "Illustrates access mistaken for knowledge",
+          "label": "Instances",
           "source": "q2c5",
           "target": "q2c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e2",
-          "label": "Defends frontier expertise against dismissal",
+          "label": "Contests",
           "source": "q2c3",
           "target": "q2c2",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e3",
-          "label": "Grounds irreducible expertise in lived experience",
+          "label": "Grounds",
           "source": "q2c4",
           "target": "q2c3",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e4",
-          "label": "Names what access leaves out",
+          "label": "Qualifies",
           "source": "q2c4",
           "target": "q2c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e5",
-          "label": "Severs ability from earned mastery",
+          "label": "Contests",
           "source": "q2c5",
           "target": "q2c3",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-3"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q2",
       "nodeInstances": [
         {
-          "size": {
-            "width": 314,
-            "height": 136
-          },
-          "nodeId": "q2c1",
-          "position": {
-            "x": 830.3333333333334,
-            "y": 100
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 136
-          },
-          "nodeId": "q2c2",
-          "position": {
-            "x": 1541,
-            "y": 123
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 160
-          },
-          "nodeId": "q2c3",
-          "position": {
-            "x": 824,
-            "y": 306
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
           "nodeId": "q2c4",
           "position": {
-            "x": 92,
-            "y": 92
-          }
-        },
-        {
+            "x": 60,
+            "y": 60
+          },
           "size": {
             "width": 324,
             "height": 160
-          },
+          }
+        },
+        {
           "nodeId": "q2c5",
           "position": {
-            "x": 92,
-            "y": 322
+            "x": 440,
+            "y": 60
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q2c1",
+          "position": {
+            "x": 60,
+            "y": 330
+          },
+          "size": {
+            "width": 314,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q2c3",
+          "position": {
+            "x": 440,
+            "y": 330
+          },
+          "size": {
+            "width": 333,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q2c2",
+          "position": {
+            "x": 225,
+            "y": 600
+          },
+          "size": {
+            "width": 333,
+            "height": 160
           }
         }
       ]
@@ -708,16 +708,16 @@
       "edges": [
         {
           "id": "q3-e0",
-          "label": "Supplies criteria the 21-day churn fails",
+          "label": "Qualifies",
           "source": "q3c1",
           "target": "q3c2",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e1",
-          "label": "Instances churn as cohort dissipation",
+          "label": "Instances",
           "source": "q3c2",
           "target": "q3c3",
           "relType": "",
@@ -726,96 +726,96 @@
         },
         {
           "id": "q3-e2",
-          "label": "Strips relational bonds from definition",
+          "label": "Reframes",
           "source": "q3c4",
           "target": "q3c1",
           "relType": "",
-          "sourceHandle": "src-right-3",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e3",
-          "label": "Reinserts trust against bare interconnection",
+          "label": "Contests",
           "source": "q3c1",
           "target": "q3c4",
           "relType": "",
-          "sourceHandle": "src-left-1",
-          "targetHandle": "tgt-right-3"
+          "sourceHandle": "src-top-2",
+          "targetHandle": "tgt-bottom-2"
         },
         {
           "id": "q3-e4",
-          "label": "Counters churn with band-like durability",
+          "label": "Contests",
           "source": "q3c5",
           "target": "q3c2",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e5",
-          "label": "Adds 'works well together' to criteria",
+          "label": "Extends",
           "source": "q3c5",
           "target": "q3c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q3",
       "nodeInstances": [
         {
+          "nodeId": "q3c5",
+          "position": {
+            "x": 60,
+            "y": 60
+          },
           "size": {
             "width": 324,
             "height": 160
-          },
-          "nodeId": "q3c1",
-          "position": {
-            "x": 854,
-            "y": 231
           }
         },
         {
+          "nodeId": "q3c4",
+          "position": {
+            "x": 480,
+            "y": 60
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q3c1",
+          "position": {
+            "x": 260,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q3c2",
+          "position": {
+            "x": 60,
+            "y": 600
+          },
           "size": {
             "width": 333,
             "height": 160
-          },
-          "nodeId": "q3c2",
-          "position": {
-            "x": 1576,
-            "y": 417
           }
         },
         {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
           "nodeId": "q3c3",
           "position": {
-            "x": 2285,
-            "y": 417
-          }
-        },
-        {
+            "x": 450,
+            "y": 600
+          },
           "size": {
             "width": 324,
             "height": 160
-          },
-          "nodeId": "q3c4",
-          "position": {
-            "x": 132,
-            "y": 187
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
-          "nodeId": "q3c5",
-          "position": {
-            "x": 132,
-            "y": 417
           }
         }
       ]
@@ -825,105 +825,105 @@
       "edges": [
         {
           "id": "q4-e0",
-          "label": "Names emerging figure replacing",
+          "label": "Implies",
           "source": "q4c2",
           "target": "q4c1",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q4-e1",
-          "label": "Specifies new function as",
+          "label": "Extends",
           "source": "q4c1",
           "target": "q4c4",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q4-e2",
-          "label": "Threatens to dissolve orchestrator role",
+          "label": "Contests",
           "source": "q4c3",
+          "target": "q4c1",
+          "relType": "",
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
+        },
+        {
+          "id": "q4-e3",
+          "label": "Reframes",
+          "source": "q4c5",
           "target": "q4c1",
           "relType": "",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
-          "id": "q4-e3",
-          "label": "Recasts orchestration as power concentration",
-          "source": "q4c5",
-          "target": "q4c1",
-          "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
-        },
-        {
           "id": "q4-e4",
-          "label": "Undercuts coaching framing with hierarchy",
+          "label": "Qualifies",
           "source": "q4c5",
           "target": "q4c4",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-3"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q4",
       "nodeInstances": [
         {
-          "size": {
-            "width": 333,
-            "height": 184
-          },
-          "nodeId": "q4c1",
-          "position": {
-            "x": 794,
-            "y": 334
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 184
-          },
           "nodeId": "q4c2",
           "position": {
-            "x": 92,
-            "y": 92
+            "x": 60,
+            "y": 60
+          },
+          "size": {
+            "width": 324,
+            "height": 184
           }
         },
         {
+          "nodeId": "q4c3",
+          "position": {
+            "x": 440,
+            "y": 60
+          },
           "size": {
             "width": 324,
             "height": 160
-          },
-          "nodeId": "q4c3",
-          "position": {
-            "x": 101,
-            "y": 346
           }
         },
         {
-          "size": {
-            "width": 314,
-            "height": 160
-          },
-          "nodeId": "q4c4",
+          "nodeId": "q4c5",
           "position": {
-            "x": 1503,
-            "y": 544
-          }
-        },
-        {
+            "x": 60,
+            "y": 350
+          },
           "size": {
             "width": 333,
             "height": 184
-          },
-          "nodeId": "q4c5",
+          }
+        },
+        {
+          "nodeId": "q4c1",
           "position": {
-            "x": 92,
-            "y": 576
+            "x": 440,
+            "y": 350
+          },
+          "size": {
+            "width": 333,
+            "height": 184
+          }
+        },
+        {
+          "nodeId": "q4c4",
+          "position": {
+            "x": 220,
+            "y": 660
+          },
+          "size": {
+            "width": 314,
+            "height": 160
           }
         }
       ]
@@ -933,105 +933,105 @@
       "edges": [
         {
           "id": "q5-e0",
-          "label": "Supplies somatic case for",
+          "label": "Instances",
           "source": "q5c2",
           "target": "q5c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-left-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e1",
-          "label": "Supplies institutional case for",
+          "label": "Grounds",
           "source": "q5c3",
           "target": "q5c1",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e2",
-          "label": "Sharpens cognition gap as",
+          "label": "Extends",
           "source": "q5c5",
           "target": "q5c1",
           "relType": "",
-          "sourceHandle": "src-right-1",
-          "targetHandle": "tgt-left-4"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e3",
-          "label": "Grounds collaboration claim in lived culture",
+          "label": "Supports",
           "source": "q5c3",
           "target": "q5c4",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-left-3"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e4",
-          "label": "Illustrates frontier knowledge AI lacks",
+          "label": "Implies",
           "source": "q5c2",
           "target": "q5c5",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q5",
       "nodeInstances": [
         {
-          "size": {
-            "width": 324,
-            "height": 184
-          },
-          "nodeId": "q5c1",
-          "position": {
-            "x": 1499,
-            "y": 432
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 160
-          },
           "nodeId": "q5c2",
           "position": {
-            "x": 92,
-            "y": 463
-          }
-        },
-        {
+            "x": 60,
+            "y": 60
+          },
           "size": {
             "width": 333,
             "height": 160
-          },
+          }
+        },
+        {
           "nodeId": "q5c3",
           "position": {
-            "x": 765,
-            "y": 131
+            "x": 450,
+            "y": 60
+          },
+          "size": {
+            "width": 333,
+            "height": 160
           }
         },
         {
-          "size": {
-            "width": 324,
-            "height": 184
-          },
-          "nodeId": "q5c4",
-          "position": {
-            "x": 1499,
-            "y": 92
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 184
-          },
           "nodeId": "q5c5",
           "position": {
-            "x": 769.5,
-            "y": 478
+            "x": 60,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 184
+          }
+        },
+        {
+          "nodeId": "q5c4",
+          "position": {
+            "x": 450,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 184
+          }
+        },
+        {
+          "nodeId": "q5c1",
+          "position": {
+            "x": 225,
+            "y": 640
+          },
+          "size": {
+            "width": 324,
+            "height": 184
           }
         }
       ]
@@ -1041,114 +1041,114 @@
       "edges": [
         {
           "id": "q6-e0",
-          "label": "Translates lost utility into identity threat",
+          "label": "Implies",
           "source": "q6c1",
           "target": "q6c3",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e1",
-          "label": "Triggers existential reckoning over meaning",
+          "label": "Implies",
           "source": "q6c1",
           "target": "q6c2",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e2",
-          "label": "Drives the nihilism it provokes",
+          "label": "Grounds",
           "source": "q6c3",
           "target": "q6c2",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
         },
         {
           "id": "q6-e3",
-          "label": "Reframes obsoleted utility as liberation",
+          "label": "Reframes",
           "source": "q6c4",
           "target": "q6c3",
           "relType": "",
-          "sourceHandle": "src-right-1",
-          "targetHandle": "tgt-left-3"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e4",
-          "label": "Relocates value from utility to craft",
+          "label": "Contests",
           "source": "q6c5",
           "target": "q6c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e5",
-          "label": "Specifies what freed time enables",
+          "label": "Extends",
           "source": "q6c5",
           "target": "q6c4",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q6",
       "nodeInstances": [
         {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
-          "nodeId": "q6c1",
+          "nodeId": "q6c5",
           "position": {
-            "x": 823,
-            "y": 92
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 184
+            "x": 248,
+            "y": 60
           },
-          "nodeId": "q6c2",
-          "position": {
-            "x": 2234,
-            "y": 157
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
-          "nodeId": "q6c3",
-          "position": {
-            "x": 1555,
-            "y": 289
-          }
-        },
-        {
-          "size": {
-            "width": 324,
-            "height": 160
-          },
-          "nodeId": "q6c4",
-          "position": {
-            "x": 823,
-            "y": 322
-          }
-        },
-        {
           "size": {
             "width": 333,
             "height": 160
-          },
-          "nodeId": "q6c5",
+          }
+        },
+        {
+          "nodeId": "q6c1",
           "position": {
-            "x": 92,
-            "y": 295
+            "x": 60,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q6c4",
+          "position": {
+            "x": 446,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q6c3",
+          "position": {
+            "x": 60,
+            "y": 600
+          },
+          "size": {
+            "width": 324,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q6c2",
+          "position": {
+            "x": 446,
+            "y": 600
+          },
+          "size": {
+            "width": 324,
+            "height": 184
           }
         }
       ]
@@ -1158,107 +1158,105 @@
       "edges": [
         {
           "id": "q7-e0",
-          "label": "Names what mandates invert",
+          "label": "Contests",
           "source": "q7c2",
           "target": "q7c3",
           "relType": "",
-          "sourceHandle": "src-left-2",
-          "targetHandle": "tgt-right-2"
+          "sourceHandle": "src-right-2",
+          "targetHandle": "tgt-left-2"
         },
         {
           "id": "q7-e1",
-          "label": "Generalizes mandate pattern beyond AI",
+          "label": "Extends",
           "source": "q7c4",
           "target": "q7c3",
           "relType": "",
-          "sourceHandle": "src-right-3",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e2",
-          "label": "Locates fun where minutiae stays low",
+          "label": "Implies",
           "source": "q7c1",
           "target": "q7c2",
           "relType": "",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e3",
-          "label": "Supplies what scale erodes",
+          "label": "Grounds",
           "source": "q7c5",
           "target": "q7c1",
           "relType": "",
-          "labelOffset": -0.05124999999999996,
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e4",
-          "label": "Mandated tracking displaces peer connection",
+          "label": "Qualifies",
           "source": "q7c3",
           "target": "q7c5",
           "relType": "",
-          "labelOffset": -0.0625,
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-top-2",
+          "targetHandle": "tgt-bottom-2"
         }
       ],
       "cruxId": "q7",
       "nodeInstances": [
         {
+          "nodeId": "q7c4",
+          "position": {
+            "x": 60,
+            "y": 60
+          },
+          "size": {
+            "width": 333,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q7c5",
+          "position": {
+            "x": 450,
+            "y": 60
+          },
+          "size": {
+            "width": 333,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q7c1",
+          "position": {
+            "x": 225,
+            "y": 330
+          },
           "size": {
             "width": 324,
             "height": 160
-          },
-          "nodeId": "q7c1",
-          "position": {
-            "x": 2257,
-            "y": 119
           }
         },
         {
+          "nodeId": "q7c2",
+          "position": {
+            "x": 60,
+            "y": 600
+          },
           "size": {
             "width": 304,
             "height": 136
-          },
-          "nodeId": "q7c2",
-          "position": {
-            "x": 2965,
-            "y": 131
           }
         },
         {
-          "size": {
-            "width": 333,
-            "height": 160
-          },
           "nodeId": "q7c3",
           "position": {
-            "x": 816,
-            "y": 119
-          }
-        },
-        {
+            "x": 430,
+            "y": 600
+          },
           "size": {
             "width": 333,
             "height": 160
-          },
-          "nodeId": "q7c4",
-          "position": {
-            "x": 92,
-            "y": 92
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 160
-          },
-          "nodeId": "q7c5",
-          "position": {
-            "x": 1540,
-            "y": 119
           }
         }
       ]
@@ -1268,34 +1266,34 @@
       "edges": [
         {
           "id": "q8-e0",
-          "label": "Collapsing credential path forces ability-based hiring",
+          "label": "Implies",
           "source": "q8c4",
           "target": "q8c1",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-left-3"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e1",
-          "label": "Broken track demands lifelong education redesign",
+          "label": "Implies",
           "source": "q8c4",
           "target": "q8c3",
           "relType": "",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e2",
-          "label": "Extends making to learning capacity",
+          "label": "Extends",
           "source": "q8c1",
           "target": "q8c2",
           "relType": "",
-          "sourceHandle": "src-right-3",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e3",
-          "label": "Adaptability hiring requires outcome over output metrics",
+          "label": "Implies",
           "source": "q8c2",
           "target": "q8c5",
           "relType": "",
@@ -1304,69 +1302,69 @@
         },
         {
           "id": "q8-e4",
-          "label": "Later-stage learning supplies the adaptable candidates",
+          "label": "Supports",
           "source": "q8c3",
           "target": "q8c2",
           "relType": "",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-2",
+          "targetHandle": "tgt-top-2"
         }
       ],
       "cruxId": "q8",
       "nodeInstances": [
         {
-          "size": {
-            "width": 324,
-            "height": 136
-          },
-          "nodeId": "q8c1",
+          "nodeId": "q8c4",
           "position": {
-            "x": 782.5,
-            "y": 92
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 136
+            "x": 240,
+            "y": 60
           },
-          "nodeId": "q8c2",
-          "position": {
-            "x": 1495,
-            "y": 115
-          }
-        },
-        {
-          "size": {
-            "width": 333,
-            "height": 160
-          },
-          "nodeId": "q8c3",
-          "position": {
-            "x": 778,
-            "y": 298
-          }
-        },
-        {
           "size": {
             "width": 295,
             "height": 160
-          },
-          "nodeId": "q8c4",
-          "position": {
-            "x": 92,
-            "y": 107
           }
         },
         {
+          "nodeId": "q8c1",
+          "position": {
+            "x": 60,
+            "y": 330
+          },
+          "size": {
+            "width": 324,
+            "height": 136
+          }
+        },
+        {
+          "nodeId": "q8c3",
+          "position": {
+            "x": 450,
+            "y": 330
+          },
+          "size": {
+            "width": 333,
+            "height": 160
+          }
+        },
+        {
+          "nodeId": "q8c2",
+          "position": {
+            "x": 60,
+            "y": 600
+          },
+          "size": {
+            "width": 333,
+            "height": 136
+          }
+        },
+        {
+          "nodeId": "q8c5",
+          "position": {
+            "x": 455,
+            "y": 600
+          },
           "size": {
             "width": 314,
             "height": 160
-          },
-          "nodeId": "q8c5",
-          "position": {
-            "x": 2226,
-            "y": 103
           }
         }
       ]
