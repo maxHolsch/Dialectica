@@ -2,7 +2,7 @@
   "id": "map-gen-scenrv-mpy2o87r",
   "meta": {
     "momentum": {
-      "rationale": "Question-guided pipeline: cruxes were curator-selected, not inferred — no highest-leverage signal.",
+      "rationale": "Question-guided pipeline: cruxes were curator-selected, not inferred \u2014 no highest-leverage signal.",
       "latentAgreements": [],
       "highestLeverageQuestion": "q1"
     },
@@ -278,7 +278,7 @@
     },
     "q8c4": {
       "id": "q8c4",
-      "text": "The old social contract—school, major, secure job—is collapsing before our eyes",
+      "text": "The old social contract\u2014school, major, secure job\u2014is collapsing before our eyes",
       "type": "claim",
       "absorbed": [],
       "isFactual": false
@@ -477,7 +477,7 @@
           "label": "Implies",
           "source": "q1c1",
           "target": "q1c2",
-          "relType": "Outsourcing synthesis to AI atrophies the practice of critical thinking",
+          "relType": "AI-assisted synthesis atrophies critical thinking practice",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -486,7 +486,7 @@
           "label": "Implies",
           "source": "q1c1",
           "target": "q1c4",
-          "relType": "Offloading cognition entirely slides into intellectual passivity and dependency",
+          "relType": "Offloading cognition slides into intellectual passivity",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -495,7 +495,7 @@
           "label": "Reframes",
           "source": "q1c3",
           "target": "q1c1",
-          "relType": "Retrieval and recombination of facts is not the same as understanding",
+          "relType": "Retrieval and recombination is not the same as understanding",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -513,7 +513,7 @@
           "label": "Qualifies",
           "source": "q1c5",
           "target": "q1c1",
-          "relType": "The cognition AI boosts is surface-level verbal recall, not embodied judgment",
+          "relType": "AI boosts surface-level verbal recall, not embodied judgment",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -522,7 +522,7 @@
           "label": "Grounds",
           "source": "q1c5",
           "target": "q1c3",
-          "relType": "Narrow factual retrieval is the kind of cognition AI actually augments",
+          "relType": "Narrow factual retrieval is the cognition AI actually augments",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -594,7 +594,7 @@
           "label": "Implies",
           "source": "q2c1",
           "target": "q2c2",
-          "relType": "When anyone accesses information instantly, formal expertise seems superfluous",
+          "relType": "Exposes hollowness behind claimed expertise",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -603,7 +603,7 @@
           "label": "Instances",
           "source": "q2c5",
           "target": "q2c1",
-          "relType": "AI as autodidact tool is a clear instance of information access without earned mastery",
+          "relType": "Illustrates access mistaken for knowledge",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -612,7 +612,7 @@
           "label": "Contests",
           "source": "q2c3",
           "target": "q2c2",
-          "relType": "Creating genuinely new knowledge — what AI cannot do — is the mark of real expertise",
+          "relType": "Defends frontier expertise against dismissal",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -621,7 +621,7 @@
           "label": "Grounds",
           "source": "q2c4",
           "target": "q2c3",
-          "relType": "Embodied and institutional knowledge is the foundation that true expertise requires",
+          "relType": "Grounds irreducible expertise in lived experience",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -630,7 +630,7 @@
           "label": "Qualifies",
           "source": "q2c4",
           "target": "q2c1",
-          "relType": "What AI cannot capture — embodied judgment — is what distinguishes knowledge from information",
+          "relType": "Names what access leaves out",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -639,7 +639,7 @@
           "label": "Contests",
           "source": "q2c5",
           "target": "q2c3",
-          "relType": "AI-assisted self-study does not produce the boundary-pushing mastery that defines expertise",
+          "relType": "Severs ability from earned mastery",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -711,7 +711,7 @@
           "label": "Qualifies",
           "source": "q3c1",
           "target": "q3c2",
-          "relType": "21-day turnover prevents the shared history and trust a real team requires",
+          "relType": "Supplies criteria the 21-day churn fails",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -720,7 +720,7 @@
           "label": "Instances",
           "source": "q3c2",
           "target": "q3c3",
-          "relType": "Rapid-turnover groups are exactly what a cohort is — task-focused, not enduring",
+          "relType": "Instances churn as cohort dissipation",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -729,7 +729,7 @@
           "label": "Reframes",
           "source": "q3c4",
           "target": "q3c1",
-          "relType": "Functional interdependence may matter more than shared identity for team cohesion",
+          "relType": "Strips relational bonds from definition",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -738,7 +738,7 @@
           "label": "Contests",
           "source": "q3c1",
           "target": "q3c4",
-          "relType": "Shared mission and trust may require knowing each other, not just co-working",
+          "relType": "Reinserts trust against bare interconnection",
           "sourceHandle": "src-top-2",
           "targetHandle": "tgt-bottom-2"
         },
@@ -747,7 +747,7 @@
           "label": "Contests",
           "source": "q3c5",
           "target": "q3c2",
-          "relType": "Teams that find real value in collaboration persist despite fast turnover pressures",
+          "relType": "Counters churn with band-like durability",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -756,7 +756,7 @@
           "label": "Extends",
           "source": "q3c5",
           "target": "q3c1",
-          "relType": "Genuine camaraderie — like a band — is how shared identity and trust actually form",
+          "relType": "Adds 'works well together' to criteria",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -828,7 +828,7 @@
           "label": "Implies",
           "source": "q4c2",
           "target": "q4c1",
-          "relType": "As AI makes hoarded knowledge obsolete, the entire manager archetype must shift",
+          "relType": "Names emerging figure replacing",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -837,7 +837,7 @@
           "label": "Extends",
           "source": "q4c1",
           "target": "q4c4",
-          "relType": "The orchestrator-manager's remaining core value is coaching people, not holding expertise",
+          "relType": "Specifies new function as",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -846,7 +846,7 @@
           "label": "Contests",
           "source": "q4c3",
           "target": "q4c1",
-          "relType": "Agent-managed teams reveal the circular problem of justifying human management's value",
+          "relType": "Threatens to dissolve orchestrator role",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -855,7 +855,7 @@
           "label": "Reframes",
           "source": "q4c5",
           "target": "q4c1",
-          "relType": "AI concentrates power upward rather than redistributing management to the broader team",
+          "relType": "Recasts orchestration as power concentration",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -864,7 +864,7 @@
           "label": "Qualifies",
           "source": "q4c5",
           "target": "q4c4",
-          "relType": "When AI empowers only top decision-makers, the coaching role stays limited in scope",
+          "relType": "Undercuts coaching framing with hierarchy",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -936,7 +936,7 @@
           "label": "Instances",
           "source": "q5c2",
           "target": "q5c1",
-          "relType": "Somatic craft knowledge is a clear example of what AI's narrow cognition misses",
+          "relType": "Supplies somatic case for",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -945,7 +945,7 @@
           "label": "Grounds",
           "source": "q5c3",
           "target": "q5c1",
-          "relType": "Lived cultural and institutional experience proves the limits of AI's cognitive model",
+          "relType": "Supplies institutional case for",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -954,7 +954,7 @@
           "label": "Extends",
           "source": "q5c5",
           "target": "q5c1",
-          "relType": "Boundary-pushing original expertise is the most extreme case AI cannot replicate",
+          "relType": "Sharpens cognition gap as",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -963,7 +963,7 @@
           "label": "Supports",
           "source": "q5c3",
           "target": "q5c4",
-          "relType": "Institutional knowledge and culture are exactly why human collaboration stays irreplaceable",
+          "relType": "Grounds collaboration claim in lived culture",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -972,7 +972,7 @@
           "label": "Implies",
           "source": "q5c2",
           "target": "q5c5",
-          "relType": "Embodied practice is the foundation of the novel insight that defines genuine expertise",
+          "relType": "Illustrates frontier knowledge AI lacks",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1044,7 +1044,7 @@
           "label": "Implies",
           "source": "q6c1",
           "target": "q6c3",
-          "relType": "When work utility evaporates, so does the identity many have built around it",
+          "relType": "Translates lost utility into identity threat",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1053,7 +1053,7 @@
           "label": "Implies",
           "source": "q6c1",
           "target": "q6c2",
-          "relType": "Obsolescence of human utility forces philosophical questions that were long dormant",
+          "relType": "Triggers existential reckoning over meaning",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1062,7 +1062,7 @@
           "label": "Grounds",
           "source": "q6c3",
           "target": "q6c2",
-          "relType": "The psychological crisis of feeling worthless drives the existential inquiry into meaning",
+          "relType": "Drives the nihilism it provokes",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -1071,7 +1071,7 @@
           "label": "Reframes",
           "source": "q6c4",
           "target": "q6c3",
-          "relType": "If freed time is abundance rather than unemployment, identity threat dissolves",
+          "relType": "Reframes obsoleted utility as liberation",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1080,7 +1080,7 @@
           "label": "Contests",
           "source": "q6c5",
           "target": "q6c1",
-          "relType": "AI as agency amplifier contradicts the claim that human utility is being erased",
+          "relType": "Relocates value from utility to craft",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1089,7 +1089,7 @@
           "label": "Extends",
           "source": "q6c5",
           "target": "q6c4",
-          "relType": "Amplifying creative agency supports the post-capitalist case for meaningful freed time",
+          "relType": "Specifies what freed time enables",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1161,7 +1161,7 @@
           "label": "Contests",
           "source": "q7c2",
           "target": "q7c3",
-          "relType": "Forced AI policy mandates negate the autonomy that makes removing minutiae enjoyable",
+          "relType": "Names what mandates invert",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -1170,7 +1170,7 @@
           "label": "Extends",
           "source": "q7c4",
           "target": "q7c3",
-          "relType": "RTO and surveillance policies compound the same autonomy-stripping dynamic as AI mandates",
+          "relType": "Generalizes mandate pattern beyond AI",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1179,7 +1179,7 @@
           "label": "Implies",
           "source": "q7c1",
           "target": "q7c2",
-          "relType": "Small non-hierarchical teams are the natural environment where AI makes work joyful",
+          "relType": "Locates fun where minutiae stays low",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1188,7 +1188,7 @@
           "label": "Grounds",
           "source": "q7c5",
           "target": "q7c1",
-          "relType": "Top talent self-selects for small, fun, peer-rich environments — proving the dynamic",
+          "relType": "Supplies what scale erodes",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1197,7 +1197,7 @@
           "label": "Qualifies",
           "source": "q7c3",
           "target": "q7c5",
-          "relType": "AI mandates push the top talent who seek meaningful collaboration out of the office",
+          "relType": "Mandated tracking displaces peer connection",
           "sourceHandle": "src-top-2",
           "targetHandle": "tgt-bottom-2"
         }
@@ -1269,7 +1269,7 @@
           "label": "Implies",
           "source": "q8c4",
           "target": "q8c1",
-          "relType": "When credentials no longer guarantee a job, demonstrated output becomes the signal",
+          "relType": "Collapsing credential path forces ability-based hiring",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1278,7 +1278,7 @@
           "label": "Implies",
           "source": "q8c4",
           "target": "q8c3",
-          "relType": "A collapsing front-loaded education model must be redesigned for lifelong relevance",
+          "relType": "Broken track demands lifelong education redesign",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1287,7 +1287,7 @@
           "label": "Extends",
           "source": "q8c1",
           "target": "q8c2",
-          "relType": "Beyond making things, the deeper criterion is curiosity and adaptability over experience",
+          "relType": "Extends making to learning capacity",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
@@ -1296,7 +1296,7 @@
           "label": "Implies",
           "source": "q8c2",
           "target": "q8c5",
-          "relType": "Hiring for growth mindset requires redefining what good performance looks like",
+          "relType": "Adaptability hiring requires outcome over output metrics",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -1305,7 +1305,7 @@
           "label": "Supports",
           "source": "q8c3",
           "target": "q8c2",
-          "relType": "Education redesigned for later life stages produces the adaptable hires companies need",
+          "relType": "Later-stage learning supplies the adaptable candidates",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1377,7 +1377,7 @@
           "label": "Yields jobs-corporatism reading as instance",
           "source": "q9c3",
           "target": "q9c1",
-          "relType": "AI-in-employment is a case of the broader technology-versus-institution confusion",
+          "relType": "AI-in-employment is a case of technology-versus-institution confusion",
           "sourceHandle": "src-right-0",
           "targetHandle": "tgt-left-0"
         },
@@ -1386,7 +1386,7 @@
           "label": "Yields cheating-as-education-ground instance",
           "source": "q9c3",
           "target": "q9c2",
-          "relType": "AI-in-education is a second case of blaming the tool for institutional dysfunction",
+          "relType": "AI-in-education is another instance of blaming the tool",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-0"
         },
@@ -1395,7 +1395,7 @@
           "label": "Repeats amplification move on schools",
           "source": "q9c1",
           "target": "q9c2",
-          "relType": "Both claims use the same structural move: AI amplifies a pre-existing institution",
+          "relType": "Both cases share the same amplification move",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-4"
         },
@@ -1404,7 +1404,7 @@
           "label": "Names the discernment people lack",
           "source": "q9c3",
           "target": "q9c4",
-          "relType": "Institutional confusion is what people eventually learn to see past",
+          "relType": "People eventually learn to see past institutional confusion",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -1413,7 +1413,7 @@
           "label": "Locates harm in mandate, not tool",
           "source": "q9c4",
           "target": "q9c5",
-          "relType": "Distinguishing tool from institution reveals policy as the true source of harm",
+          "relType": "Distinguishing tool from institution reveals policy as the real harm",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
@@ -1422,7 +1422,7 @@
           "label": "Specifies the amplified institution as policy",
           "source": "q9c5",
           "target": "q9c1",
-          "relType": "Corporatism via employment policy is the specific institution AI amplifies here",
+          "relType": "Employment policy is the specific institution AI amplifies here",
           "sourceHandle": "src-right-1",
           "targetHandle": "tgt-left-4"
         }
@@ -1494,7 +1494,7 @@
           "label": "Supplies mechanism for flattening hierarchy",
           "source": "q10c2",
           "target": "q10c1",
-          "relType": "Cross-disciplinary forcing is how AI actually produces more lateral dynamics",
+          "relType": "Cross-disciplinary forcing produces more lateral team dynamics",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-0"
         },
@@ -1503,7 +1503,7 @@
           "label": "Names the role shift enabling lateralness",
           "source": "q10c3",
           "target": "q10c1",
-          "relType": "Replacing the knowledge-hoarder with an orchestrator enables more lateral work",
+          "relType": "Replacing the knowledge-hoarder enables more lateral, collaborative work",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-4"
         },
@@ -1512,7 +1512,7 @@
           "label": "Counters lateral hope with asymmetric power",
           "source": "q10c4",
           "target": "q10c1",
-          "relType": "AI empowering individuals at the top directly contradicts the lateral ideal",
+          "relType": "AI empowering only the top directly contradicts the lateral ideal",
           "sourceHandle": "src-right-0",
           "targetHandle": "tgt-left-0"
         },
@@ -1521,7 +1521,7 @@
           "label": "Recasts orchestrator as concentrated authority",
           "source": "q10c4",
           "target": "q10c3",
-          "relType": "The emerging orchestrator role may concentrate power rather than distribute it",
+          "relType": "The orchestrator role may concentrate power rather than distribute it",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-left-1"
         },

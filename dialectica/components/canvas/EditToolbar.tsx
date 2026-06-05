@@ -8,6 +8,7 @@ import {
   Eraser,
   Broom,
   Cursor,
+  TextT,
   CaretDown,
 } from "@phosphor-icons/react";
 import { clsx } from "clsx";
@@ -55,7 +56,8 @@ export function EditToolbar({
   const redo = useUIStore((s) => s.redo);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
-  const [subOpen, setSubOpen] = useState(false);
+  // "draw" = drawing sub-toolbar open, "text" = text sub-toolbar open, null = closed
+  const [activeSub, setActiveSub] = useState<"draw" | "text" | null>(null);
 
   const onUndo = useCallback(async () => {
     const action = undo();
@@ -122,9 +124,12 @@ export function EditToolbar({
     tool === "highlighter" ? <Highlighter size={18} /> :
     <PencilSimple size={18} />;
 
+  const subOpen = activeSub !== null;
+
   return (
     <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 select-none">
-      {/* Sub-toolbar — floats above the main pill when Draw is active */}
+      {/* Sub-toolbar — floats above the main pill when Draw or Text is active.
+          Drawing tool variants only appear when the draw sub is open. */}
       <div
         className={clsx(
           "flex h-12 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white pl-2 pr-2.5 transition-all duration-200 ease-out",
@@ -135,20 +140,23 @@ export function EditToolbar({
         style={{ ...SHADOW, cursor: CURSORS.pointer }}
         aria-hidden={!subOpen}
       >
-        {/* Drawing implements */}
-        <ToolButton tool="pencil" active={mode === "draw" && tool === "pencil"} onClick={() => setTool("pencil")} aria-label="Pencil">
-          <PencilSimple size={18} />
-        </ToolButton>
-        <ToolButton tool="pen" active={mode === "draw" && tool === "pen"} onClick={() => setTool("pen")} aria-label="Marker">
-          <Pen size={18} />
-        </ToolButton>
-        <ToolButton tool="highlighter" active={mode === "draw" && tool === "highlighter"} onClick={() => setTool("highlighter")} aria-label="Highlighter">
-          <Highlighter size={18} />
-        </ToolButton>
+        {/* Drawing tool variants — only shown in draw sub-toolbar */}
+        {activeSub === "draw" && (
+          <>
+            <ToolButton tool="pencil" active={mode === "draw" && tool === "pencil"} onClick={() => setTool("pencil")} aria-label="Pencil">
+              <PencilSimple size={18} />
+            </ToolButton>
+            <ToolButton tool="pen" active={mode === "draw" && tool === "pen"} onClick={() => setTool("pen")} aria-label="Marker">
+              <Pen size={18} />
+            </ToolButton>
+            <ToolButton tool="highlighter" active={mode === "draw" && tool === "highlighter"} onClick={() => setTool("highlighter")} aria-label="Highlighter">
+              <Highlighter size={18} />
+            </ToolButton>
+            <Divider />
+          </>
+        )}
 
-        <Divider />
-
-        {/* Color swatches */}
+        {/* Color swatches — shared between draw and text sub-toolbars */}
         {SWATCHES.map((swatch) => (
           <button
             key={swatch}
@@ -178,8 +186,6 @@ export function EditToolbar({
             </Btn>
           </>
         )}
-
-        {/* Add claim and Reformat buttons hidden for now */}
       </div>
 
       {/* Main pill — always visible */}
@@ -190,7 +196,7 @@ export function EditToolbar({
         {/* Cursor / select mode */}
         <button
           type="button"
-          onClick={() => { setMode("select"); setSubOpen(false); }}
+          onClick={() => { setMode("select"); setActiveSub(null); }}
           aria-label="Select / pan mode"
           aria-pressed={mode === "select"}
           className={clsx(
@@ -206,17 +212,48 @@ export function EditToolbar({
         {/* Draw — icon reflects current drawing tool */}
         <button
           type="button"
-          onClick={() => { if (subOpen) { setSubOpen(false); } else { setSubOpen(true); if (mode !== "draw" && mode !== "erase") setMode("draw"); } }}
+          onClick={() => {
+            if (activeSub === "draw") {
+              setActiveSub(null);
+            } else {
+              setActiveSub("draw");
+              if (tool === "textbox") setTool("pencil");
+              else if (mode !== "draw" && mode !== "erase") setMode("draw");
+            }
+          }}
           aria-label="Drawing tools"
-          aria-pressed={mode === "draw" || mode === "erase"}
+          aria-pressed={activeSub === "draw"}
           className={clsx(
             "flex size-9 items-center justify-center transition-colors",
-            mode === "draw" || mode === "erase"
+            activeSub === "draw"
               ? "rounded-full bg-[#F9F9F9] text-black"
               : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
           )}
         >
           {drawIcon}
+        </button>
+
+        {/* Text box tool */}
+        <button
+          type="button"
+          onClick={() => {
+            if (activeSub === "text") {
+              setActiveSub(null);
+            } else {
+              setActiveSub("text");
+              setTool("textbox");
+            }
+          }}
+          aria-label="Text box"
+          aria-pressed={activeSub === "text"}
+          className={clsx(
+            "flex size-9 items-center justify-center transition-colors",
+            activeSub === "text"
+              ? "rounded-full bg-[#F9F9F9] text-black"
+              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+          )}
+        >
+          <TextT size={18} />
         </button>
       </div>
     </div>

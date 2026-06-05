@@ -221,6 +221,7 @@ function Canvas({
   const closeSidePanel = useUIStore((s) => s.closeSidePanel);
   const sidePanelNode = useUIStore((s) => s.sidePanelNode);
   const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
+  const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
@@ -238,6 +239,12 @@ function Canvas({
   useEffect(() => {
     bindMap(mapId);
   }, [mapId, bindMap]);
+
+  // Edge-label focus and tile focus are mutually exclusive — expanding an edge
+  // label clears any open side panel so only one focus mode is active at a time.
+  useEffect(() => {
+    if (expandedEdgeId) closeSidePanel();
+  }, [expandedEdgeId, closeSidePanel]);
 
   // Phase 5 / DIA-ANNO-4 — subscribe to Supabase Realtime so other users'
   // strokes appear in this client within ~200ms. Inserts/updates land in the
@@ -488,6 +495,12 @@ function Canvas({
     deletedEdgeIds,
   ]);
 
+  // Derive the currently click-expanded edge so we can target its source/target
+  // nodes and its own edge line for the focus-fade CSS rules.
+  const expandedEdge = expandedEdgeId
+    ? (allEdges.find((e) => e.id === expandedEdgeId) ?? null)
+    : null;
+
   // Track stroke drags. During drag we optimistically update origin so the node
   // visually follows the cursor (React Flow respects the controlled `position`).
   // On release we also persist via createAnnotation (idempotent — replace by id).
@@ -590,6 +603,7 @@ function Canvas({
       if (mode !== "select" || node.type === "stroke") return;
       // Frame view: zoom to the clicked claim/question and open the agree bar.
       if (frameId && (node.type === "claim" || node.type === "question")) {
+        setExpandedEdgeId(null);
         openSidePanel({ frameId, nodeId: node.id });
         // Direct setViewport: centers the tile in the visible area below the
         // fixed 2-line header in a single animated call. fitView with a nodes[]
@@ -612,7 +626,7 @@ function Canvas({
       const target = onNodeNavigate?.(node.id);
       if (target) router.push(target);
     },
-    [mode, drawing, frameId, reactFlow, openSidePanel, onNodeNavigate, router],
+    [mode, drawing, frameId, reactFlow, openSidePanel, setExpandedEdgeId, onNodeNavigate, router],
   );
 
   const handlePaneClick = useCallback(() => {
@@ -738,7 +752,7 @@ function Canvas({
 
   return (
     <div
-      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""}`}
+      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -795,6 +809,15 @@ function Canvas({
               `.canvas-tile-focused .react-flow__node:not([data-id="${sidePanelNode.nodeId}"]){opacity:0.12}` +
               `.canvas-tile-focused .react-flow__edge{opacity:0.12}` +
               `.canvas-tile-focused .react-flow__edgelabel-renderer{opacity:0.12}`,
+          }}
+        />
+      ) : null}
+      {expandedEdge && frameId ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              `.canvas-edge-focused .react-flow__node:not([data-id="${expandedEdge.source}"]):not([data-id="${expandedEdge.target}"]){opacity:0.12}` +
+              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.12}`,
           }}
         />
       ) : null}

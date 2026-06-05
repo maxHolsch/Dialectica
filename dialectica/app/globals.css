@@ -193,6 +193,8 @@
 /* After initial animations complete, new nodes/edges render instantly — no replay flash */
 .canvas-drawn .react-flow__node { animation: none; opacity: 1; transition: opacity 200ms ease; }
 .canvas-drawn .react-flow__edge-path { animation: none; stroke-dasharray: none; opacity: 1; }
+/* Persistent opacity transition on edge wrappers so focus-fade reverses smoothly */
+.canvas-drawn .react-flow__edge { transition: opacity 200ms ease; }
 
 /* Tile focus mode — dims non-selected nodes/edges so the selected tile stands out */
 .canvas-drawn.canvas-tile-focused .react-flow__edges { opacity: 0.12; transition: opacity 200ms ease; }
