@@ -22,7 +22,6 @@ import {
   type LayoutStrategyId,
 } from "./strategies";
 
-const TOP_SENTINEL = "top";
 
 // Text rendering parameters per node "kind". These mirror the Tailwind classes
 // on TopQuestionNode / CruxTileNode / ClaimNode / QuestionNode.
@@ -62,9 +61,7 @@ const EDGE_LABEL_FONT = {
   paddingY: 16,
 };
 
-// Top-left anchor for each subgraph in the world. Pick coordinates that match
-// what existing pages used so the camera fitView lands somewhere similar.
-const CRUX_ORIGIN = { x: 80, y: 80 };
+// Top-left origin for frame subgraphs (ELK positions are relative).
 const FRAME_ORIGIN = { x: 80, y: 80 };
 
 function applyHandlesToEdges<E extends Edge>(
@@ -94,78 +91,89 @@ export async function autoFormatArgMap(
   const log = logger ?? (() => {});
   log(`auto-format start · strategy=${strategy}`);
 
-  // ───── 1. Crux subgraph: top question + cruxes + cruxEdges ─────
-  const cruxNodeMeasures = new Map<string, { width: number; height: number }>();
-
+  // ───── 1. Crux tiles: manual ring layout ─────
+  // The top question is rendered as a fixed header, not a canvas node, so it
+  // is excluded from the crux layout entirely. Crux tiles have no edges between
+  // them, so we compute a grid layout manually instead of using ELK.
+  // Tiles are arranged left-to-right, top-to-bottom in ~sqrt(n) columns;
+  // the last row is centered if it is not full.
   const topMeasured = measureWrappedText(map.topQuestion, TOP_QUESTION_FONT);
-  cruxNodeMeasures.set(TOP_SENTINEL, topMeasured);
+  const topSize = map.topQuestionSize ?? topMeasured;
 
-  for (const c of map.cruxes) {
-    cruxNodeMeasures.set(c.id, measureWrappedText(c.question, CRUX_TILE_FONT));
-  }
-
-  const cruxElkNodes: ElkNodeIn[] = [
-    { id: TOP_SENTINEL, ...topMeasured },
-    ...map.cruxes.map((c) => {
-      const m = cruxNodeMeasures.get(c.id)!;
-      return { id: c.id, width: m.width, height: m.height };
-    }),
-  ];
-
-  const cruxElkEdges: ElkEdgeIn[] = map.cruxEdges.map((e) => ({
-    id: e.id,
-    source: e.source,
-    target: e.target,
-    label: measureLabel(e.label),
-  }));
-
-  const cruxLayout = await runElkLayout(cruxElkNodes, cruxElkEdges, strategy);
-
-  // Default to the input positions if the layout couldn't be computed (zero
-  // nodes — which shouldn't happen because we always include "top", but be
-  // defensive).
-  const cruxPositions = new Map<string, { x: number; y: number }>();
+  // CruxTileNode renders as a circle: width = height = max(measured_width, 220).
+  // Store square sizes so ReactFlow reports the correct node bounds.
+  const MIN_TILE = 220;
   const cruxSizes = new Map<string, { width: number; height: number }>();
-  if (cruxLayout) {
-    for (const n of cruxLayout.nodes) {
-      cruxPositions.set(n.id, {
-        x: n.x + CRUX_ORIGIN.x,
-        y: n.y + CRUX_ORIGIN.y,
-      });
-      cruxSizes.set(n.id, { width: n.width, height: n.height });
-    }
+  for (const c of map.cruxes) {
+    const m = measureWrappedText(c.question, CRUX_TILE_FONT);
+    const d = Math.max(m.width, MIN_TILE);
+    cruxSizes.set(c.id, { width: d, height: d });
   }
+
+  const TILE_GAP = 48;
+  const n = map.cruxes.length;
+  const cols = Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+  const tileD = map.cruxes.reduce((m, c) => Math.max(m, cruxSizes.get(c.id)!.width), 0);
+  const cell = tileD + TILE_GAP;
+  const gridW = cols * cell - TILE_GAP;
+  const gridH = rows * cell - TILE_GAP;
+
+  const GRID_CENTER = { x: 800, y: 540 };
+  const startX = GRID_CENTER.x - gridW / 2;
+  const startY = GRID_CENTER.y - gridH / 2;
+
+  const cruxPositions = new Map<string, { x: number; y: number }>();
+  map.cruxes.forEach((c, i) => {
+    const row = Math.floor(i / cols);
+    const col = i % cols;
+    const tilesInRow = row === rows - 1 ? n - row * cols : cols;
+    const rowInset = ((cols - tilesInRow) * cell) / 2;
+    cruxPositions.set(c.id, {
+      x: startX + col * cell + rowInset,
+      y: startY + row * cell,
+    });
+  });
+
+  // cruxEdge handles: only assign if edges exist (legacy maps may have them).
   const cruxEdgeHandles = new Map<
     string,
     { sourceHandle: HandleId; targetHandle: HandleId }
   >();
-  if (cruxLayout) {
-    for (const e of cruxLayout.edges) {
-      cruxEdgeHandles.set(e.id, {
-        sourceHandle: e.sourceHandle,
-        targetHandle: e.targetHandle,
-      });
+  if (map.cruxEdges.length > 0) {
+    const cruxElkNodes: ElkNodeIn[] = map.cruxes.map((c) => {
+      const s = cruxSizes.get(c.id)!;
+      return { id: c.id, width: s.width, height: s.height };
+    });
+    const cruxElkEdges: ElkEdgeIn[] = map.cruxEdges.map((e) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      label: measureLabel(e.label),
+    }));
+    const cruxLayout = await runElkLayout(cruxElkNodes, cruxElkEdges, strategy);
+    if (cruxLayout) {
+      for (const e of cruxLayout.edges) {
+        cruxEdgeHandles.set(e.id, {
+          sourceHandle: e.sourceHandle,
+          targetHandle: e.targetHandle,
+        });
+      }
     }
   }
 
-  const topPosition =
-    cruxPositions.get(TOP_SENTINEL) ?? map.topQuestionPosition;
-  const topSize = cruxSizes.get(TOP_SENTINEL) ?? map.topQuestionSize ?? topMeasured;
+  const topPosition = map.topQuestionPosition ?? GRID_CENTER;
 
   const nextCruxes = map.cruxes.map((c) => ({
     ...c,
     position: cruxPositions.get(c.id) ?? c.position,
-    size:
-      cruxSizes.get(c.id) ??
-      c.size ??
-      cruxNodeMeasures.get(c.id) ??
-      c.size,
+    size: cruxSizes.get(c.id) ?? c.size,
   }));
 
   const nextCruxEdges = applyHandlesToEdges(map.cruxEdges, cruxEdgeHandles);
 
   log(
-    `crux subgraph laid out · ${cruxElkNodes.length} nodes · ${cruxElkEdges.length} edges`,
+    `crux subgraph laid out · ${map.cruxes.length} tiles · ${map.cruxEdges.length} edges`,
   );
 
   // ───── 2. Frames: one ELK pass per frame ─────

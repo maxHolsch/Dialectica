@@ -356,6 +356,7 @@ export async function runElkLayout(
   nodes: ElkNodeIn[],
   edges: ElkEdgeIn[],
   strategyId: LayoutStrategyId,
+  elkOptionsOverride?: Record<string, string>,
 ): Promise<LaidOut | null> {
   if (nodes.length === 0) return null;
 
@@ -371,6 +372,9 @@ export async function runElkLayout(
   const elk = new ElkCtor();
 
   const strategy = LAYOUT_STRATEGIES[strategyId];
+  const elkOptions = elkOptionsOverride
+    ? { ...strategy.elkOptions, ...elkOptionsOverride }
+    : strategy.elkOptions;
 
   // Filter out edges whose endpoints aren't in the node set; otherwise elk
   // throws "edge references unknown node". This can happen if the pipeline
@@ -382,7 +386,7 @@ export async function runElkLayout(
 
   const graph = {
     id: "root",
-    layoutOptions: strategy.elkOptions,
+    layoutOptions: elkOptions,
     children: nodes.map((n) => ({
       id: n.id,
       width: n.width,
