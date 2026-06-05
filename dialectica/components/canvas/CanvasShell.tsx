@@ -53,6 +53,8 @@ export type MoveHandlers = {
   onEdgeLabelOffset: (edgeId: string, offset: number) => void;
   /** Delete a current selection of content nodes and/or edges. */
   onDelete: (selection: { nodeIds: string[]; edgeIds: string[] }) => void;
+  /** Rename a single canonical node (frame view only). */
+  onRenameNode?: (nodeId: string, text: string) => void;
 };
 
 /**
@@ -574,22 +576,38 @@ function Canvas({
     if (sidePanelNode) closeSidePanel();
   }, [sidePanelNode, closeSidePanel]);
 
-  // Right-click on a content node opens the stake context menu. PRD §10.1.
+  // Right-click on a content node (claim/question in frame view, cruxTile in crux view)
+  // opens the context menu. PRD §10.1.
   const handleNodeContextMenu: NodeMouseHandler = useCallback(
     (event, node) => {
-      if (!frameId) return;
-      if (node.type !== "claim" && node.type !== "question") return;
       event.preventDefault();
       event.stopPropagation();
-      const bucket = stakes?.[stakeKey(frameId, node.id)];
-      setContextMenu({
-        mapId,
-        frameId,
-        nodeId: node.id,
-        selfStaked: bucket?.selfStaked ?? false,
-        x: event.clientX,
-        y: event.clientY,
-      });
+      const isFrameNode = node.type === "claim" || node.type === "question";
+      const isCruxTile = node.type === "cruxTile";
+      if (!isFrameNode && !isCruxTile) return;
+      if (isFrameNode && !frameId) return;
+      const nodeText = (node.data as { text?: string }).text ?? "";
+      if (isFrameNode) {
+        const bucket = stakes?.[stakeKey(frameId!, node.id)];
+        setContextMenu({
+          mapId,
+          frameId: frameId!,
+          nodeId: node.id,
+          selfStaked: bucket?.selfStaked ?? false,
+          nodeText,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      } else {
+        setContextMenu({
+          mapId,
+          nodeId: node.id,
+          selfStaked: false,
+          nodeText,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
     },
     [frameId, mapId, stakes],
   );
@@ -744,6 +762,22 @@ function Canvas({
       <NodeContextMenu
         state={contextMenu}
         onClose={() => setContextMenu(null)}
+        onDelete={
+          isEditMode && moveHandlers
+            ? (nodeId) => {
+                setContextMenu(null);
+                moveHandlers.onDelete({ nodeIds: [nodeId], edgeIds: [] });
+              }
+            : undefined
+        }
+        onRenameNode={
+          isEditMode && moveHandlers?.onRenameNode
+            ? (nodeId, text) => {
+                setContextMenu(null);
+                moveHandlers.onRenameNode!(nodeId, text);
+              }
+            : undefined
+        }
       />
     </div>
   );

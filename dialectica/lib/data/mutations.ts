@@ -240,11 +240,31 @@ export async function applyDeletePatch(mapId: string, patch: DeleteMapPatch) {
 
   if (patch.cruxIds && patch.cruxIds.length > 0) {
     const dead = new Set(patch.cruxIds);
+
+    // Collect frameIds whose crux is being deleted, gather their node ids.
+    const deadFrameIds = new Set<string>();
+    const nodeIdsInDeadFrames = new Set<string>();
+    for (const [frameId, frame] of Object.entries(map.frames)) {
+      if (dead.has(frame.cruxId)) {
+        deadFrameIds.add(frameId);
+        for (const inst of frame.nodeInstances) nodeIdsInDeadFrames.add(inst.nodeId);
+      }
+    }
+
     map.cruxes = map.cruxes.filter((c) => !dead.has(c.id));
-    // Cascade: remove any cruxEdges that referenced a deleted crux.
+    // Cascade: cruxEdges, frames, and orphaned canonical nodes.
     map.cruxEdges = map.cruxEdges.filter(
       (e) => !dead.has(e.source) && !dead.has(e.target),
     );
+    for (const frameId of deadFrameIds) delete map.frames[frameId];
+    if (nodeIdsInDeadFrames.size > 0) {
+      const liveNodeIds = new Set(
+        Object.values(map.frames).flatMap((f) => f.nodeInstances.map((i) => i.nodeId)),
+      );
+      for (const nodeId of nodeIdsInDeadFrames) {
+        if (!liveNodeIds.has(nodeId)) delete map.nodes[nodeId];
+      }
+    }
   }
   if (patch.cruxEdgeIds && patch.cruxEdgeIds.length > 0) {
     const dead = new Set(patch.cruxEdgeIds);
@@ -273,6 +293,62 @@ export async function applyDeletePatch(mapId: string, patch: DeleteMapPatch) {
     }
   }
 
+  map.updatedAt = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("Dialectica_maps")
+    .update({ data: map, updated_at: map.updatedAt })
+    .eq("id", mapId);
+  if (error) throw new Error(error.message);
+}
+
+// Updates the text of a canonical node (claim or question) in-place.
+export async function updateNodeText(mapId: string, nodeId: string, text: string) {
+  const user = await currentUser();
+  if (!user || user.role !== "edit") {
+    throw new Error("Only edit-role users can rename nodes.");
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data: row, error: readErr } = await supabase
+    .from("Dialectica_maps")
+    .select("data")
+    .eq("id", mapId)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!row) throw new Error(`Map ${mapId} not found`);
+
+  const map = ArgMap.parse(row.data);
+  const node = map.nodes[nodeId];
+  if (!node) throw new Error(`Node ${nodeId} not found`);
+  node.text = text.trim();
+  map.updatedAt = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("Dialectica_maps")
+    .update({ data: map, updated_at: map.updatedAt })
+    .eq("id", mapId);
+  if (error) throw new Error(error.message);
+}
+
+// Updates the question text of a crux tile in-place.
+export async function updateCruxText(mapId: string, cruxId: string, text: string) {
+  const user = await currentUser();
+  if (!user || user.role !== "edit") {
+    throw new Error("Only edit-role users can rename cruxes.");
+  }
+  const supabase = await createSupabaseServerClient();
+  const { data: row, error: readErr } = await supabase
+    .from("Dialectica_maps")
+    .select("data")
+    .eq("id", mapId)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  if (!row) throw new Error(`Map ${mapId} not found`);
+
+  const map = ArgMap.parse(row.data);
+  const crux = map.cruxes.find((c) => c.id === cruxId);
+  if (!crux) throw new Error(`Crux ${cruxId} not found`);
+  crux.question = text.trim();
   map.updatedAt = new Date().toISOString();
 
   const { error } = await supabase

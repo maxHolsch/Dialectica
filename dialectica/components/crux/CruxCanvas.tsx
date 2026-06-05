@@ -15,7 +15,7 @@ import {
 import type { ArgMap, Annotation, HandleId } from "@/lib/schema";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch, runAutoFormat, updateCruxText } from "@/lib/data/mutations";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { TopQuestionNode } from "./TopQuestionNode";
@@ -187,8 +187,17 @@ export function CruxCanvas({
     [map.id, router],
   );
 
+  const onRenameNode = useCallback(
+    (cruxId: string, text: string) => {
+      void updateCruxText(map.id, cruxId, text)
+        .then(() => router.refresh())
+        .catch((err) => console.error("[crux] rename crux failed", err));
+    },
+    [map.id, router],
+  );
+
   const moveHandlers: MoveHandlers | undefined = isEditMode
-    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete, onRenameNode }
     : undefined;
 
   const onAutoFormat = useCallback(
