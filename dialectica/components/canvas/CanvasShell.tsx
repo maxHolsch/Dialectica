@@ -74,6 +74,7 @@ export function CanvasShell({
   onNodeNavigate,
   onAddClaim,
   onAutoFormat,
+  onReady,
   stakes,
   moveHandlers,
 }: {
@@ -92,6 +93,8 @@ export function CanvasShell({
   onAddClaim?: () => void;
   /** Edit-mode only: fire auto-format with the chosen strategy and refresh. */
   onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  /** Called once after ReactFlow initialises and fitView completes. */
+  onReady?: () => void;
   /** Frame view only: stake aggregates keyed by `${frameId}::${nodeId}`. */
   stakes?: StakeMap;
   /** Edit-mode only: handlers wiring move-mode interactions to persistence. */
@@ -120,6 +123,7 @@ export function CanvasShell({
         onNodeNavigate={onNodeNavigate}
         onAddClaim={onAddClaim}
         onAutoFormat={onAutoFormat}
+        onReady={onReady}
         stakes={stakes}
         moveHandlers={moveHandlers}
       />
@@ -142,6 +146,7 @@ function Canvas({
   onNodeNavigate,
   onAddClaim,
   onAutoFormat,
+  onReady,
   stakes,
   moveHandlers,
 }: {
@@ -159,11 +164,17 @@ function Canvas({
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
   onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  onReady?: () => void;
   stakes?: StakeMap;
   moveHandlers?: MoveHandlers;
 }) {
   const router = useRouter();
   const reactFlow = useReactFlow();
+  const [canvasReady, setCanvasReady] = useState(false);
+  const handleInit = useCallback(() => {
+    setCanvasReady(true);
+    onReady?.();
+  }, [onReady]);
   const mode = useUIStore((s) => s.mode);
   const optimisticAdds = useUIStore((s) => s.optimisticAdds);
   const optimisticDeletes = useUIStore((s) => s.optimisticDeletes);
@@ -171,6 +182,8 @@ function Canvas({
   const addOptimistic = useUIStore((s) => s.addOptimistic);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
   const openSidePanel = useUIStore((s) => s.openSidePanel);
+  const closeSidePanel = useUIStore((s) => s.closeSidePanel);
+  const sidePanelNode = useUIStore((s) => s.sidePanelNode);
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
@@ -539,17 +552,25 @@ function Canvas({
         return;
       }
       if (mode !== "select" || node.type === "stroke") return;
-      // Frame view: clicking a claim/question opens the side panel (PRD §5.3 / DIA-VIEW-3.5).
+      // Frame view: clicking a claim/question toggles the side panel.
       if (frameId && (node.type === "claim" || node.type === "question")) {
-        openSidePanel({ frameId, nodeId: node.id });
+        if (sidePanelNode?.nodeId === node.id) {
+          closeSidePanel();
+        } else {
+          openSidePanel({ frameId, nodeId: node.id });
+        }
         return;
       }
       // Crux view: navigate into the clicked crux's frame.
       const target = onNodeNavigate?.(node.id);
       if (target) router.push(target);
     },
-    [mode, drawing, frameId, openSidePanel, onNodeNavigate, router],
+    [mode, drawing, frameId, sidePanelNode, closeSidePanel, openSidePanel, onNodeNavigate, router],
   );
+
+  const handlePaneClick = useCallback(() => {
+    if (sidePanelNode) closeSidePanel();
+  }, [sidePanelNode, closeSidePanel]);
 
   // Right-click on a content node opens the stake context menu. PRD §10.1.
   const handleNodeContextMenu: NodeMouseHandler = useCallback(
@@ -657,7 +678,7 @@ function Canvas({
 
   return (
     <div
-      className="relative h-full w-full bg-dia-bg"
+      className={`relative h-full w-full bg-dia-bg ${canvasReady ? "canvas-loaded" : "canvas-loading"}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -678,6 +699,7 @@ function Canvas({
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
         onNodeContextMenu={handleNodeContextMenu}
+        onPaneClick={handlePaneClick}
         onNodesChange={handleNodesChange}
         onReconnect={moveActive ? handleReconnect : undefined}
         nodesDraggable
@@ -689,6 +711,7 @@ function Canvas({
         panOnScroll
         zoomOnScroll={false}
         zoomOnPinch
+        onInit={handleInit}
         fitView
         fitViewOptions={{ padding: 0.18 }}
         proOptions={{ hideAttribution: true }}
@@ -710,7 +733,6 @@ function Canvas({
       ) : null}
       <InFlightStrokeLayer />
       <RemoteCursorLayer cursors={cursorChannel.cursors} />
-      <CanvasMinimap />
       <EditToolbar
         mapId={mapId}
         isEditMode={isEditMode}

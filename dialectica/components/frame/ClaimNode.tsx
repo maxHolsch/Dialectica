@@ -25,10 +25,10 @@ export const ClaimNode = memo(function ClaimNode({
   const h = height ?? 300;
   return (
     <div
-      className="relative flex items-center rounded-[4px] bg-dia-mint px-8"
-      style={{ width: w, height: h, ...(selected ? SELECTED_OUTLINE : null) }}
+      className="relative flex items-center rounded-[12px] border border-black/30 bg-white p-8"
+      style={{ width: w, ...(selected ? SELECTED_OUTLINE : null) }}
     >
-      <p className="font-mono text-[16px] leading-[1.5] text-black">{text}</p>
+      <p className="font-serif text-[16px] leading-[1.5] text-black">{text}</p>
       <NodeHandles />
     </div>
   );
@@ -46,10 +46,10 @@ export const QuestionNode = memo(function QuestionNode({
   const h = height ?? 300;
   return (
     <div
-      className="relative flex items-center rounded-[4px] bg-dia-pink px-8"
-      style={{ width: w, height: h, ...(selected ? SELECTED_OUTLINE : null) }}
+      className="relative flex items-center rounded-[12px] border border-black/30 bg-white p-8"
+      style={{ width: w, ...(selected ? SELECTED_OUTLINE : null) }}
     >
-      <p className="font-mono text-[16px] italic leading-[1.5] text-black">
+      <p className="font-serif text-[16px] italic leading-[1.5] text-black">
         {text}
       </p>
       <NodeHandles />

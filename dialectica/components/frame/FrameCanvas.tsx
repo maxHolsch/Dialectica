@@ -37,6 +37,7 @@ export function FrameCanvas({
   userColor,
   isEditMode,
   stakes,
+  onReady,
 }: {
   map: ArgMap;
   frame: Frame;
@@ -46,6 +47,7 @@ export function FrameCanvas({
   userColor: string;
   isEditMode: boolean;
   stakes: StakeMap;
+  onReady?: () => void;
 }) {
   const selectedNodeId = useUIStore((s) =>
     s.sidePanelNode?.frameId === frame.id ? s.sidePanelNode.nodeId : null,
@@ -85,6 +87,7 @@ export function FrameCanvas({
       data: {
         label: e.label,
         labelOffset: e.labelOffset ?? 0,
+        curvature: e.curvature,
         variant: "frame" as const,
       },
     }));
@@ -189,6 +192,7 @@ export function FrameCanvas({
       userColor={userColor}
       isEditMode={isEditMode}
       onAutoFormat={isEditMode ? onAutoFormat : undefined}
+      onReady={onReady}
       stakes={stakes}
       moveHandlers={moveHandlers}
     />

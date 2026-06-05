@@ -2,26 +2,22 @@
 
 import { memo } from "react";
 import type { NodeProps } from "@xyflow/react";
-import { NodeHandles } from "@/components/canvas/NodeHandles";
 
-/** A sub-crux tile in the crux view. Figma node 2:9 / 4:11 / 4:12 / 4:13. */
+/** A sub-crux question bubble in the crux view — circular. */
 export const CruxTileNode = memo(function CruxTileNode({
   data,
   width,
-  height,
 }: NodeProps) {
   const text = (data?.text as string) ?? "";
-  const w = width ?? 336;
-  const h = height ?? 265;
+  const size = width ?? 160;
   return (
     <div
-      className="group relative flex cursor-pointer items-center justify-center rounded-[4px] border-2 border-dashed border-dia-pink bg-dia-bg px-4 transition-colors hover:border-dia-mint"
-      style={{ width: w, height: h }}
+      className="group relative flex cursor-pointer items-center justify-center rounded-full border border-black/10 bg-white px-5 transition-all duration-200 ease-out hover:border-black/20 hover:bg-[#FAFAFA] hover:scale-[1.06]"
+      style={{ width: size, height: size }}
     >
-      <p className="text-center font-mono text-[14px] leading-[1.55] text-dia-fg">
+      <p className="text-center font-serif text-[13px] leading-[1.45] text-dia-fg">
         {text}
       </p>
-      <NodeHandles />
     </div>
   );
 });

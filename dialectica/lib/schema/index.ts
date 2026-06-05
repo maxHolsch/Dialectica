@@ -67,6 +67,7 @@ export const Edge = z.object({
   // consumes these directly to route from the matching named Handle.
   sourceHandle: HandleId.optional(),
   targetHandle: HandleId.optional(),
+  curvature: z.number().optional(),
 });
 export type Edge = z.infer<typeof Edge>;
 

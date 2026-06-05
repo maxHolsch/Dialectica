@@ -3,7 +3,6 @@ import { getMap } from "@/lib/data/maps";
 import { currentUser, avatarFor } from "@/lib/data/users";
 import { listStakesForMap } from "@/lib/data/stakes";
 import { listAnnotationsForMap } from "@/lib/data/annotations";
-import { Topbar } from "@/components/topbar/Topbar";
 import { FrameView } from "@/components/frame/FrameView";
 
 /** DIA-VIEW-2 — Frame view. Figma node 2:15. */
@@ -31,30 +30,15 @@ export default async function FramePage({
       : (map.cruxes.find((c) => c.id === frame.cruxId)?.question ?? "");
 
   return (
-    <div className="flex h-screen flex-col bg-dia-bg">
-      <Topbar
-        crumbs={[
-          { kind: "brand", label: "DIALECTIA", href: "/" },
-          { kind: "sep-slash" },
-          { kind: "medium", label: map.title, href: `/m/${mapId}/crux` },
-          { kind: "sep-arrow" },
-          { kind: "dim", label: cruxQuestion },
-        ]}
-        pill={{ kind: "settings" }}
-        avatars={[avatar]}
-      />
-      <main className="flex-1 overflow-hidden">
-        <FrameView
-          map={map}
-          frame={frame}
-          annotations={annotations}
-          userId={user?.id ?? "anon"}
-          displayName={user?.displayName ?? "Anonymous"}
-          userColor={avatar.color}
-          isEditMode={user?.role === "edit"}
-          stakes={stakes}
-        />
-      </main>
-    </div>
+    <FrameView
+      map={map}
+      frame={frame}
+      annotations={annotations}
+      userId={user?.id ?? "anon"}
+      displayName={user?.displayName ?? "Anonymous"}
+      userColor={avatar.color}
+      isEditMode={user?.role === "edit"}
+      stakes={stakes}
+    />
   );
 }

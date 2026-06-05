@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getSmoothStepPath,
+  getBezierPath,
   useReactFlow,
   type EdgeProps,
 } from "@xyflow/react";
@@ -13,6 +13,7 @@ import { useUIStore } from "@/lib/state/useUIStore";
 type MovableLabelEdgeData = {
   label?: string;
   labelOffset?: number;
+  curvature?: number;
   /** Persist the new offset when the user releases a label drag. */
   onLabelOffsetChange?: (edgeId: string, offset: number) => void;
   /** Map a CSS style flag — pink for crux view, dimmed mono for frame view. */
@@ -58,15 +59,16 @@ export function MovableLabelEdge({
     : 0;
   const onLabelOffsetChange = edgeData.onLabelOffsetChange;
   const variant = edgeData.variant ?? "frame";
+  const curvature = typeof edgeData.curvature === "number" ? edgeData.curvature : 0.25;
 
-  const [edgePath, midX, midY] = getSmoothStepPath({
+  const [edgePath, midX, midY] = getBezierPath({
     sourceX,
     sourceY,
     sourcePosition,
     targetX,
     targetY,
     targetPosition,
-    borderRadius: 14,
+    curvature,
   });
 
   // Detached <path> used purely for SVG geometry (getTotalLength /
@@ -198,7 +200,7 @@ export function MovableLabelEdge({
               variant === "crux"
                 ? "nodrag nopan absolute rounded bg-[#f4f0e8] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#1a1a1a]" +
                   (draggable ? " ring-1 ring-[#ffc943]" : "")
-                : "nodrag nopan absolute max-w-[260px] whitespace-normal rounded bg-dia-bg px-2 py-1 text-center font-mono text-[12px] leading-[1.45] text-dia-fg-muted" +
+                : "nodrag nopan absolute rounded bg-dia-bg px-2 py-0.5 text-center font-serif italic text-[12px] leading-[1.45] text-dia-fg-muted" +
                   (draggable ? " ring-1 ring-[#ffc943]" : "")
             }
           >

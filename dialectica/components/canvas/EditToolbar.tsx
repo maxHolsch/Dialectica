@@ -2,18 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Pencil,
+  PencilSimple,
   Pen,
   Highlighter,
-  Type,
+  TextT,
   Eraser,
-  Undo2,
-  Redo2,
-  Move,
-  MousePointer2,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+  ArrowCounterClockwise,
+  ArrowClockwise,
+  Hand,
+  Cursor,
+  CaretLeft,
+  CaretDown,
+} from "@phosphor-icons/react";
 import { clsx } from "clsx";
 import {
   useUIStore,
@@ -33,22 +33,13 @@ import {
 
 type Props = {
   mapId: string;
-  /** Edit-mode users see the white swatch + the ADD CLAIM pill. */
   isEditMode: boolean;
-  /** Triggered when edit-mode user clicks ADD CLAIM. Phase 3 wires to addCrux. */
   onAddClaim?: () => void;
-  /**
-   * Triggered when edit-mode user picks an auto-format strategy. Returns a
-   * Promise so the button can show a busy state until the canvas refreshes.
-   */
   onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
 };
 
-/**
- * Floating bottom-center toolbar.
- * Layout matches Figma node 12:127 (edit) / 5:48 (view):
- *   [pencil][pen][highlighter][text]  |  [✥][✎][●]  |  [swatches]  |  [eraser][undo][redo]  |  (edit) [+ ADD CLAIM]
- */
+const SHADOW = { boxShadow: "0 1px 6px rgba(0,0,0,0.07)" };
+
 export function EditToolbar({
   mapId,
   isEditMode,
@@ -65,8 +56,6 @@ export function EditToolbar({
   const redo = useUIStore((s) => s.redo);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
-  // Toolbar starts minimized to a single pencil button (Figma node 4:246).
-  // Click to expand the full toolbar; click the collapse button to shrink it again.
   const [expanded, setExpanded] = useState(false);
 
   const swatches = isEditMode ? SWATCHES : SWATCHES.slice(1);
@@ -76,11 +65,9 @@ export function EditToolbar({
     if (!action) return;
     try {
       if (action.type === "create") {
-        // Inverse of create: delete
         removeOptimistic(action.annotation.id);
         await deleteAnnotation(mapId, action.annotation.id);
       } else {
-        // Inverse of delete: re-add
         addOptimistic(action.annotation);
         await createAnnotation(mapId, action.annotation);
       }
@@ -109,11 +96,8 @@ export function EditToolbar({
     const onKey = (e: KeyboardEvent) => {
       const meta = e.metaKey || e.ctrlKey;
       if (!meta) return;
-      // Ignore when focus is on an editable element (textbox annotations, future labels).
       const t = e.target as HTMLElement | null;
-      if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA")) {
-        return;
-      }
+      if (t && (t.isContentEditable || t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
       if (e.key === "z" || e.key === "Z") {
         e.preventDefault();
         if (e.shiftKey) void onRedo();
@@ -128,100 +112,66 @@ export function EditToolbar({
   }, [onUndo, onRedo]);
 
   return (
-    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-14 -translate-x-1/2 select-none">
-      {/* Collapsed state: small round pencil button (Figma node 4:246) */}
+    <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 h-10 -translate-x-1/2 select-none">
+      {/* Collapsed: 32×32 circle, matches back-button style */}
       <button
         type="button"
         onClick={() => setExpanded(true)}
         aria-label="Show annotation tools"
         aria-expanded={expanded}
         className={clsx(
-          "absolute left-1/2 top-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-dia-border bg-[#111] text-dia-fg-muted transition-[transform,opacity] duration-200 ease-out",
+          "absolute left-1/2 top-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#EEEEEE] bg-white text-black transition-all duration-300 ease-out",
           expanded
-            ? "pointer-events-none scale-75 opacity-0"
-            : "pointer-events-auto scale-100 opacity-100 hover:bg-dia-surface-2 hover:text-dia-fg",
+            ? "pointer-events-none scale-90 opacity-0"
+            : "pointer-events-auto scale-100 opacity-100 hover:bg-black/5",
         )}
+        style={SHADOW}
       >
-        <Pencil className="size-4" strokeWidth={1.5} />
+        <PencilSimple size={16} />
       </button>
 
-      {/* Expanded state: full toolbar, anchored to the same center as the button */}
+      {/* Expanded pill */}
       <div
         className={clsx(
-          "absolute left-1/2 top-1/2 flex h-14 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-dia-border bg-[#111] px-2 transition-[transform,opacity] duration-200 ease-out",
+          "absolute left-1/2 top-1/2 flex h-10 origin-center -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white px-1.5 transition-all duration-300 ease-out",
           expanded
             ? "pointer-events-auto scale-100 opacity-100"
-            : "pointer-events-none scale-75 opacity-0",
+            : "pointer-events-none scale-90 opacity-0",
         )}
+        style={SHADOW}
         aria-hidden={!expanded}
       >
-        {/* Collapse toolbar */}
-        <ModeButton
-          onClick={() => setExpanded(false)}
-          aria-label="Hide annotation tools"
-        >
-          <ChevronRight className="size-4 rotate-180" strokeWidth={1.5} />
-        </ModeButton>
+        {/* Collapse */}
+        <Btn onClick={() => setExpanded(false)} aria-label="Hide annotation tools">
+          <CaretLeft size={16} />
+        </Btn>
         <Divider />
+
         {/* Drawing tools */}
-        <ToolButton
-          tool="pencil"
-          active={mode === "draw" && tool === "pencil"}
-          onClick={() => setTool("pencil")}
-          aria-label="Pencil"
-        >
-          <Pencil className="size-4" strokeWidth={1.5} />
+        <ToolButton tool="pencil" active={mode === "draw" && tool === "pencil"} onClick={() => setTool("pencil")} aria-label="Pencil">
+          <PencilSimple size={16} />
         </ToolButton>
-        <ToolButton
-          tool="pen"
-          active={mode === "draw" && tool === "pen"}
-          onClick={() => setTool("pen")}
-          aria-label="Pen"
-        >
-          <Pen className="size-4" strokeWidth={1.5} />
+        <ToolButton tool="pen" active={mode === "draw" && tool === "pen"} onClick={() => setTool("pen")} aria-label="Pen">
+          <Pen size={16} />
         </ToolButton>
-        <ToolButton
-          tool="highlighter"
-          active={mode === "draw" && tool === "highlighter"}
-          onClick={() => setTool("highlighter")}
-          aria-label="Highlighter"
-        >
-          <Highlighter className="size-4" strokeWidth={1.5} />
+        <ToolButton tool="highlighter" active={mode === "draw" && tool === "highlighter"} onClick={() => setTool("highlighter")} aria-label="Highlighter">
+          <Highlighter size={16} />
         </ToolButton>
-        <ToolButton
-          tool="textbox"
-          active={mode === "draw" && tool === "textbox"}
-          onClick={() => setTool("textbox")}
-          aria-label="Text box"
-        >
-          <Type className="size-4" strokeWidth={1.5} />
+        <ToolButton tool="textbox" active={mode === "draw" && tool === "textbox"} onClick={() => setTool("textbox")} aria-label="Text box">
+          <TextT size={16} />
         </ToolButton>
 
         <Divider />
 
-        {/* Mode glyphs ✥ ✎ ● */}
-        <ModeButton
-          active={mode === "select"}
-          onClick={() => setMode("select")}
-          aria-label="Select / pan mode"
-        >
-          <Move className="size-4" strokeWidth={1.5} />
-        </ModeButton>
-        <ModeButton
-          active={mode === "draw"}
-          onClick={() => setMode("draw")}
-          aria-label="Drawing mode"
-        >
-          <Pencil className="size-4" strokeWidth={1.5} />
-        </ModeButton>
-        <span
-          aria-label="Current color"
-          className="flex size-9 items-center justify-center"
-        >
-          <span
-            className="block size-4 rounded-full border border-dia-border"
-            style={{ background: color }}
-          />
+        {/* Mode buttons */}
+        <Btn active={mode === "select"} onClick={() => setMode("select")} aria-label="Select / pan mode">
+          <Hand size={16} />
+        </Btn>
+        <Btn active={mode === "draw"} onClick={() => setMode("draw")} aria-label="Drawing mode">
+          <PencilSimple size={16} />
+        </Btn>
+        <span aria-label="Current color" className="flex size-7 items-center justify-center">
+          <span className="block size-3.5 rounded-full border border-[#EEEEEE]" style={{ background: color }} />
         </span>
 
         <Divider />
@@ -234,29 +184,21 @@ export function EditToolbar({
             aria-label={`Color ${swatch}`}
             onClick={() => setColor(swatch)}
             className={clsx(
-              "flex size-9 items-center justify-center rounded-full transition-colors hover:bg-dia-surface-2",
-              color === swatch && "ring-1 ring-[#ffc943]",
+              "flex size-7 items-center justify-center rounded-full transition-colors hover:bg-black/5",
+              color === swatch && "ring-1 ring-black/25",
             )}
           >
-            <span
-              className="block size-4 rounded-full border border-dia-border"
-              style={{ background: swatch }}
-            />
+            <span className="block size-3.5 rounded-full border border-[#EEEEEE]" style={{ background: swatch }} />
           </button>
         ))}
 
         <Divider />
 
-        {/* Eraser + undo/redo (additions to the Figma toolbar) */}
-        <ModeButton
-          active={mode === "erase"}
-          onClick={() => setMode("erase")}
-          aria-label="Eraser"
-        >
-          <Eraser className="size-4" strokeWidth={1.5} />
-        </ModeButton>
+        <Btn active={mode === "erase"} onClick={() => setMode("erase")} aria-label="Eraser">
+          <Eraser size={16} />
+        </Btn>
 
-        {/* Edit-mode only: yellow move cursor — click & drag nodes/edges/labels */}
+        {/* Edit-mode only: move cursor for dragging nodes/edges */}
         {isEditMode && (
           <button
             type="button"
@@ -264,21 +206,22 @@ export function EditToolbar({
             aria-label="Move nodes and edges"
             aria-pressed={mode === "move"}
             className={clsx(
-              "flex size-9 items-center justify-center rounded-full transition-colors",
+              "flex size-7 items-center justify-center rounded-full transition-colors",
               mode === "move"
                 ? "bg-[#ffc943]/20 text-[#ffc943] ring-1 ring-[#ffc943]"
                 : "text-[#ffc943] hover:bg-[#ffc943]/15",
             )}
           >
-            <MousePointer2 className="size-4" strokeWidth={1.75} />
+            <Cursor size={16} />
           </button>
         )}
-        <ModeButton onClick={onUndo} aria-label="Undo">
-          <Undo2 className="size-4" strokeWidth={1.5} />
-        </ModeButton>
-        <ModeButton onClick={onRedo} aria-label="Redo">
-          <Redo2 className="size-4" strokeWidth={1.5} />
-        </ModeButton>
+
+        <Btn onClick={onUndo} aria-label="Undo">
+          <ArrowCounterClockwise size={16} />
+        </Btn>
+        <Btn onClick={onRedo} aria-label="Redo">
+          <ArrowClockwise size={16} />
+        </Btn>
 
         {isEditMode && (
           <>
@@ -286,7 +229,7 @@ export function EditToolbar({
             <button
               type="button"
               onClick={onAddClaim}
-              className="rounded-full border border-dashed border-[#ffc943] px-3 py-1.5 font-mono text-[11px] font-medium tracking-wide text-[#ffc943] transition-colors hover:bg-[#ffc943]/10"
+              className="rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black"
             >
               + ADD CLAIM
             </button>
@@ -298,18 +241,12 @@ export function EditToolbar({
   );
 }
 
-function AutoFormatMenu({
-  onPick,
-}: {
-  onPick: (strategy: LayoutStrategyId) => void | Promise<void>;
-}) {
+function AutoFormatMenu({ onPick }: { onPick: (strategy: LayoutStrategyId) => void | Promise<void> }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [lastStrategy, setLastStrategy] =
-    useState<LayoutStrategyId>(DEFAULT_STRATEGY);
+  const [lastStrategy, setLastStrategy] = useState<LayoutStrategyId>(DEFAULT_STRATEGY);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  // Close on outside click / Escape so the menu doesn't trap focus.
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
@@ -349,15 +286,16 @@ function AutoFormatMenu({
         disabled={busy}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1 rounded-full border border-dashed border-[#ffc943] px-3 py-1.5 font-mono text-[11px] font-medium tracking-wide text-[#ffc943] transition-colors hover:bg-[#ffc943]/10 disabled:opacity-50"
+        className="flex items-center gap-1 rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black disabled:opacity-50"
       >
         {busy ? "FORMATTING…" : "AUTO-FORMAT"}
-        <ChevronDown className="size-3" strokeWidth={2} />
+        <CaretDown size={12} />
       </button>
       {open ? (
         <div
           role="menu"
-          className="absolute bottom-full right-0 mb-2 min-w-[220px] rounded-lg border border-dia-border bg-[#111] p-1 shadow-lg"
+          className="absolute bottom-full right-0 mb-2 min-w-[220px] rounded-lg border border-[#EEEEEE] bg-white p-1"
+          style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
         >
           {Object.values(LAYOUT_STRATEGIES).map((s) => (
             <button
@@ -366,15 +304,15 @@ function AutoFormatMenu({
               type="button"
               onClick={() => handlePick(s.id)}
               className={clsx(
-                "block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-dia-surface-2",
-                s.id === lastStrategy ? "text-[#ffc943]" : "text-dia-fg-muted",
+                "block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-black/5",
+                s.id === lastStrategy ? "text-black" : "text-black/50",
               )}
             >
               <div className="font-mono text-[11px] tracking-wide">
                 {s.label}
                 {s.id === lastStrategy ? "  ·  last used" : ""}
               </div>
-              <div className="mt-0.5 font-mono text-[10px] text-dia-fg-dim">
+              <div className="mt-0.5 font-mono text-[10px] text-black/35">
                 {s.description}
               </div>
             </button>
@@ -386,7 +324,7 @@ function AutoFormatMenu({
 }
 
 function Divider() {
-  return <span className="mx-1 h-7 w-px bg-dia-border" aria-hidden />;
+  return <span className="mx-0.5 h-4 w-px bg-[#EEEEEE]" aria-hidden />;
 }
 
 function ToolButton({
@@ -407,10 +345,8 @@ function ToolButton({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "flex size-9 items-center justify-center rounded-full transition-colors",
-        active
-          ? "bg-dia-surface-2 text-dia-fg"
-          : "text-dia-fg-muted hover:bg-dia-surface-2 hover:text-dia-fg",
+        "flex size-7 items-center justify-center rounded-full transition-colors",
+        active ? "bg-black/10 text-black" : "text-black/50 hover:bg-black/5 hover:text-black",
       )}
       {...rest}
     >
@@ -419,7 +355,7 @@ function ToolButton({
   );
 }
 
-function ModeButton({
+function Btn({
   active = false,
   onClick,
   children,
@@ -436,10 +372,8 @@ function ModeButton({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "flex size-9 items-center justify-center rounded-full transition-colors",
-        active
-          ? "bg-dia-surface-2 text-dia-fg"
-          : "text-dia-fg-muted hover:bg-dia-surface-2 hover:text-dia-fg",
+        "flex size-7 items-center justify-center rounded-full transition-colors",
+        active ? "bg-black/10 text-black" : "text-black/50 hover:bg-black/5 hover:text-black",
       )}
       {...rest}
     >
@@ -448,5 +382,4 @@ function ModeButton({
   );
 }
 
-// Surface helper imports so consumers can re-use mode/tool typings.
 export type { CanvasMode, DrawingTool };
