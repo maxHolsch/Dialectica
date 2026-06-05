@@ -7,28 +7,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Georgia, "Times New Roman", ui-serif, serif;
   --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
-  --font-heading: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-merriweather), ui-serif, serif;
+  --font-heading: Georgia, "Times New Roman", ui-serif, serif;
+  --font-serif: Georgia, "Times New Roman", ui-serif, serif;
 
   /* Dialectica brand palette — sourced from Figma node ids 2:5 / 2:9 / 2:15.
    * shadcn tokens above are kept for shadcn components; Dialectica surfaces use
    * --color-dia-* directly via `bg-dia-bg` / `text-dia-dim` / etc. */
-  --color-dia-bg: #000000;
-  --color-dia-surface: #0f0f0f;
-  --color-dia-surface-2: #0a0a0a;
-  --color-dia-border: #1f1f1f;
-  --color-dia-border-strong: #3a3a3a;
-  --color-dia-border-subtle: #1a1a1a;
-  --color-dia-fg: #ffffff;
-  --color-dia-fg-muted: #d4d4d4;
-  --color-dia-fg-dim: #8a8a8a;
-  --color-dia-fg-disabled: #3a3a3a;
-  --color-dia-mint: #cdf4d3;
-  --color-dia-pink: #ffc2ec;
-  --color-dia-blue: #c2e5ff;
-  --color-dia-purple: #dcccff;
+  --color-dia-bg: #ffffff;
+  --color-dia-surface: #f5f5f5;
+  --color-dia-surface-2: #efefef;
+  --color-dia-border: #d0d0d0;
+  --color-dia-border-strong: #999999;
+  --color-dia-border-subtle: #e0e0e0;
+  --color-dia-fg: #000000;
+  --color-dia-fg-muted: #333333;
+  --color-dia-fg-dim: #777777;
+  --color-dia-fg-disabled: #bbbbbb;
+  --color-dia-mint: #e8e8e8;
+  --color-dia-pink: #e8e8e8;
+  --color-dia-blue: #e8e8e8;
+  --color-dia-purple: #e8e8e8;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -146,4 +146,46 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Frame view header animations ──────────────────────────────────────── */
+@keyframes frame-parent-enter {
+  from { opacity: 1; transform: scale(1.54) translateY(4px); }
+  to   { opacity: 0.5; transform: scale(1) translateY(0); }
+}
+@keyframes frame-crux-enter {
+  from { opacity: 0; filter: blur(8px); transform: translateY(6px); }
+  to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
+}
+@keyframes frame-parent-exit {
+  from { opacity: 0.5; transform: scale(1) translateY(0); }
+  to   { opacity: 1;   transform: scale(1.54) translateY(4px); }
+}
+@keyframes frame-crux-exit {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ── Map load-in animations ─────────────────────────────────────────────── */
+@keyframes node-arrive {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes edge-draw {
+  from { stroke-dashoffset: 2400; opacity: 0; }
+  to   { stroke-dashoffset: 0;    opacity: 1; }
+}
+
+.canvas-loading .react-flow__node,
+.canvas-loading .react-flow__edge-path { opacity: 0; }
+
+.canvas-loaded .react-flow__node {
+  animation: node-arrive 260ms ease-in-out both;
+}
+
+.canvas-loaded .react-flow__edge-path {
+  stroke-dasharray: 2400;
+  animation: edge-draw 320ms ease-in-out both;
+  animation-delay: 40ms;
 }

@@ -47,6 +47,14 @@ export function mapToArgMap(args: {
   const { pipeline } = args;
   const questions = pipeline.central_questions;
 
+  // Build a lookup from claim id → quotes for O(1) access below.
+  const quotesByClaimId = new Map<string, { speaker: string; text: string }[]>();
+  for (const entry of pipeline.claim_quotes ?? []) {
+    if (Array.isArray(entry.quotes) && entry.quotes.length > 0) {
+      quotesByClaimId.set(entry.claim_id, entry.quotes);
+    }
+  }
+
   // 1. Canonical nodes — one per distilled claim, ids preserved verbatim.
   const nodes: ArgMapT["nodes"] = {};
   for (const c of pipeline.claims) {
@@ -56,6 +64,7 @@ export function mapToArgMap(args: {
       text: c.text,
       isFactual: c.is_factual,
       absorbed: c.absorbed,
+      quotes: quotesByClaimId.get(c.id),
     };
   }
 

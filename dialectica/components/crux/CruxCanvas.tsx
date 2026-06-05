@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
 import {
   MarkerType,
   type Node,
@@ -42,6 +45,20 @@ export function CruxCanvas({
   userColor: string;
   isEditMode: boolean;
 }) {
+  // Hide header during frame-view back-transition to avoid colliding with the
+  // morphing header text in FrameView, which occupies the same screen position.
+  const [headerVisible, setHeaderVisible] = useState(true);
+  useEffect(() => {
+    const onExit = () => setHeaderVisible(false);
+    const onDone = () => setHeaderVisible(true);
+    window.addEventListener(FRAME_EXIT_EVENT, onExit);
+    window.addEventListener(FRAME_EXIT_DONE_EVENT, onDone);
+    return () => {
+      window.removeEventListener(FRAME_EXIT_EVENT, onExit);
+      window.removeEventListener(FRAME_EXIT_DONE_EVENT, onDone);
+    };
+  }, []);
+
   const { nodes, edges } = useMemo(() => {
     const TOP_ID = "top";
     const topSize = map.topQuestionSize ?? { width: 290, height: 265 };
@@ -57,7 +74,7 @@ export function CruxCanvas({
         draggable: false,
       },
       ...map.cruxes.map((c) => {
-        const size = c.size ?? { width: 336, height: 265 };
+        const size = c.size ?? { width: 200, height: 200 };
         return {
           id: c.id,
           type: "cruxTile",
@@ -187,20 +204,47 @@ export function CruxCanvas({
   );
 
   return (
-    <CanvasShell
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={NODE_TYPES}
-      edgeTypes={EDGE_TYPES}
-      annotations={annotations}
-      mapId={map.id}
-      userId={userId}
-      displayName={displayName}
-      userColor={userColor}
-      isEditMode={isEditMode}
-      onNodeNavigate={onNodeNavigate}
-      onAutoFormat={isEditMode ? onAutoFormat : undefined}
-      moveHandlers={moveHandlers}
-    />
+    <div className="relative h-full w-full">
+      <Link
+        href="/"
+        className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
+        style={{ top: 32, left: 32, width: 40, height: 40, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+      >
+        <ArrowLeft size={16} weight="regular" />
+      </Link>
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-50"
+        style={{ height: 100, background: "linear-gradient(to bottom, white 0%, transparent 100%)" }}
+      />
+      <div
+        className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center"
+        style={{ top: 36 }}
+      >
+        <p
+          className="whitespace-nowrap font-serif text-[20px] text-dia-fg"
+          style={{
+            opacity: headerVisible ? 1 : 0,
+            transition: 'opacity 20ms ease-out',
+          }}
+        >
+          {map.topQuestion}
+        </p>
+      </div>
+      <CanvasShell
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
+        annotations={annotations}
+        mapId={map.id}
+        userId={userId}
+        displayName={displayName}
+        userColor={userColor}
+        isEditMode={isEditMode}
+        onNodeNavigate={onNodeNavigate}
+        onAutoFormat={isEditMode ? onAutoFormat : undefined}
+        moveHandlers={moveHandlers}
+      />
+    </div>
   );
 }

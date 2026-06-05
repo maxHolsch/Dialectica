@@ -40,7 +40,7 @@ export function QuestionGuidedForm() {
   const [title, setTitle] = useState("Untitled generation");
   const [topQuestion, setTopQuestion] = useState("What is this map about?");
   const [text, setText] = useState("");
-  const [model, setModel] = useState<ModelId>("claude-sonnet-4-6");
+  const [model, setModel] = useState<ModelId>("claude-sonnet-4.6");
   const [effort, setEffort] = useState<Effort | "none">("none");
   const [layoutStrategy, setLayoutStrategy] =
     useState<LayoutStrategyId>(DEFAULT_STRATEGY);

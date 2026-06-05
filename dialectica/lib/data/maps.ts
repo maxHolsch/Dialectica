@@ -1,6 +1,10 @@
 import "server-only";
 import { ArgMap, type MapSummary } from "@/lib/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { STUB_MAPS } from "@/lib/fixtures/stub-maps";
+import seedMap from "@/lib/fixtures/seed-map.json";
+import tetradMap from "@/lib/fixtures/tetrad-map.json";
+import googleXiTest6 from "@/lib/fixtures/google-xi-test6.json";
 
 // Phase 2 — Supabase-backed data layer. Same exports as Phase 1; pages don't change.
 
@@ -110,37 +114,74 @@ export async function listMaps(): Promise<MapSummary[]> {
 }
 
 export async function listMapCards(): Promise<MapCard[]> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("Dialectica_maps")
-    .select("id, title, visibility, updated_at")
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
+  if (process.env.SKIP_AUTH === "true") {
+    const allFixtures = [googleXiTest6, tetradMap, seedMap as unknown as { id: string; title: string; updatedAt: string }, ...STUB_MAPS] as unknown as { id: string; title: string; updatedAt: string }[];
+    return allFixtures.map((m): MapCard => {
+      const presentation = CARD_PRESENTATION[m.id] ?? { previewKind: "empty" as MapPreviewKind, collaborators: [] };
+      return { id: m.id, title: m.title, visibility: "public", editedLabel: formatEditedLabel(m.updatedAt), previewKind: presentation.previewKind, collaborators: presentation.collaborators };
+    });
+  }
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("Dialectica_maps")
+      .select("id, title, visibility, updated_at")
+      .order("updated_at", { ascending: false });
+    if (error) throw error;
 
-  return (data ?? []).map((row: MapRow): MapCard => {
-    const presentation = CARD_PRESENTATION[row.id] ?? {
-      previewKind: "empty" as MapPreviewKind,
-      collaborators: [],
-    };
-    return {
-      id: row.id,
-      title: row.title,
-      visibility: row.visibility,
-      editedLabel: formatEditedLabel(row.updated_at),
-      previewKind: presentation.previewKind,
-      collaborators: presentation.collaborators,
-    };
-  });
+    return (data ?? []).map((row: MapRow): MapCard => {
+      const presentation = CARD_PRESENTATION[row.id] ?? {
+        previewKind: "empty" as MapPreviewKind,
+        collaborators: [],
+      };
+      return {
+        id: row.id,
+        title: row.title,
+        visibility: row.visibility,
+        editedLabel: formatEditedLabel(row.updated_at),
+        previewKind: presentation.previewKind,
+        collaborators: presentation.collaborators,
+      };
+    });
+  } catch {
+    const allFixtures = [seedMap as unknown as { id: string; title: string; updatedAt: string }, ...STUB_MAPS];
+    return allFixtures.map((m): MapCard => {
+      const presentation = CARD_PRESENTATION[m.id] ?? {
+        previewKind: "empty" as MapPreviewKind,
+        collaborators: [],
+      };
+      return {
+        id: m.id,
+        title: m.title,
+        visibility: "public",
+        editedLabel: formatEditedLabel(m.updatedAt),
+        previewKind: presentation.previewKind,
+        collaborators: presentation.collaborators,
+      };
+    });
+  }
 }
 
 export async function getMap(id: string): Promise<ArgMap | null> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("Dialectica_maps")
-    .select("data")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throw error;
-  if (!data) return null;
-  return ArgMap.parse(data.data);
+  if (process.env.SKIP_AUTH === "true") {
+    if (id === "seed-001") return ArgMap.parse(seedMap);
+    if (id === tetradMap.id) return ArgMap.parse(tetradMap);
+    if (id === (googleXiTest6 as { id: string }).id) return ArgMap.parse(googleXiTest6);
+    return STUB_MAPS.find((m) => m.id === id) ?? null;
+  }
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("Dialectica_maps")
+      .select("data")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return ArgMap.parse(data.data);
+  } catch {
+    if (id === "seed-001") return ArgMap.parse(seedMap);
+    const stub = STUB_MAPS.find((m) => m.id === id);
+    return stub ?? null;
+  }
 }

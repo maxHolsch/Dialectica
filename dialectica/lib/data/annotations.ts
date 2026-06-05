@@ -37,6 +37,7 @@ function annotationToRow(
 export async function listAnnotationsForMap(
   mapId: string,
 ): Promise<AnnotationT[]> {
+  if (process.env.SKIP_AUTH === "true") return [];
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("Dialectica_annotations")
@@ -45,7 +46,7 @@ export async function listAnnotationsForMap(
     )
     .eq("map_id", mapId)
     .order("created_at", { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) return [];
   return (data ?? []).map((r) => rowToAnnotation(r as AnnotationRow));
 }
 

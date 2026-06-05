@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${robotoMono.variable} ${merriweather.variable} h-full antialiased`}
+      className={`${inter.variable} ${robotoMono.variable} ${merriweather.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-dia-bg text-dia-fg">
         {children}

@@ -5,6 +5,7 @@ import { updateSession } from "@/lib/supabase/session";
 // every request, then bounces unauthenticated users to /sign-in. Signed-in users
 // hitting /sign-in get sent home.
 export async function proxy(request: NextRequest) {
+  if (process.env.SKIP_AUTH === "true") return NextResponse.next();
   const { response, user } = await updateSession(request);
   const { pathname } = request.nextUrl;
 

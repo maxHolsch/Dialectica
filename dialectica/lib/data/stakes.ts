@@ -28,6 +28,7 @@ type StakeRow = {
 };
 
 export async function listStakesForMap(mapId: string): Promise<StakeMap> {
+  if (process.env.SKIP_AUTH === "true") return {};
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -41,7 +42,7 @@ export async function listStakesForMap(mapId: string): Promise<StakeMap> {
     .eq("map_id", mapId)
     .order("created_at", { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) return {};
 
   const out: StakeMap = {};
   for (const raw of data ?? []) {

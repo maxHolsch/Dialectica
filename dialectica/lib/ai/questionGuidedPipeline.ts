@@ -680,5 +680,6 @@ export function assembleQuestionGuidedOutput(
     cross_question_relationships: crossQuestionRelations,
     momentum,
     fact_check_todos: factCheckTodos,
+    claim_quotes: [],
   };
 }

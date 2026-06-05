@@ -37,6 +37,7 @@ export type RunStatus =
   | "organizing"
   | "relating"
   | "fact_checking"
+  | "quoting"
   | "mapping"
   | "succeeded"
   | "failed";
@@ -47,7 +48,8 @@ export type StageKey =
   | "distilled_path"
   | "questions_path"
   | "relations_path"
-  | "fact_check_path";
+  | "fact_check_path"
+  | "quotes_path";
 
 const STAGE_BLOB_EXT: Record<StageKey, "txt" | "json"> = {
   transcript_path: "txt",
@@ -56,6 +58,7 @@ const STAGE_BLOB_EXT: Record<StageKey, "txt" | "json"> = {
   questions_path: "json",
   relations_path: "json",
   fact_check_path: "json",
+  quotes_path: "json",
 };
 
 // Uploads a stage payload and returns the storage path (NOT a URL).
@@ -154,6 +157,7 @@ export async function updateRun(
     questions_path: string;
     relations_path: string;
     fact_check_path: string;
+    quotes_path: string;
   }>,
 ): Promise<void> {
   const admin = createSupabaseAdminClient();
@@ -185,7 +189,8 @@ export async function recordStageUsage(
     | "distill"
     | "organize"
     | "relate"
-    | "fact_check",
+    | "fact_check"
+    | "quotes",
   usage: StageUsage,
   model: ModelId,
 ): Promise<void> {

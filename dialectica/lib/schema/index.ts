@@ -28,8 +28,13 @@ export const Node = z.object({
   // `isFactual` flags claims that the fact-check side layer may want to verify.
   // `absorbed` records the raw restatements collapsed into this canonical claim
   // by Stage 2 (dedup) — surfaced in the side panel for merge transparency.
+  // `quotes` holds verbatim supporting excerpts from the source transcript,
+  // with the speaker label preserved from the labeled transcript format.
   isFactual: z.boolean().optional(),
   absorbed: z.array(z.string()).optional(),
+  quotes: z
+    .array(z.object({ speaker: z.string(), text: z.string() }))
+    .optional(),
 });
 export type Node = z.infer<typeof Node>;
 
@@ -62,6 +67,7 @@ export const Edge = z.object({
   // consumes these directly to route from the matching named Handle.
   sourceHandle: HandleId.optional(),
   targetHandle: HandleId.optional(),
+  curvature: z.number().optional(),
 });
 export type Edge = z.infer<typeof Edge>;
 

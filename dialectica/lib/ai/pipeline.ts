@@ -42,7 +42,7 @@ export const DEFAULT_PARAMS: PipelineParams = {
     "depends-on",
     "raises",
   ],
-  model: "claude-sonnet-4-6",
+  model: "claude-sonnet-4.6",
   effort: "none",
 };
 
@@ -215,6 +215,26 @@ INPUT: canonical claims follow the "CLAIMS:" line below.
 OUTPUT (return ONLY this JSON, no prose, no markdown fences):
 {"fact_check_todos":[{"claim_id":"c1","claim_text":"…","what_to_check":"…"}]}`;
 
+export const PROMPT_STAGE_5_QUOTES = () => `You are finding verbatim quotes that support canonical claims from a labeled discussion transcript.
+
+GOAL: For each canonical claim, find 2–3 short verbatim excerpts from the transcript that most directly express or support that claim. These quotes appear in a side panel so readers can verify where an idea came from.
+
+TRANSCRIPT FORMAT: Each line is "[Speaker X HH:MM]: utterance text". The speaker label (A, B, C, …) is the identifier to capture.
+
+HARD RULES:
+- Quotes MUST be verbatim — copy the exact words from the transcript, no paraphrasing.
+- Each quote is SHORT: 1–3 sentences, at a natural sentence boundary.
+- Capture the speaker label exactly as it appears (just the letter, e.g. "A", "B", "E").
+- If fewer than 2 quotes exist for a claim, include what you find (1 is fine, 0 means skip that claim).
+- Prefer quotes where the speaker most directly and clearly expresses the claim.
+- Do NOT include meta-commentary ("I think", "as I said") fragments; quotes should be self-contained.
+- Use the canonical claim IDs verbatim.
+
+INPUT: canonical claims and the full transcript follow the "INPUT:" line below.
+
+OUTPUT (return ONLY this JSON, no prose, no markdown fences):
+{"claim_quotes":[{"claim_id":"c1","quotes":[{"speaker":"A","text":"…"},{"speaker":"E","text":"…"}]}]}`;
+
 // -----------------------------------------------------------------------------
 // Pipeline output types — the intermediate shape produced by stages 1-4 + the
 // fact-check side layer. `lib/ai/mapToArgMap.ts` maps this to an `ArgMap`.
@@ -261,6 +281,9 @@ export type FactCheckTodoRaw = {
   what_to_check: string;
 };
 
+export type ClaimQuote = { speaker: string; text: string };
+export type ClaimQuoteEntry = { claim_id: string; quotes: ClaimQuote[] };
+
 export type Intermediates = {
   rawClaims: RawClaim[];
   distilled: { claims: DistilledClaim[] };
@@ -271,6 +294,7 @@ export type Intermediates = {
     momentum: MomentumLens;
   };
   factCheck: { fact_check_todos: FactCheckTodoRaw[] };
+  quotes: { claim_quotes: ClaimQuoteEntry[] };
 };
 
 export type PipelineOutput = {
@@ -280,6 +304,7 @@ export type PipelineOutput = {
   cross_question_relationships: CrossQuestionRelationship[];
   momentum: MomentumLens;
   fact_check_todos: FactCheckTodoRaw[];
+  claim_quotes: ClaimQuoteEntry[];
 };
 
 // -----------------------------------------------------------------------------
@@ -349,6 +374,13 @@ function backoffDelayMs(e: unknown, attempt: number): number {
   return base + Math.floor(Math.random() * 500);
 }
 
+// Our ModelId display format uses dots (e.g. claude-sonnet-4.6) but the
+// Anthropic REST API requires dot-separators in version numbers to be replaced
+// with the character at code point 45. Convert only at this call boundary.
+function toApiModelId(id: ModelId): string {
+  return id.replace(/\./g, String.fromCharCode(45));
+}
+
 async function callModel(
   prompt: string,
   input: string,
@@ -358,7 +390,7 @@ async function callModel(
   while (true) {
     try {
       const res = await generateText({
-        model: anthropic(params.model),
+        model: anthropic(toApiModelId(params.model)),
         prompt: `${prompt}\n\n${input}`,
         providerOptions: providerOptionsFor(params),
       });
@@ -650,6 +682,24 @@ export async function factCheckSideLayer(
   return { result: parsed, usage };
 }
 
+// Stage 5 — quote retrieval. Runs after Stage 2 (distill) and takes the full
+// labeled transcript so it can return verbatim speaker-attributed excerpts.
+// The transcript is ~40–50K tokens for a 3-hour session — well within Sonnet's
+// 200K context window. One call; no chunking needed.
+export async function stage5Quotes(
+  distilled: { claims: DistilledClaim[] },
+  transcript: string,
+  params: PipelineParams,
+): Promise<StageResult<{ claim_quotes: ClaimQuoteEntry[] }>> {
+  const prompt = PROMPT_STAGE_5_QUOTES();
+  const claimList = distilled.claims.map((c) => ({ id: c.id, text: c.text }));
+  const input = `INPUT:\n\nCANONICAL CLAIMS:\n${JSON.stringify(claimList, null, 2)}\n\nTRANSCRIPT:\n${transcript}`;
+  const { parsed, usage } = await callJson<{
+    claim_quotes: ClaimQuoteEntry[];
+  }>(prompt, input, params);
+  return { result: parsed, usage };
+}
+
 // Convenience: run the whole pipeline in-process. The workflow layer normally
 // calls the individual stages so each result can be persisted and re-run from.
 // This export exists for tests / scripts.
@@ -662,7 +712,10 @@ export async function generateMap(input: {
   const distilled = await stage2Distill(rawClaims.result, params);
   const questions = await stage3Organize(distilled.result, params);
   const relations = await stage4Relate(distilled.result, questions.result, params);
-  const factCheck = await factCheckSideLayer(distilled.result, params);
+  const [factCheck, quotesResult] = await Promise.all([
+    factCheckSideLayer(distilled.result, params),
+    stage5Quotes(distilled.result, input.transcript, params),
+  ]);
 
   const output: PipelineOutput = {
     claims: distilled.result.claims,
@@ -672,6 +725,7 @@ export async function generateMap(input: {
       relations.result.cross_question_relationships,
     momentum: relations.result.momentum,
     fact_check_todos: factCheck.result.fact_check_todos,
+    claim_quotes: quotesResult.result.claim_quotes ?? [],
   };
   return {
     output,
@@ -681,6 +735,7 @@ export async function generateMap(input: {
       questions: questions.result,
       relations: relations.result,
       factCheck: factCheck.result,
+      quotes: quotesResult.result,
     },
   };
 }

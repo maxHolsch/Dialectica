@@ -14,13 +14,7 @@ export const TopQuestionNode = memo(function TopQuestionNode({
   const w = width ?? 290;
   const h = height ?? 265;
   return (
-    <div
-      className="group relative flex cursor-pointer items-center justify-center rounded-[4px] border-2 border-dashed border-dia-mint bg-dia-bg px-4 transition-colors hover:border-dia-fg"
-      style={{ width: w, height: h }}
-    >
-      <p className="text-center font-mono text-[14px] leading-[1.55] text-dia-fg">
-        {text}
-      </p>
+    <div className="relative" style={{ width: w, height: h }}>
       <NodeHandles />
     </div>
   );
