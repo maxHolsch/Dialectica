@@ -3,7 +3,9 @@ import Link from "next/link";
 import { currentUser, avatarFor } from "@/lib/data/users";
 import { Topbar } from "@/components/topbar/Topbar";
 import { listRuns } from "@/lib/ai/runQueries";
+import { listMaps } from "@/lib/data/maps";
 import { NewGenerationForm } from "@/components/admin/NewGenerationForm";
+import { SnippetJobForm } from "@/components/admin/SnippetJobForm";
 import { RunRowActions } from "@/components/admin/RunRowActions";
 
 // DIA-AI-4 — admin page. Edit-gated. Lists generation runs and exposes the
@@ -17,6 +19,7 @@ export default async function AdminPage() {
   if (user.role !== "edit") redirect("/");
 
   const runs = await listRuns();
+  const maps = await listMaps().catch(() => []);
   const avatar = avatarFor(user);
 
   return (
@@ -45,6 +48,18 @@ export default async function AdminPage() {
             New generation
           </h2>
           <NewGenerationForm />
+        </section>
+
+        <section className="mt-10 rounded-2xl border border-dia-border-strong bg-dia-surface p-8">
+          <h2 className="font-mono text-[12px] uppercase tracking-[0.52px] text-dia-fg-muted">
+            Audio snippets
+          </h2>
+          <p className="mt-2 max-w-[820px] font-mono text-[13px] text-dia-fg-dim">
+            Runs after claims exist, before a new map is made. Finds the top-5
+            related transcript snippets per claim (with audio timestamps),
+            writes them onto the map, and bills to the cost calculator below.
+          </p>
+          <SnippetJobForm maps={maps.map((m) => ({ id: m.id, title: m.title }))} />
         </section>
 
         <section className="mt-12">

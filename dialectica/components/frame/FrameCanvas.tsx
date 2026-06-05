@@ -18,6 +18,7 @@ import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
+import { SnippetDrawer } from "./SnippetDrawer";
 
 const NODE_TYPES: NodeTypes = {
   claim: ClaimNode,
@@ -66,6 +67,11 @@ export function FrameCanvas({
           text: canonical?.text ?? "",
           tint,
           selected: selectedNodeId === inst.nodeId,
+          // Snippet drawer affordance: the quote-mark button shows only when
+          // this claim has audio snippets. frameId lets the node open the
+          // drawer for the right (frame, node) pair.
+          frameId: frame.id,
+          hasSnippets: !!canonical?.snippets?.length,
         },
         width: size.width,
         height: size.height,
@@ -189,22 +195,25 @@ export function FrameCanvas({
   );
 
   return (
-    <CanvasShell
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={NODE_TYPES}
-      edgeTypes={EDGE_TYPES}
-      annotations={annotations}
-      mapId={map.id}
-      frameId={frame.id}
-      userId={userId}
-      displayName={displayName}
-      userColor={userColor}
-      isEditMode={isEditMode}
-      onAutoFormat={isEditMode ? onAutoFormat : undefined}
-      onReady={onReady}
-      stakes={stakes}
-      moveHandlers={moveHandlers}
-    />
+    <>
+      <CanvasShell
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
+        annotations={annotations}
+        mapId={map.id}
+        frameId={frame.id}
+        userId={userId}
+        displayName={displayName}
+        userColor={userColor}
+        isEditMode={isEditMode}
+        onAutoFormat={isEditMode ? onAutoFormat : undefined}
+        onReady={onReady}
+        stakes={stakes}
+        moveHandlers={moveHandlers}
+      />
+      <SnippetDrawer map={map} />
+    </>
   );
 }

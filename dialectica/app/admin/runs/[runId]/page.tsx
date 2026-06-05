@@ -64,6 +64,7 @@ export default async function RunDetailPage(props: {
     questionsSigned,
     relationsSigned,
     factCheckSigned,
+    snippetsSigned,
   ] = await Promise.all([
     run.transcript_path ? downloadBlobText(run.transcript_path) : null,
     run.raw_claims_path
@@ -95,6 +96,7 @@ export default async function RunDetailPage(props: {
     signed(run.questions_path),
     signed(run.relations_path),
     signed(run.fact_check_path),
+    signed(run.snippets_path),
   ]);
 
   const rawClaimsArr = Array.isArray(rawClaims)
@@ -113,6 +115,9 @@ export default async function RunDetailPage(props: {
       ? "question_guided"
       : "free_form";
   const isQuestionGuided = pipelineKind === "question_guided";
+  // Snippet jobs enrich an existing map rather than building one — they have a
+  // single 'snippets' stage and no transcript/claims/relations blobs.
+  const isSnippetJob = run.job_kind === "snippets";
 
   return (
     <div className="flex min-h-screen flex-col bg-dia-bg">
@@ -137,7 +142,11 @@ export default async function RunDetailPage(props: {
             </h1>
             <p className="mt-1 font-mono text-[13px] text-dia-fg-dim">
               <span className="mr-2 rounded-full bg-dia-blue/15 px-2 py-0.5 text-dia-blue">
-                {isQuestionGuided ? "question-guided" : "free-form"}
+                {isSnippetJob
+                  ? "audio snippets"
+                  : isQuestionGuided
+                    ? "question-guided"
+                    : "free-form"}
               </span>
               {run.source_kind}
               {run.source_label ? ` · ${run.source_label}` : ""} ·{" "}
@@ -174,6 +183,7 @@ export default async function RunDetailPage(props: {
         <CostSection
           usage={run.usage}
           model={(run.params.model ?? "claude-sonnet-4.6") as ModelId}
+          stageKeys={isSnippetJob ? ["snippets"] : undefined}
         />
 
         <Section title="Pipeline parameters">
@@ -184,7 +194,11 @@ export default async function RunDetailPage(props: {
 
         <StageGrid
           stages={
-            isQuestionGuided
+            isSnippetJob
+              ? [
+                  { key: "snippeting", logKey: "snippets", label: "Audio snippets per claim", url: snippetsSigned },
+                ]
+              : isQuestionGuided
               ? [
                   { key: "extracting", logKey: "extract", label: "Stage 1 — Claims per question", url: distilledSigned },
                   { key: "extracting", logKey: "extract", label: "Selected sub-questions (cruxes)", url: questionsSigned },
@@ -492,18 +506,18 @@ export default async function RunDetailPage(props: {
 function CostSection({
   usage,
   model,
+  stageKeys,
 }: {
   usage: import("@/lib/ai/runQueries").StoredUsage | null;
   model: ModelId;
+  // Which per-stage rows to render. Defaults to the free-form pipeline stages;
+  // snippet jobs pass ["snippets"].
+  stageKeys?: readonly string[];
 }) {
   const empty = !usage || usage.total.inputTokens + usage.total.outputTokens === 0;
-  const stages = [
-    "extract",
-    "distill",
-    "organize",
-    "relate",
-    "fact_check",
-  ] as const;
+  const stages =
+    stageKeys ??
+    (["extract", "distill", "organize", "relate", "fact_check"] as const);
 
   return (
     <Section
@@ -660,6 +674,7 @@ const STAGE_ORDER = [
   "organizing",
   "relating",
   "fact_checking",
+  "snippeting",
   "mapping",
   "succeeded",
 ];

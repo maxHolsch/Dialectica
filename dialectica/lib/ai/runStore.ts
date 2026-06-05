@@ -38,6 +38,7 @@ export type RunStatus =
   | "relating"
   | "fact_checking"
   | "quoting"
+  | "snippeting"
   | "mapping"
   | "succeeded"
   | "failed";
@@ -49,7 +50,8 @@ export type StageKey =
   | "questions_path"
   | "relations_path"
   | "fact_check_path"
-  | "quotes_path";
+  | "quotes_path"
+  | "snippets_path";
 
 const STAGE_BLOB_EXT: Record<StageKey, "txt" | "json"> = {
   transcript_path: "txt",
@@ -59,6 +61,7 @@ const STAGE_BLOB_EXT: Record<StageKey, "txt" | "json"> = {
   relations_path: "json",
   fact_check_path: "json",
   quotes_path: "json",
+  snippets_path: "json",
 };
 
 // Uploads a stage payload and returns the storage path (NOT a URL).
@@ -158,6 +161,7 @@ export async function updateRun(
     relations_path: string;
     fact_check_path: string;
     quotes_path: string;
+    snippets_path: string;
   }>,
 ): Promise<void> {
   const admin = createSupabaseAdminClient();
@@ -190,7 +194,8 @@ export async function recordStageUsage(
     | "organize"
     | "relate"
     | "fact_check"
-    | "quotes",
+    | "quotes"
+    | "snippets",
   usage: StageUsage,
   model: ModelId,
 ): Promise<void> {
@@ -310,4 +315,32 @@ export async function insertMap(
     data,
   });
   if (error) throw new Error(`insertMap(${mapId}) failed: ${error.message}`);
+}
+
+// Read an existing map's ArgMap JSONB via the service-role client. Used by the
+// standalone snippet workflow, which runs server-side and must bypass RLS (the
+// cookie-bound `getMap` helper isn't available inside a workflow step).
+export async function getMapData(mapId: string): Promise<unknown | null> {
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from("Dialectica_maps")
+    .select("data")
+    .eq("id", mapId)
+    .maybeSingle();
+  if (error) throw new Error(`getMapData(${mapId}) failed: ${error.message}`);
+  return data?.data ?? null;
+}
+
+// Overwrite an existing map's ArgMap JSONB. The snippet workflow uses this to
+// write `node.snippets` + `meta.audio` back onto the target map.
+export async function updateMapData(
+  mapId: string,
+  data: unknown,
+): Promise<void> {
+  const admin = createSupabaseAdminClient();
+  const { error } = await admin
+    .from("Dialectica_maps")
+    .update({ data, updated_at: new Date().toISOString() })
+    .eq("id", mapId);
+  if (error) throw new Error(`updateMapData(${mapId}) failed: ${error.message}`);
 }

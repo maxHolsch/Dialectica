@@ -381,7 +381,7 @@ function toApiModelId(id: ModelId): string {
   return id.replace(/\./g, String.fromCharCode(45));
 }
 
-async function callModel(
+export async function callModel(
   prompt: string,
   input: string,
   params: PipelineParams,
@@ -438,7 +438,7 @@ async function pMap<T, R>(
 // a higher tier.
 export const STAGE_1_CHUNK_CONCURRENCY = 10;
 
-async function callJson<T>(
+export async function callJson<T>(
   prompt: string,
   input: string,
   params: PipelineParams,

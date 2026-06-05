@@ -11,6 +11,8 @@
   --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
   --font-heading: Georgia, "Times New Roman", ui-serif, serif;
   --font-serif: Georgia, "Times New Roman", ui-serif, serif;
+  /* Claim-node quote-mark glyph (snippet drawer affordance). */
+  --font-quote: var(--font-modern-antiqua), ui-serif, serif;
 
   /* Dialectica brand palette — sourced from Figma node ids 2:5 / 2:9 / 2:15.
    * shadcn tokens above are kept for shadcn components; Dialectica surfaces use
@@ -164,6 +166,12 @@
 @keyframes frame-crux-exit {
   from { opacity: 1; }
   to   { opacity: 0; }
+}
+
+/* ── Snippet drawer slide-in ────────────────────────────────────────────── */
+@keyframes snippet-drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
 }
 
 /* ── Map load-in animations ─────────────────────────────────────────────── */

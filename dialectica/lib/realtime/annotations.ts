@@ -25,19 +25,19 @@ export function subscribeToAnnotations(
   let channel: RealtimeChannel | null = null;
 
   // Kick off auth token refresh without gating channel creation on it.
-  // The channel must be created synchronously so the cleanup closure captures
-  // a non-null reference; otherwise removeChannel() is a no-op and the next
-  // effect run gets the already-subscribed channel back from Supabase's
-  // internal registry, triggering the "cannot add callbacks after subscribe()"
-  // error. onAuthStateChange below keeps the token fresh for the long run.
+  // onAuthStateChange below keeps the token fresh for the long run.
   void supabase.auth.getSession().then(({ data }) => {
     const token = data.session?.access_token;
     console.log("[realtime] session present:", Boolean(token));
     if (token) supabase.realtime.setAuth(token);
   });
 
+  // Use a unique channel name per subscription call so Supabase never returns
+  // a stale already-subscribed channel from its internal registry when the old
+  // removeChannel() call hasn't resolved yet (navigation race condition).
+  const channelName = `dialectica:annotations:${mapId}:${Math.random().toString(36).slice(2)}`;
   channel = supabase
-    .channel(`dialectica:annotations:${mapId}`)
+    .channel(channelName)
     // No server-side filter — Supabase realtime's filter expression has
     // edge cases with hyphenated text values. We get one row per change
     // for this table (tiny payload) and filter map_id client-side.

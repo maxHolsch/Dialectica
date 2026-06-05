@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type { NodeProps } from "@xyflow/react";
 import { NodeHandles } from "@/components/canvas/NodeHandles";
+import { useUIStore } from "@/lib/state/useUIStore";
 
 // Figma 52:56 — dashed selection outline. CSS outline + outline-offset wraps
 // the node from the outside without affecting its layout box, so it scales
@@ -13,22 +14,57 @@ const SELECTED_OUTLINE: React.CSSProperties = {
   borderRadius: 12,
 };
 
+/**
+ * Quote-mark affordance, bottom-right. Visible only when the claim has audio
+ * snippets. Clicking opens the snippet drawer WITHOUT triggering the canvas
+ * node-click (zoom/side-panel) — hence `nodrag nopan` + stopPropagation.
+ */
+function SnippetQuoteButton({
+  frameId,
+  nodeId,
+}: {
+  frameId: string;
+  nodeId: string;
+}) {
+  const openSnippetDrawer = useUIStore((s) => s.openSnippetDrawer);
+  return (
+    <button
+      type="button"
+      aria-label="Show related transcript snippets"
+      title="Where this was said"
+      className="nodrag nopan absolute bottom-2 right-3 flex h-8 w-8 items-end justify-center leading-none text-black/35 transition-colors hover:text-black"
+      style={{ fontFamily: "var(--font-quote)", fontSize: 34 }}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        openSnippetDrawer({ frameId, nodeId });
+      }}
+    >
+      &ldquo;
+    </button>
+  );
+}
+
 /** Solid mint claim tile in the frame view. Figma node 2:15. */
 export const ClaimNode = memo(function ClaimNode({
+  id,
   data,
   width,
-  height,
 }: NodeProps) {
   const text = (data?.text as string) ?? "";
   const selected = (data?.selected as boolean) ?? false;
+  const hasSnippets = (data?.hasSnippets as boolean) ?? false;
+  const frameId = (data?.frameId as string | undefined) ?? undefined;
   const w = width ?? 368;
-  const h = height ?? 300;
   return (
     <div
       className="relative flex items-center rounded-[12px] border border-black/30 bg-white p-8"
       style={{ width: w, ...(selected ? SELECTED_OUTLINE : null) }}
     >
       <p className="font-serif text-[16px] leading-[1.5] text-black">{text}</p>
+      {hasSnippets && frameId ? (
+        <SnippetQuoteButton frameId={frameId} nodeId={id} />
+      ) : null}
       <NodeHandles />
     </div>
   );
@@ -38,12 +74,10 @@ export const ClaimNode = memo(function ClaimNode({
 export const QuestionNode = memo(function QuestionNode({
   data,
   width,
-  height,
 }: NodeProps) {
   const text = (data?.text as string) ?? "";
   const selected = (data?.selected as boolean) ?? false;
   const w = width ?? 368;
-  const h = height ?? 300;
   return (
     <div
       className="relative flex items-center rounded-[12px] border border-black/30 bg-white p-8"
