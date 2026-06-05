@@ -368,12 +368,12 @@
       "frameId": "q1",
       "question": "How does AI change the way we think?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 20,
-        "y": 30
+        "x": 67,
+        "y": 41
       }
     },
     {
@@ -381,12 +381,12 @@
       "frameId": "q2",
       "question": "Does AI make expertise obsolete?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 280,
-        "y": 210
+        "x": 270,
+        "y": 150
       }
     },
     {
@@ -394,12 +394,12 @@
       "frameId": "q3",
       "question": "What makes a group a real team?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 550,
-        "y": 20
+        "x": 533,
+        "y": 32
       }
     },
     {
@@ -407,12 +407,12 @@
       "frameId": "q4",
       "question": "How does AI change the manager's role?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 800,
-        "y": 160
+        "x": 753,
+        "y": 155
       }
     },
     {
@@ -420,11 +420,11 @@
       "frameId": "q5",
       "question": "What can humans do that AI cannot?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 1010,
+        "x": 950,
         "y": 30
       }
     },
@@ -433,12 +433,12 @@
       "frameId": "q6",
       "question": "What gives work meaning when AI handles tasks?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 110,
-        "y": 410
+        "x": 147,
+        "y": 375
       }
     },
     {
@@ -446,12 +446,12 @@
       "frameId": "q7",
       "question": "What makes work enjoyable, and what kills it?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 430,
-        "y": 360
+        "x": 460,
+        "y": 355
       }
     },
     {
@@ -459,12 +459,12 @@
       "frameId": "q8",
       "question": "How should we redesign education and hiring?",
       "size": {
-        "width": 200,
-        "height": 200
+        "width": 220,
+        "height": 220
       },
       "position": {
-        "x": 760,
-        "y": 400
+        "x": 718,
+        "y": 367
       }
     }
   ],
