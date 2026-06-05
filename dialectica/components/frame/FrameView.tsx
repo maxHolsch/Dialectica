@@ -6,7 +6,6 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import type { ArgMap, Frame, Annotation } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { FrameCanvas } from "./FrameCanvas";
-import { SidePanel } from "./SidePanel";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
 
 const ENTER_MS = 220;
@@ -81,7 +80,6 @@ export function FrameView({
             onReady={() => setReady(true)}
           />
         </div>
-        <SidePanel map={map} stakes={stakes} isEditMode={isEditMode} />
       </div>
 
       {/* Header layer — floats above the canvas overlay. No div-level fade;
@@ -90,7 +88,7 @@ export function FrameView({
         {/* White gradient backing */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0"
-          style={{ height: 100, background: "linear-gradient(to bottom, white 0%, transparent 100%)" }}
+          style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
         />
 
         {/* Back button */}
@@ -98,9 +96,9 @@ export function FrameView({
           onClick={goBack}
           aria-label="Back to map"
           className="pointer-events-auto absolute flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 40, height: 40, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
         >
-          <ArrowLeft size={16} weight="regular" />
+          <ArrowLeft size={18} weight="regular" />
         </button>
 
         {/* Two-line header */}
@@ -111,15 +109,15 @@ export function FrameView({
           {/* Parent question — morphs from small/dim to full-size on exit */}
           <button
             onClick={goBack}
-            className="pointer-events-auto cursor-pointer whitespace-nowrap font-serif text-[13px] text-dia-fg hover:opacity-70"
+            className="pointer-events-auto cursor-pointer whitespace-nowrap font-serif text-[13px] hover:opacity-70"
             style={
               exiting
-                ? { background: "none", border: "none", padding: 0,
+                ? { color: "#727272", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-exit ${EXIT_MS}ms ease-in-out forwards` }
                 : ready
-                ? { background: "none", border: "none", padding: 0,
+                ? { color: "#727272", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-enter ${ENTER_MS}ms ease-in-out forwards` }
-                : { background: "none", border: "none", padding: 0,
+                : { color: "#727272", background: "none", border: "none", padding: 0,
                     opacity: 1, transform: "scale(1.54) translateY(4px)" }
             }
           >

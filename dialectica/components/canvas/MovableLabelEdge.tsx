@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
   getBezierPath,
+  getNodesBounds,
+  getViewportForBounds,
   useReactFlow,
   type EdgeProps,
 } from "@xyflow/react";
@@ -12,6 +14,8 @@ import { useUIStore } from "@/lib/state/useUIStore";
 
 type MovableLabelEdgeData = {
   label?: string;
+  /** Longer relationship description shown in the expanded pill (frame view only). */
+  relType?: string;
   labelOffset?: number;
   curvature?: number;
   /** Persist the new offset when the user releases a label drag. */
@@ -20,25 +24,18 @@ type MovableLabelEdgeData = {
   variant?: "crux" | "frame";
 };
 
-// Clamp the label-offset fraction so a label can't slide off the visible
-// span of the edge — keeps it near the path even on short edges.
 const OFFSET_MIN = -0.45;
 const OFFSET_MAX = 0.45;
 
 const clampOffset = (o: number) =>
   Math.max(OFFSET_MIN, Math.min(OFFSET_MAX, o));
 
-// Stored offset is centered at 0 (midpoint) with range ±0.45. Convert to a
-// fraction of total path length where 0 = source end, 1 = target end.
 const offsetToFraction = (offset: number) => 0.5 + clampOffset(offset);
 
-/**
- * Smooth-step edge with an HTML label rendered on top. In move mode the label
- * becomes draggable along the actual rendered path (including any kinks);
- * the parent canvas persists the resulting offset to the map JSON.
- */
 export function MovableLabelEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -50,16 +47,37 @@ export function MovableLabelEdge({
   style,
   selected,
 }: EdgeProps) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport, getNode } = useReactFlow();
   const mode = useUIStore((s) => s.mode);
+  const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
+  const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
   const edgeData = (data ?? {}) as MovableLabelEdgeData;
   const label = typeof edgeData.label === "string" ? edgeData.label : undefined;
+  const relType = typeof edgeData.relType === "string" ? edgeData.relType : undefined;
   const labelOffset = typeof edgeData.labelOffset === "number"
     ? edgeData.labelOffset
     : 0;
   const onLabelOffsetChange = edgeData.onLabelOffsetChange;
   const variant = edgeData.variant ?? "frame";
   const curvature = typeof edgeData.curvature === "number" ? edgeData.curvature : 0.25;
+  const isExpanded = expandedEdgeId === id;
+
+  // Local hover state — shows expanded pill but does NOT trigger fitView or fade.
+  const [isHovered, setIsHovered] = useState(false);
+  const isExpandedOrHovered = isExpanded || isHovered;
+
+  // Delay the text swap so the pill grows visually before the copy changes.
+  // On collapse, revert immediately so the short label is ready as it shrinks.
+  const [showFull, setShowFull] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (isExpandedOrHovered) {
+      timer = setTimeout(() => setShowFull(true), 110);
+    } else {
+      setShowFull(false);
+    }
+    return () => clearTimeout(timer);
+  }, [isExpandedOrHovered]);
 
   const [edgePath, midX, midY] = getBezierPath({
     sourceX,
@@ -71,16 +89,9 @@ export function MovableLabelEdge({
     curvature,
   });
 
-  // Detached <path> used purely for SVG geometry (getTotalLength /
-  // getPointAtLength) so the label can travel along the real rendered curve,
-  // including the corners produced by smooth-step routing. Rebuilt only when
-  // the path string itself changes.
   const pathMetrics = useMemo(() => {
     if (typeof document === "undefined") return null;
-    const el = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path",
-    );
+    const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
     el.setAttribute("d", edgePath);
     return { el, length: el.getTotalLength() };
   }, [edgePath]);
@@ -116,9 +127,6 @@ export function MovableLabelEdge({
       if (!pathMetrics || pathMetrics.length === 0) return;
       const flow = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
-      // Find the path-length fraction whose point is closest to the pointer.
-      // Coarse sweep then a local refinement keeps the search cheap while
-      // tracking kinked smooth-step paths exactly.
       const { el, length } = pathMetrics;
       const coarse = 80;
       let bestT = 0.5;
@@ -129,10 +137,7 @@ export function MovableLabelEdge({
         const ddx = pt.x - flow.x;
         const ddy = pt.y - flow.y;
         const d = ddx * ddx + ddy * ddy;
-        if (d < bestDist) {
-          bestDist = d;
-          bestT = t;
-        }
+        if (d < bestDist) { bestDist = d; bestT = t; }
       }
       const refineSpan = 1 / coarse;
       const refineSteps = 10;
@@ -143,10 +148,7 @@ export function MovableLabelEdge({
         const ddx = pt.x - flow.x;
         const ddy = pt.y - flow.y;
         const d = ddx * ddx + ddy * ddy;
-        if (d < bestDist) {
-          bestDist = d;
-          bestT = t;
-        }
+        if (d < bestDist) { bestDist = d; bestT = t; }
       }
 
       const clamped = clampOffset(bestT - 0.5);
@@ -162,18 +164,56 @@ export function MovableLabelEdge({
       if (!drag?.active) return;
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
       draggingRef.current = null;
-      // Final persist — parent canvas decides whether to flush every move
-      // or only the last one (it can debounce internally).
       onLabelOffsetChange?.(id, drag.offset);
     },
     [id, onLabelOffsetChange],
   );
 
   const draggable = mode === "move" && !!onLabelOffsetChange;
+  const interactive = mode === "select" && variant === "frame" && !!relType;
 
-  // When the user clicks to select an edge, paint it pure white so the
-  // selection is obvious against the dark canvas. The stroke reverts to the
-  // edge's normal style as soon as it's deselected.
+  // Dim this pill when a different edge label is click-expanded.
+  // Hovering over a dimmed pill lifts the dim so the user can still read it.
+  const dimmed = expandedEdgeId !== null && expandedEdgeId !== id && !isHovered;
+
+  const handleLabelClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!interactive) return;
+      e.stopPropagation();
+      if (isExpanded) {
+        setExpandedEdgeId(null);
+      } else {
+        setExpandedEdgeId(id);
+        // Single viewport animation to the two connected tiles — avoids the
+        // zoom-out artefact that fitView() produces when the current zoom
+        // doesn't match the target zoom.
+        const srcNode = getNode(source);
+        const tgtNode = getNode(target);
+        if (srcNode && tgtNode) {
+          const bounds = getNodesBounds([srcNode, tgtNode]);
+          const vp = getViewportForBounds(
+            bounds,
+            window.innerWidth,
+            window.innerHeight,
+            0.5,
+            1.5,
+            0.5,
+          );
+          setViewport({ ...vp, y: vp.y + 50 }, { duration: 400 });
+        }
+      }
+    },
+    [interactive, isExpanded, setExpandedEdgeId, id, getNode, source, target, setViewport],
+  );
+
+  const handleMouseEnter = useCallback(() => {
+    if (interactive) setIsHovered(true);
+  }, [interactive]);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
+  }, []);
+
   const effectiveStyle = selected
     ? { ...(style ?? {}), stroke: "#ffffff", strokeWidth: 2 }
     : style;
@@ -183,28 +223,62 @@ export function MovableLabelEdge({
       <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} style={effectiveStyle} />
       {label ? (
         <EdgeLabelRenderer>
+          {/* Outer div: positioning + pointer events only */}
           <div
+            className="nodrag nopan absolute"
             style={{
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              cursor: draggable ? "grab" : undefined,
+              cursor: draggable ? "grab" : interactive ? "pointer" : undefined,
               touchAction: draggable ? "none" : undefined,
-              // React Flow's `.react-flow__edgelabel-renderer` parent sets
-              // pointer-events: none for the layer, so each label must opt in
-              // explicitly to receive drag events.
               pointerEvents: "auto",
+              zIndex: isExpandedOrHovered ? 50 : undefined,
             }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-            className={
-              variant === "crux"
-                ? "nodrag nopan absolute rounded bg-[#f4f0e8] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#1a1a1a]" +
-                  (draggable ? " ring-1 ring-[#ffc943]" : "")
-                : "nodrag nopan absolute rounded bg-dia-bg px-2 py-0.5 text-center font-serif italic text-[12px] leading-[1.45] text-dia-fg-muted" +
-                  (draggable ? " ring-1 ring-[#ffc943]" : "")
-            }
+            onClick={handleLabelClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
           >
-            {label}
+            {variant === "crux" ? (
+              <div
+                className={
+                  "rounded bg-[#f4f0e8] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#1a1a1a]" +
+                  (draggable ? " ring-1 ring-[#ffc943]" : "")
+                }
+              >
+                {label}
+              </div>
+            ) : (
+              /* Inner div: visual pill that morphs smoothly between states */
+              <div
+                className="font-serif italic text-[12px] leading-[1.45] select-none"
+                style={{
+                  transition: [
+                    "max-width 180ms cubic-bezier(0.25,0.1,0.25,1)",
+                    "padding 160ms ease",
+                    "border-color 150ms ease",
+                    "border-radius 180ms ease",
+                    "color 140ms ease",
+                    "opacity 200ms ease",
+                  ].join(", "),
+                  maxWidth: isExpandedOrHovered ? "320px" : "80px",
+                  padding: isExpandedOrHovered ? "8px 16px" : "2px 8px",
+                  borderRadius: isExpandedOrHovered ? "9999px" : "4px",
+                  border: "1px solid",
+                  borderColor: isExpandedOrHovered ? "#AAAAAA" : "transparent",
+                  backgroundColor: "#ffffff",
+                  color: isExpandedOrHovered ? "#000000" : "#555555",
+                  overflow: "hidden",
+                  whiteSpace: showFull ? "normal" : "nowrap",
+                  textAlign: "center",
+                  opacity: dimmed ? 0.12 : 1,
+                  ...(draggable ? { outline: "1px solid #ffc943", outlineOffset: "1px" } : {}),
+                }}
+              >
+                {showFull ? relType : label}
+              </div>
+            )}
           </div>
         </EdgeLabelRenderer>
       ) : null}

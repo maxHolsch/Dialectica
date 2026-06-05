@@ -6,12 +6,12 @@ import type { Annotation, StrokePoint } from "@/lib/schema";
 export type CanvasMode = "select" | "draw" | "erase" | "move";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
-// 4 swatches in view mode, plus white in edit mode (Figma 12:127). Index 0 = white.
-export const SWATCHES = ["#ffffff", "#cdf4d3", "#ffc2ec", "#c2e5ff", "#dcccff"];
+export const SWATCHES = ["#0D90D3", "#54A96D", "#F4652C", "#885CBF"];
 
 type HistoryAction =
   | { type: "create"; annotation: Annotation }
-  | { type: "delete"; annotation: Annotation };
+  | { type: "delete"; annotation: Annotation }
+  | { type: "clear"; annotations: Annotation[] };
 
 // Phase 4 — side panel + heatmap split view. Stakes attach to a frame instance,
 // so the side panel always knows the (frameId, nodeId) pair it was opened from.
@@ -45,6 +45,10 @@ type UIStore = {
   restoreHeatmap: () => void;
   setHeatmapSplit: (fraction: number) => void;
 
+  // Expanded edge label — null when no edge label is expanded.
+  expandedEdgeId: string | null;
+  setExpandedEdgeId: (id: string | null) => void;
+
   // Optimistic annotation layer keyed by id. Live on top of the server-loaded
   // annotations from props; we merge by id when rendering.
   optimisticAdds: Record<string, Annotation>;
@@ -69,7 +73,7 @@ type UIStore = {
 export const useUIStore = create<UIStore>((set, get) => ({
   mode: "select",
   tool: "pen",
-  color: "#ffffff",
+  color: "#0D90D3",
   setMode: (mode) => set({ mode }),
   setTool: (tool) => set({ tool, mode: "draw" }),
   setColor: (color) => set({ color }),
@@ -87,6 +91,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       sidePanelNode: null,
       sidePanelMode: "compact",
       heatmapSplit: HEATMAP_SPLIT_DEFAULT,
+      expandedEdgeId: null,
     });
   },
 
@@ -94,9 +99,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
   sidePanelMode: "compact",
   heatmapSplit: HEATMAP_SPLIT_DEFAULT,
   openSidePanel: (target) =>
-    set({ sidePanelNode: target, sidePanelMode: "compact" }),
+    set({ sidePanelNode: target, sidePanelMode: "compact", expandedEdgeId: null }),
   closeSidePanel: () =>
     set({ sidePanelNode: null, sidePanelMode: "compact" }),
+
+  expandedEdgeId: null,
+  setExpandedEdgeId: (id) => set({ expandedEdgeId: id, sidePanelNode: null }),
   expandHeatmap: () => set({ sidePanelMode: "expanded" }),
   restoreHeatmap: () => set({ sidePanelMode: "compact" }),
   setHeatmapSplit: (fraction) =>

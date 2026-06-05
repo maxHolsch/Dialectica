@@ -3,12 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useRouter } from "next/navigation";
+import { CornersOut } from "@phosphor-icons/react";
 import {
   ReactFlow,
   ReactFlowProvider,
   Background,
   MiniMap,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
   type Node,
   type Edge,
   type NodeTypes,
@@ -23,8 +26,9 @@ import "@xyflow/react/dist/style.css";
 import type { Annotation } from "@/lib/schema";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { useUIStore } from "@/lib/state/useUIStore";
+import { CURSORS } from "@/lib/canvas/cursors";
 import { useDrawingHandlers } from "@/lib/canvas/useDrawingHandlers";
-import { createAnnotation } from "@/lib/data/mutations";
+import { createAnnotation, deleteAnnotation } from "@/lib/data/mutations";
 import { subscribeToAnnotations } from "@/lib/realtime/annotations";
 import { useCursorChannel } from "@/lib/realtime/cursors";
 import { stakeKey, type StakeMap } from "@/lib/data/stakes-types";
@@ -36,6 +40,7 @@ import {
   NodeContextMenu,
   type NodeContextMenuState,
 } from "@/components/frame/ContextMenu";
+import { AgreeBar } from "@/components/frame/AgreeBar";
 
 /**
  * Move-mode handlers supplied by the parent canvas. Each canvas (crux vs
@@ -173,11 +178,42 @@ function Canvas({
   const router = useRouter();
   const reactFlow = useReactFlow();
   const [canvasReady, setCanvasReady] = useState(false);
+  const [canvasAnimDone, setCanvasAnimDone] = useState(false);
   const handleInit = useCallback(() => {
     setCanvasReady(true);
     onReady?.();
-  }, [onReady]);
+    // Switch to canvas-drawn after entry animations complete so re-rendered
+    // nodes/edges don't replay the animation (which looks like a flash).
+    setTimeout(() => setCanvasAnimDone(true), 400);
+    // The frame view has a fixed two-line header covering ~100px at the top.
+    // After fitView centers the content in the full viewport, shift the fitted
+    // position down by half the header height so nodes are centered in the
+    // visible area below the header rather than partially hidden behind it.
+    if (frameId) {
+      requestAnimationFrame(() => {
+        const vp = reactFlow.getViewport();
+        reactFlow.setViewport({ ...vp, y: vp.y + 50 });
+      });
+    }
+  }, [onReady, frameId, reactFlow]);
+
+  const handleFitView = useCallback(() => {
+    if (frameId) {
+      // Compute target viewport in one shot so we can bake in the +50px header
+      // offset and animate to the final position without a jarring two-step.
+      const contentNodes = reactFlow.getNodes().filter((n) => n.type !== "stroke");
+      if (contentNodes.length > 0) {
+        const bounds = getNodesBounds(contentNodes);
+        const vp = getViewportForBounds(bounds, window.innerWidth, window.innerHeight, 0.5, 2, 0.35);
+        reactFlow.setViewport({ ...vp, y: vp.y + 50 }, { duration: 500 });
+        return;
+      }
+    }
+    reactFlow.fitView({ padding: 0.35, duration: 500 });
+  }, [reactFlow, frameId]);
   const mode = useUIStore((s) => s.mode);
+  const tool = useUIStore((s) => s.tool);
+  const pushHistory = useUIStore((s) => s.pushHistory);
   const optimisticAdds = useUIStore((s) => s.optimisticAdds);
   const optimisticDeletes = useUIStore((s) => s.optimisticDeletes);
   const bindMap = useUIStore((s) => s.bindMap);
@@ -186,6 +222,8 @@ function Canvas({
   const openSidePanel = useUIStore((s) => s.openSidePanel);
   const closeSidePanel = useUIStore((s) => s.closeSidePanel);
   const sidePanelNode = useUIStore((s) => s.sidePanelNode);
+  const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
+  const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
@@ -203,6 +241,12 @@ function Canvas({
   useEffect(() => {
     bindMap(mapId);
   }, [mapId, bindMap]);
+
+  // Edge-label focus and tile focus are mutually exclusive — expanding an edge
+  // label clears any open side panel so only one focus mode is active at a time.
+  useEffect(() => {
+    if (expandedEdgeId) closeSidePanel();
+  }, [expandedEdgeId, closeSidePanel]);
 
   // Phase 5 / DIA-ANNO-4 — subscribe to Supabase Realtime so other users'
   // strokes appear in this client within ~200ms. Inserts/updates land in the
@@ -350,6 +394,9 @@ function Canvas({
     >
   >({});
 
+  const drawingActive = mode === "draw";
+  const moveActive = mode === "move" && !!moveHandlers;
+
   // Promote each annotation to a React Flow node alongside content nodes.
   // Strokes are draggable in select mode so the user can move them with a mouse/finger;
   // panning is taken over by 2-finger trackpad scroll (`panOnScroll`) below.
@@ -435,8 +482,7 @@ function Canvas({
         target,
         sourceHandle,
         targetHandle,
-        reconnectable:
-          mode === "move" && !!moveHandlers ? true : false,
+        reconnectable: moveActive,
         data: {
           ...(e.data ?? {}),
           labelOffset,
@@ -447,12 +493,17 @@ function Canvas({
   }, [
     edges,
     edgeOverrides,
-    mode,
-    moveHandlers,
+    moveActive,
     onEdgeLabelOffsetLocal,
     deletedNodeIds,
     deletedEdgeIds,
   ]);
+
+  // Derive the currently click-expanded edge so we can target its source/target
+  // nodes and its own edge line for the focus-fade CSS rules.
+  const expandedEdge = expandedEdgeId
+    ? (allEdges.find((e) => e.id === expandedEdgeId) ?? null)
+    : null;
 
   // Track stroke drags. During drag we optimistically update origin so the node
   // visually follows the cursor (React Flow respects the controlled `position`).
@@ -550,31 +601,42 @@ function Canvas({
       // Eraser: clicking any stroke node deletes that annotation.
       if (mode === "erase" && node.type === "stroke") {
         const ann = (node.data as { annotation?: Annotation }).annotation;
-        if (ann) {
-          void drawing.eraseAnnotation(ann);
-        }
+        if (ann) void drawing.eraseAnnotation(ann);
         return;
       }
       if (mode !== "select" || node.type === "stroke") return;
-      // Frame view: clicking a claim/question toggles the side panel.
+      // Frame view: zoom to the clicked claim/question and open the agree bar.
       if (frameId && (node.type === "claim" || node.type === "question")) {
-        if (sidePanelNode?.nodeId === node.id) {
-          closeSidePanel();
-        } else {
-          openSidePanel({ frameId, nodeId: node.id });
-        }
+        setExpandedEdgeId(null);
+        openSidePanel({ frameId, nodeId: node.id });
+        // Direct setViewport: centers the tile in the visible area below the
+        // fixed 2-line header in a single animated call. fitView with a nodes[]
+        // array can silently fall back to fitting all nodes, producing no zoom.
+        const nodeW = (node.measured?.width ?? node.width ?? 368) as number;
+        const nodeH2 = (node.measured?.height ?? node.height ?? 300) as number;
+        const cx = node.position.x + nodeW / 2;
+        const cy = node.position.y + nodeH2 / 2;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        // visible-area center = (headerH + vh) / 2 ≈ vh/2 + 50
+        // at zoom=1: viewport.x + cx = vw/2, viewport.y + cy = vh/2 + 50
+        reactFlow.setViewport(
+          { x: vw / 2 - cx, y: vh / 2 + 50 - cy, zoom: 0.85 },
+          { duration: 500 },
+        );
         return;
       }
       // Crux view: navigate into the clicked crux's frame.
       const target = onNodeNavigate?.(node.id);
       if (target) router.push(target);
     },
-    [mode, drawing, frameId, sidePanelNode, closeSidePanel, openSidePanel, onNodeNavigate, router],
+    [mode, drawing, frameId, reactFlow, openSidePanel, setExpandedEdgeId, onNodeNavigate, router],
   );
 
   const handlePaneClick = useCallback(() => {
     if (sidePanelNode) closeSidePanel();
-  }, [sidePanelNode, closeSidePanel]);
+    setExpandedEdgeId(null);
+  }, [sidePanelNode, closeSidePanel, setExpandedEdgeId]);
 
   // Right-click on a content node (claim/question in frame view, cruxTile in crux view)
   // opens the context menu. PRD §10.1.
@@ -693,24 +755,36 @@ function Canvas({
     [drawing],
   );
 
-  const drawingActive = mode === "draw";
-  const moveActive = mode === "move" && !!moveHandlers;
+  const handleClear = useCallback(async () => {
+    if (visibleAnnotations.length === 0) return;
+    pushHistory({ type: "clear", annotations: visibleAnnotations });
+    for (const ann of visibleAnnotations) removeOptimistic(ann.id);
+    await Promise.all(visibleAnnotations.map((ann) => deleteAnnotation(mapId, ann.id)));
+  }, [visibleAnnotations, pushHistory, removeOptimistic, mapId]);
+
+  const activeCursor =
+    moveActive ? undefined :
+    mode === "erase" ? CURSORS.eraser :
+    mode === "draw" && tool === "pen" ? CURSORS.pen :
+    mode === "draw" && tool === "highlighter" ? CURSORS.highlighter :
+    mode === "draw" ? CURSORS.pencil :
+    CURSORS.select;
 
   return (
     <div
-      className={`relative h-full w-full bg-dia-bg ${canvasReady ? "canvas-loaded" : "canvas-loading"}`}
+      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerLeave}
       onClick={drawing.onPaneClick}
-      // Yellow grab cursor when move tool is active so the user can see
-      // they're in drag mode anywhere on the canvas.
       data-move-mode={moveActive ? "1" : undefined}
+      data-canvas-mode={mode}
       style={{
         touchAction: drawingActive || mode === "erase" ? "none" : undefined,
-        cursor: moveActive ? "grab" : undefined,
-      }}
+        cursor: moveActive ? "grab" : activeCursor,
+        "--canvas-cursor": moveActive ? "grab" : (activeCursor ?? "auto"),
+      } as React.CSSProperties}
     >
       <ReactFlow
         nodes={allNodes}
@@ -733,7 +807,7 @@ function Canvas({
         zoomOnPinch
         onInit={handleInit}
         fitView
-        fitViewOptions={{ padding: 0.18 }}
+        fitViewOptions={{ padding: 0.35 }}
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           style: { stroke: "#3a3a3a", strokeWidth: 1.5 },
@@ -741,6 +815,32 @@ function Canvas({
       >
         <Background color="#1a1a1a" gap={32} size={1} />
       </ReactFlow>
+      {mode === "select" ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `.react-flow__node{cursor:${CURSORS.pointer}!important}`,
+          }}
+        />
+      ) : null}
+      {sidePanelNode && frameId ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              `.canvas-tile-focused .react-flow__node:not([data-id="${sidePanelNode.nodeId}"]){opacity:0.12}` +
+              `.canvas-tile-focused .react-flow__edge{opacity:0.12}` +
+              `.canvas-tile-focused .react-flow__edgelabel-renderer{opacity:0.12}`,
+          }}
+        />
+      ) : null}
+      {expandedEdge && frameId ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              `.canvas-edge-focused .react-flow__node:not([data-id="${expandedEdge.source}"]):not([data-id="${expandedEdge.target}"]){opacity:0.12}` +
+              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.12}`,
+          }}
+        />
+      ) : null}
       {moveActive ? (
         // While the yellow move tool is selected: grab cursor on nodes, and
         // reveal the reconnect anchors only on edges the user has explicitly
@@ -753,11 +853,31 @@ function Canvas({
       ) : null}
       <InFlightStrokeLayer />
       <RemoteCursorLayer cursors={cursorChannel.cursors} />
+      {sidePanelNode && frameId && stakes && (
+        <AgreeBar
+          mapId={mapId}
+          frameId={sidePanelNode.frameId}
+          nodeId={sidePanelNode.nodeId}
+          stakes={stakes[stakeKey(sidePanelNode.frameId, sidePanelNode.nodeId)]}
+          userId={userId}
+          displayName={displayName}
+        />
+      )}
+      <button
+        type="button"
+        onClick={handleFitView}
+        aria-label="Fit view"
+        className="pointer-events-auto absolute bottom-7 right-7 z-20 flex items-center justify-center rounded-full bg-white text-black transition-colors"
+        style={{ width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", cursor: CURSORS.pointer }}
+      >
+        <CornersOut size={18} />
+      </button>
       <EditToolbar
         mapId={mapId}
         isEditMode={isEditMode}
         onAddClaim={onAddClaim}
         onAutoFormat={onAutoFormat}
+        onClear={handleClear}
       />
       <NodeContextMenu
         state={contextMenu}

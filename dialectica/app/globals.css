@@ -151,15 +151,15 @@
 /* ── Frame view header animations ──────────────────────────────────────── */
 @keyframes frame-parent-enter {
   from { opacity: 1; transform: scale(1.54) translateY(4px); }
-  to   { opacity: 0.5; transform: scale(1) translateY(0); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 @keyframes frame-crux-enter {
   from { opacity: 0; filter: blur(8px); transform: translateY(6px); }
   to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
 }
 @keyframes frame-parent-exit {
-  from { opacity: 0.5; transform: scale(1) translateY(0); }
-  to   { opacity: 1;   transform: scale(1.54) translateY(4px); }
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 1; transform: scale(1.54) translateY(4px); }
 }
 @keyframes frame-crux-exit {
   from { opacity: 1; }
@@ -188,4 +188,37 @@
   stroke-dasharray: 2400;
   animation: edge-draw 320ms ease-in-out both;
   animation-delay: 40ms;
+}
+
+/* After initial animations complete, new nodes/edges render instantly — no replay flash */
+.canvas-drawn .react-flow__node { animation: none; opacity: 1; transition: opacity 200ms ease; }
+.canvas-drawn .react-flow__edge-path { animation: none; stroke-dasharray: none; opacity: 1; }
+/* Persistent opacity transition on edge wrappers so focus-fade reverses smoothly */
+.canvas-drawn .react-flow__edge { transition: opacity 200ms ease; }
+
+/* Tile focus mode — dims non-selected nodes/edges so the selected tile stands out */
+.canvas-drawn.canvas-tile-focused .react-flow__edges { opacity: 0.12; transition: opacity 200ms ease; }
+
+/* Cursor — set --canvas-cursor on the wrapper div; applies to every React Flow layer */
+.react-flow__pane,
+.react-flow__node,
+.react-flow__edge,
+.react-flow__edge-interaction {
+  cursor: var(--canvas-cursor, auto) !important;
+}
+/* Buttons inside the canvas inherit cursor from their container (overrides UA default) */
+[data-canvas-mode] button {
+  cursor: inherit !important;
+}
+
+/* Draw / erase mode — suppress pointer events on content so strokes pass through */
+[data-canvas-mode="draw"] .react-flow__node,
+[data-canvas-mode="draw"] .react-flow__edge,
+[data-canvas-mode="draw"] .react-flow__edge-interaction {
+  pointer-events: none !important;
+}
+[data-canvas-mode="erase"] .react-flow__node:not(.react-flow__node-stroke),
+[data-canvas-mode="erase"] .react-flow__edge,
+[data-canvas-mode="erase"] .react-flow__edge-interaction {
+  pointer-events: none !important;
 }

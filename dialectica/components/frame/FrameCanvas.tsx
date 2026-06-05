@@ -86,6 +86,7 @@ export function FrameCanvas({
       style: { stroke: "#8a8a8a", strokeWidth: 1.2 },
       data: {
         label: e.label,
+        relType: e.relType,
         labelOffset: e.labelOffset ?? 0,
         curvature: e.curvature,
         variant: "frame" as const,
