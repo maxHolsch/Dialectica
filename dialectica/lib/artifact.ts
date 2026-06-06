@@ -47,3 +47,35 @@ export function checkArtifactPassword(mapId: string, attempt: string): boolean {
   if (!pwd) return false;
   return attempt.trim().toLowerCase() === pwd.toLowerCase();
 }
+
+// Per-visitor identity inside artifact mode. Each unlock mints a fresh random
+// id so two people sharing the same password (e.g. "ccc") still count as two
+// distinct presence members. Stored as a JSON cookie scoped to the map.
+export type ArtifactVisitor = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export function artifactVisitorCookieName(mapId: string): string {
+  return `dia_artifact_visitor_${mapId}`;
+}
+
+export async function getArtifactVisitor(
+  mapId: string,
+): Promise<ArtifactVisitor | null> {
+  const jar = await cookies();
+  const raw = jar.get(artifactVisitorCookieName(mapId))?.value;
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<ArtifactVisitor>;
+    if (!parsed.id || !parsed.name || !parsed.email) return null;
+    return { id: parsed.id, name: parsed.name, email: parsed.email };
+  } catch {
+    return null;
+  }
+}
+
+export function mintArtifactVisitorId(): string {
+  return `artifact-${crypto.randomUUID()}`;
+}

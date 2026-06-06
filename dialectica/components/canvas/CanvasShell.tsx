@@ -36,6 +36,7 @@ import { EditToolbar } from "./EditToolbar";
 import { StrokeNode } from "./StrokeNode";
 import { InFlightStrokeLayer } from "./InFlightStrokeLayer";
 import { RemoteCursorLayer } from "./RemoteCursorLayer";
+import { PaperTextureBackground } from "./PaperTextureBackground";
 import {
   NodeContextMenu,
   type NodeContextMenuState,
@@ -780,7 +781,7 @@ function Canvas({
 
   return (
     <div
-      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
+      className={`relative h-full w-full ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -794,6 +795,7 @@ function Canvas({
         "--canvas-cursor": moveActive ? "grab" : (activeCursor ?? "auto"),
       } as React.CSSProperties}
     >
+      <PaperTextureBackground />
       <ReactFlow
         nodes={allNodes}
         edges={allEdges}
@@ -820,9 +822,15 @@ function Canvas({
         defaultEdgeOptions={{
           style: { stroke: "#3a3a3a", strokeWidth: 1.5 },
         }}
+        style={{ background: "transparent" }}
       >
-        <Background color="#1a1a1a" gap={32} size={1} />
+        {/*
+          Optional dot grid on top of the paper texture — uncomment to stack:
+          <Background color="#1a1a1a" gap={32} size={1} />
+        */}
       </ReactFlow>
+      {/* Make all React Flow internal layers transparent so the texture shows through */}
+      <style dangerouslySetInnerHTML={{ __html: `.react-flow,.react-flow__pane,.react-flow__renderer,.react-flow__background{background:transparent!important}` }} />
       {mode === "select" ? (
         <style
           dangerouslySetInnerHTML={{
