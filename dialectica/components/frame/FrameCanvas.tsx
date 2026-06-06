@@ -13,7 +13,7 @@ import type { ArgMap, Frame, Annotation, HandleId } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch } from "@/lib/data/mutations";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
@@ -166,18 +166,6 @@ export function FrameCanvas({
     ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
     : undefined;
 
-  const onAutoFormat = useCallback(
-    async () => {
-      try {
-        await runAutoFormat(map.id);
-        router.refresh();
-      } catch (err) {
-        console.error("[frame] auto-format failed", err);
-      }
-    },
-    [map.id, router],
-  );
-
   return (
     <CanvasShell
       nodes={nodes}
@@ -191,7 +179,6 @@ export function FrameCanvas({
       displayName={displayName}
       userColor={userColor}
       isEditMode={isEditMode}
-      onAutoFormat={isEditMode ? onAutoFormat : undefined}
       onReady={onReady}
       stakes={stakes}
       moveHandlers={moveHandlers}
