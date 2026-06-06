@@ -16,7 +16,6 @@ import type { ArgMap, Annotation, HandleId } from "@/lib/schema";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
 import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
-import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
@@ -192,9 +191,9 @@ export function CruxCanvas({
     : undefined;
 
   const onAutoFormat = useCallback(
-    async (strategy: LayoutStrategyId) => {
+    async () => {
       try {
-        await runAutoFormat(map.id, strategy);
+        await runAutoFormat(map.id);
         router.refresh();
       } catch (err) {
         console.error("[crux] auto-format failed", err);

@@ -9,7 +9,6 @@ import {
   Broom,
   Cursor,
   TextT,
-  CaretDown,
 } from "@phosphor-icons/react";
 import { clsx } from "clsx";
 import {
@@ -23,17 +22,11 @@ import {
   createAnnotation,
   deleteAnnotation,
 } from "@/lib/data/mutations";
-import {
-  LAYOUT_STRATEGIES,
-  DEFAULT_STRATEGY,
-  type LayoutStrategyId,
-} from "@/lib/layout/strategies";
-
 type Props = {
   mapId: string;
   isEditMode: boolean;
   onAddClaim?: () => void;
-  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  onAutoFormat?: () => void | Promise<void>;
   onClear?: () => void;
 };
 
@@ -255,90 +248,35 @@ export function EditToolbar({
         >
           <TextT size={18} />
         </button>
+
+        {onAutoFormat && (
+          <>
+            <Divider />
+            <AutoFormatButton onFormat={onAutoFormat} />
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-function AutoFormatMenu({ onPick }: { onPick: (strategy: LayoutStrategyId) => void | Promise<void> }) {
-  const [open, setOpen] = useState(false);
+function AutoFormatButton({ onFormat }: { onFormat: () => void | Promise<void> }) {
   const [busy, setBusy] = useState(false);
-  const [lastStrategy, setLastStrategy] = useState<LayoutStrategyId>(DEFAULT_STRATEGY);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  const handlePick = useCallback(
-    async (strategy: LayoutStrategyId) => {
-      setOpen(false);
-      setBusy(true);
-      setLastStrategy(strategy);
-      try {
-        await onPick(strategy);
-      } finally {
-        setBusy(false);
-      }
-    },
-    [onPick],
-  );
+  const handleClick = useCallback(async () => {
+    setBusy(true);
+    try { await onFormat(); } finally { setBusy(false); }
+  }, [onFormat]);
 
   return (
-    <div ref={wrapRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        disabled={busy}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        className="flex items-center gap-1 rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black disabled:opacity-50"
-      >
-        {busy ? "FORMATTING…" : "AUTO-FORMAT"}
-        <CaretDown size={12} />
-      </button>
-      {open ? (
-        <div
-          role="menu"
-          className="absolute bottom-full right-0 mb-2 min-w-[220px] rounded-lg border border-[#EEEEEE] bg-white p-1"
-          style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}
-        >
-          {Object.values(LAYOUT_STRATEGIES).map((s) => (
-            <button
-              key={s.id}
-              role="menuitem"
-              type="button"
-              onClick={() => handlePick(s.id)}
-              className={clsx(
-                "block w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-black/5",
-                s.id === lastStrategy ? "text-black" : "text-black/50",
-              )}
-            >
-              <div className="font-mono text-[11px] tracking-wide">
-                {s.label}
-                {s.id === lastStrategy ? "  ·  last used" : ""}
-              </div>
-              <div className="mt-0.5 font-mono text-[10px] text-black/35">
-                {s.description}
-              </div>
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={busy}
+      aria-label="Auto-format layout"
+      className="flex items-center rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black disabled:opacity-40"
+    >
+      {busy ? "FORMATTING…" : "FORMAT"}
+    </button>
   );
 }
 

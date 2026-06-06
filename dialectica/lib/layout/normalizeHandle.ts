@@ -12,6 +12,6 @@ export function normalizeHandleId(
   id: string | undefined,
 ): string | undefined {
   if (!id) return undefined;
-  if (LEGACY.test(id)) return `${id}-2`;
+  if (LEGACY.test(id)) return `${id}-0`;
   return id;
 }

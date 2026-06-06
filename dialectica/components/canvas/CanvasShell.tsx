@@ -24,7 +24,6 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { Annotation } from "@/lib/schema";
-import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { CURSORS } from "@/lib/canvas/cursors";
 import { useDrawingHandlers } from "@/lib/canvas/useDrawingHandlers";
@@ -96,8 +95,8 @@ export function CanvasShell({
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
-  /** Edit-mode only: fire auto-format with the chosen strategy and refresh. */
-  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  /** Edit-mode only: re-run layout and refresh. */
+  onAutoFormat?: () => void | Promise<void>;
   /** Called once after ReactFlow initialises and fitView completes. */
   onReady?: () => void;
   /** Frame view only: stake aggregates keyed by `${frameId}::${nodeId}`. */
@@ -168,7 +167,7 @@ function Canvas({
   isEditMode: boolean;
   onNodeNavigate?: (nodeId: string) => string | null;
   onAddClaim?: () => void;
-  onAutoFormat?: (strategy: LayoutStrategyId) => void | Promise<void>;
+  onAutoFormat?: () => void | Promise<void>;
   onReady?: () => void;
   stakes?: StakeMap;
   moveHandlers?: MoveHandlers;

@@ -2,7 +2,7 @@
   "id": "map-gen-scenrv-mpy2o87r",
   "meta": {
     "momentum": {
-      "rationale": "Question-guided pipeline: cruxes were curator-selected, not inferred \u2014 no highest-leverage signal.",
+      "rationale": "Question-guided pipeline: cruxes were curator-selected, not inferred — no highest-leverage signal.",
       "latentAgreements": [],
       "highestLeverageQuestion": "q1"
     },
@@ -278,7 +278,7 @@
     },
     "q8c4": {
       "id": "q8c4",
-      "text": "The old social contract\u2014school, major, secure job\u2014is collapsing before our eyes",
+      "text": "The old social contract—school, major, secure job—is collapsing before our eyes",
       "type": "claim",
       "absorbed": [],
       "isFactual": false
@@ -478,8 +478,8 @@
           "source": "q1c1",
           "target": "q1c2",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q1-e1",
@@ -487,8 +487,8 @@
           "source": "q1c1",
           "target": "q1c4",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q1-e2",
@@ -496,8 +496,8 @@
           "source": "q1c3",
           "target": "q1c1",
           "relType": "Reframes",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q1-e3",
@@ -505,8 +505,8 @@
           "source": "q1c2",
           "target": "q1c4",
           "relType": "Extends",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q1-e4",
@@ -514,8 +514,8 @@
           "source": "q1c5",
           "target": "q1c1",
           "relType": "Qualifies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q1-e5",
@@ -523,8 +523,8 @@
           "source": "q1c5",
           "target": "q1c3",
           "relType": "Grounds",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q1",
@@ -536,8 +536,8 @@
           },
           "nodeId": "q1c1",
           "position": {
-            "x": 475,
-            "y": 340
+            "x": 1462,
+            "y": 196.33333333333331
           }
         },
         {
@@ -547,8 +547,8 @@
           },
           "nodeId": "q1c2",
           "position": {
-            "x": 254,
-            "y": 644
+            "x": 2147,
+            "y": 95
           }
         },
         {
@@ -558,8 +558,8 @@
           },
           "nodeId": "q1c3",
           "position": {
-            "x": 60,
-            "y": 340
+            "x": 796,
+            "y": 211
           }
         },
         {
@@ -569,8 +569,8 @@
           },
           "nodeId": "q1c4",
           "position": {
-            "x": 707,
-            "y": 644
+            "x": 2858,
+            "y": 196.33333333333331
           }
         },
         {
@@ -580,8 +580,8 @@
           },
           "nodeId": "q1c5",
           "position": {
-            "x": 253,
-            "y": 60
+            "x": 92,
+            "y": 196.33333333333331
           }
         }
       ]
@@ -595,8 +595,8 @@
           "source": "q2c1",
           "target": "q2c2",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q2-e1",
@@ -604,8 +604,8 @@
           "source": "q2c5",
           "target": "q2c1",
           "relType": "Illustrates",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q2-e2",
@@ -613,8 +613,8 @@
           "source": "q2c3",
           "target": "q2c2",
           "relType": "Contests",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q2-e3",
@@ -622,8 +622,8 @@
           "source": "q2c4",
           "target": "q2c3",
           "relType": "Grounds",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q2-e4",
@@ -631,8 +631,8 @@
           "source": "q2c4",
           "target": "q2c1",
           "relType": "Qualifies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q2-e5",
@@ -640,8 +640,8 @@
           "source": "q2c5",
           "target": "q2c3",
           "relType": "Contests",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q2",
@@ -649,8 +649,8 @@
         {
           "nodeId": "q2c4",
           "position": {
-            "x": 60,
-            "y": 60
+            "x": 92,
+            "y": 348
           },
           "size": {
             "width": 324,
@@ -660,8 +660,8 @@
         {
           "nodeId": "q2c5",
           "position": {
-            "x": 440,
-            "y": 60
+            "x": 92,
+            "y": 92
           },
           "size": {
             "width": 324,
@@ -671,19 +671,19 @@
         {
           "nodeId": "q2c1",
           "position": {
-            "x": 60,
-            "y": 330
+            "x": 800.3333333333334,
+            "y": 364
           },
           "size": {
             "width": 314,
-            "height": 160
+            "height": 136
           }
         },
         {
           "nodeId": "q2c3",
           "position": {
-            "x": 440,
-            "y": 330
+            "x": 794,
+            "y": 156
           },
           "size": {
             "width": 333,
@@ -693,12 +693,12 @@
         {
           "nodeId": "q2c2",
           "position": {
-            "x": 225,
-            "y": 600
+            "x": 1491,
+            "y": 341.3333333333333
           },
           "size": {
             "width": 333,
-            "height": 160
+            "height": 136
           }
         }
       ]
@@ -712,8 +712,8 @@
           "source": "q3c1",
           "target": "q3c2",
           "relType": "Qualifies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q3-e1",
@@ -721,8 +721,8 @@
           "source": "q3c2",
           "target": "q3c3",
           "relType": "Illustrates",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q3-e2",
@@ -730,8 +730,8 @@
           "source": "q3c4",
           "target": "q3c1",
           "relType": "Reframes",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q3-e3",
@@ -739,8 +739,8 @@
           "source": "q3c1",
           "target": "q3c4",
           "relType": "Contests",
-          "sourceHandle": "src-top-2",
-          "targetHandle": "tgt-bottom-2"
+          "sourceHandle": "src-left-0",
+          "targetHandle": "tgt-right-0"
         },
         {
           "id": "q3-e4",
@@ -748,8 +748,8 @@
           "source": "q3c5",
           "target": "q3c2",
           "relType": "Contests",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q3-e5",
@@ -757,8 +757,8 @@
           "source": "q3c5",
           "target": "q3c1",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q3",
@@ -766,8 +766,8 @@
         {
           "nodeId": "q3c5",
           "position": {
-            "x": 60,
-            "y": 60
+            "x": 92,
+            "y": 92
           },
           "size": {
             "width": 324,
@@ -777,8 +777,8 @@
         {
           "nodeId": "q3c4",
           "position": {
-            "x": 480,
-            "y": 60
+            "x": 92,
+            "y": 300
           },
           "size": {
             "width": 324,
@@ -788,8 +788,8 @@
         {
           "nodeId": "q3c1",
           "position": {
-            "x": 260,
-            "y": 330
+            "x": 794,
+            "y": 194.33333333333334
           },
           "size": {
             "width": 324,
@@ -799,8 +799,8 @@
         {
           "nodeId": "q3c2",
           "position": {
-            "x": 60,
-            "y": 600
+            "x": 1496,
+            "y": 92
           },
           "size": {
             "width": 333,
@@ -810,8 +810,8 @@
         {
           "nodeId": "q3c3",
           "position": {
-            "x": 450,
-            "y": 600
+            "x": 2185,
+            "y": 92
           },
           "size": {
             "width": 324,
@@ -829,8 +829,8 @@
           "source": "q4c2",
           "target": "q4c1",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q4-e1",
@@ -838,8 +838,8 @@
           "source": "q4c1",
           "target": "q4c4",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-left-0",
+          "targetHandle": "tgt-right-0"
         },
         {
           "id": "q4-e2",
@@ -847,8 +847,8 @@
           "source": "q4c3",
           "target": "q4c1",
           "relType": "Contests",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q4-e3",
@@ -856,8 +856,8 @@
           "source": "q4c5",
           "target": "q4c1",
           "relType": "Reframes",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q4-e4",
@@ -865,8 +865,8 @@
           "source": "q4c5",
           "target": "q4c4",
           "relType": "Qualifies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         }
       ],
       "cruxId": "q4",
@@ -874,19 +874,19 @@
         {
           "nodeId": "q4c2",
           "position": {
-            "x": 60,
-            "y": 60
+            "x": 940,
+            "y": 92
           },
           "size": {
-            "width": 324,
+            "width": 333,
             "height": 184
           }
         },
         {
           "nodeId": "q4c3",
           "position": {
-            "x": 440,
-            "y": 60
+            "x": 568,
+            "y": 116
           },
           "size": {
             "width": 324,
@@ -896,8 +896,8 @@
         {
           "nodeId": "q4c5",
           "position": {
-            "x": 60,
-            "y": 350
+            "x": 187,
+            "y": 92
           },
           "size": {
             "width": 333,
@@ -907,8 +907,8 @@
         {
           "nodeId": "q4c1",
           "position": {
-            "x": 440,
-            "y": 350
+            "x": 563.5,
+            "y": 486
           },
           "size": {
             "width": 333,
@@ -918,8 +918,8 @@
         {
           "nodeId": "q4c4",
           "position": {
-            "x": 220,
-            "y": 660
+            "x": 193.33333333333331,
+            "y": 863
           },
           "size": {
             "width": 314,
@@ -937,8 +937,8 @@
           "source": "q5c2",
           "target": "q5c1",
           "relType": "Illustrates",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q5-e1",
@@ -946,8 +946,8 @@
           "source": "q5c3",
           "target": "q5c1",
           "relType": "Grounds",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q5-e2",
@@ -955,8 +955,8 @@
           "source": "q5c5",
           "target": "q5c1",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q5-e3",
@@ -964,8 +964,8 @@
           "source": "q5c3",
           "target": "q5c4",
           "relType": "Supports",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q5-e4",
@@ -973,8 +973,8 @@
           "source": "q5c2",
           "target": "q5c5",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q5",
@@ -982,8 +982,8 @@
         {
           "nodeId": "q5c2",
           "position": {
-            "x": 60,
-            "y": 60
+            "x": 92,
+            "y": 377.3333333333333
           },
           "size": {
             "width": 333,
@@ -993,8 +993,8 @@
         {
           "nodeId": "q5c3",
           "position": {
-            "x": 450,
-            "y": 60
+            "x": 745,
+            "y": 130.66666666666666
           },
           "size": {
             "width": 333,
@@ -1004,8 +1004,8 @@
         {
           "nodeId": "q5c5",
           "position": {
-            "x": 60,
-            "y": 330
+            "x": 749.5,
+            "y": 338.66666666666663
           },
           "size": {
             "width": 324,
@@ -1015,8 +1015,8 @@
         {
           "nodeId": "q5c4",
           "position": {
-            "x": 450,
-            "y": 330
+            "x": 1449,
+            "y": 92
           },
           "size": {
             "width": 324,
@@ -1026,8 +1026,8 @@
         {
           "nodeId": "q5c1",
           "position": {
-            "x": 225,
-            "y": 640
+            "x": 1449,
+            "y": 338.66666666666663
           },
           "size": {
             "width": 324,
@@ -1045,8 +1045,8 @@
           "source": "q6c1",
           "target": "q6c3",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q6-e1",
@@ -1054,8 +1054,8 @@
           "source": "q6c1",
           "target": "q6c2",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q6-e2",
@@ -1063,8 +1063,8 @@
           "source": "q6c3",
           "target": "q6c2",
           "relType": "Grounds",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q6-e3",
@@ -1072,8 +1072,8 @@
           "source": "q6c4",
           "target": "q6c3",
           "relType": "Reframes",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q6-e4",
@@ -1081,8 +1081,8 @@
           "source": "q6c5",
           "target": "q6c1",
           "relType": "Contests",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q6-e5",
@@ -1090,8 +1090,8 @@
           "source": "q6c5",
           "target": "q6c4",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q6",
@@ -1099,8 +1099,8 @@
         {
           "nodeId": "q6c5",
           "position": {
-            "x": 248,
-            "y": 60
+            "x": 92,
+            "y": 273.3333333333333
           },
           "size": {
             "width": 333,
@@ -1110,8 +1110,8 @@
         {
           "nodeId": "q6c1",
           "position": {
-            "x": 60,
-            "y": 330
+            "x": 803,
+            "y": 300
           },
           "size": {
             "width": 324,
@@ -1121,8 +1121,8 @@
         {
           "nodeId": "q6c4",
           "position": {
-            "x": 446,
-            "y": 330
+            "x": 803,
+            "y": 92
           },
           "size": {
             "width": 324,
@@ -1132,8 +1132,8 @@
         {
           "nodeId": "q6c3",
           "position": {
-            "x": 60,
-            "y": 600
+            "x": 1505,
+            "y": 198.66666666666666
           },
           "size": {
             "width": 324,
@@ -1143,8 +1143,8 @@
         {
           "nodeId": "q6c2",
           "position": {
-            "x": 446,
-            "y": 600
+            "x": 2164,
+            "y": 284
           },
           "size": {
             "width": 324,
@@ -1162,8 +1162,8 @@
           "source": "q7c2",
           "target": "q7c3",
           "relType": "Contests",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q7-e1",
@@ -1171,8 +1171,8 @@
           "source": "q7c4",
           "target": "q7c3",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q7-e2",
@@ -1180,8 +1180,8 @@
           "source": "q7c1",
           "target": "q7c2",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q7-e3",
@@ -1189,8 +1189,8 @@
           "source": "q7c5",
           "target": "q7c1",
           "relType": "Grounds",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-left-0",
+          "targetHandle": "tgt-right-0"
         },
         {
           "id": "q7-e4",
@@ -1198,8 +1198,8 @@
           "source": "q7c3",
           "target": "q7c5",
           "relType": "Qualifies",
-          "sourceHandle": "src-top-2",
-          "targetHandle": "tgt-bottom-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q7",
@@ -1207,8 +1207,8 @@
         {
           "nodeId": "q7c4",
           "position": {
-            "x": 60,
-            "y": 60
+            "x": 780,
+            "y": 92
           },
           "size": {
             "width": 333,
@@ -1218,8 +1218,8 @@
         {
           "nodeId": "q7c5",
           "position": {
-            "x": 450,
-            "y": 60
+            "x": 2188,
+            "y": 145.33333333333331
           },
           "size": {
             "width": 333,
@@ -1229,8 +1229,8 @@
         {
           "nodeId": "q7c1",
           "position": {
-            "x": 225,
-            "y": 330
+            "x": 92,
+            "y": 314.66666666666663
           },
           "size": {
             "width": 324,
@@ -1240,8 +1240,8 @@
         {
           "nodeId": "q7c2",
           "position": {
-            "x": 60,
-            "y": 600
+            "x": 794.5,
+            "y": 300
           },
           "size": {
             "width": 304,
@@ -1251,8 +1251,8 @@
         {
           "nodeId": "q7c3",
           "position": {
-            "x": 430,
-            "y": 600
+            "x": 1484,
+            "y": 118.66666666666666
           },
           "size": {
             "width": 333,
@@ -1270,8 +1270,8 @@
           "source": "q8c4",
           "target": "q8c1",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q8-e1",
@@ -1279,8 +1279,8 @@
           "source": "q8c4",
           "target": "q8c3",
           "relType": "Implies",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q8-e2",
@@ -1288,8 +1288,8 @@
           "source": "q8c1",
           "target": "q8c2",
           "relType": "Extends",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q8-e3",
@@ -1297,8 +1297,8 @@
           "source": "q8c2",
           "target": "q8c5",
           "relType": "Implies",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q8-e4",
@@ -1306,8 +1306,8 @@
           "source": "q8c3",
           "target": "q8c2",
           "relType": "Supports",
-          "sourceHandle": "src-bottom-2",
-          "targetHandle": "tgt-top-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q8",
@@ -1315,8 +1315,8 @@
         {
           "nodeId": "q8c4",
           "position": {
-            "x": 240,
-            "y": 60
+            "x": 92,
+            "y": 118.66666666666666
           },
           "size": {
             "width": 295,
@@ -1326,8 +1326,8 @@
         {
           "nodeId": "q8c1",
           "position": {
-            "x": 60,
-            "y": 330
+            "x": 762.5,
+            "y": 300
           },
           "size": {
             "width": 324,
@@ -1337,8 +1337,8 @@
         {
           "nodeId": "q8c3",
           "position": {
-            "x": 450,
-            "y": 330
+            "x": 758,
+            "y": 92
           },
           "size": {
             "width": 333,
@@ -1348,8 +1348,8 @@
         {
           "nodeId": "q8c2",
           "position": {
-            "x": 60,
-            "y": 600
+            "x": 1455,
+            "y": 126.66666666666666
           },
           "size": {
             "width": 333,
@@ -1359,8 +1359,8 @@
         {
           "nodeId": "q8c5",
           "position": {
-            "x": 455,
-            "y": 600
+            "x": 2166,
+            "y": 114.66666666666666
           },
           "size": {
             "width": 314,
@@ -1387,8 +1387,8 @@
           "source": "q9c3",
           "target": "q9c2",
           "relType": "Yields cheating-as-education-ground instance",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-0"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q9-e2",
@@ -1396,8 +1396,8 @@
           "source": "q9c1",
           "target": "q9c2",
           "relType": "Repeats amplification move on schools",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-top-4"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q9-e3",
@@ -1405,8 +1405,8 @@
           "source": "q9c3",
           "target": "q9c4",
           "relType": "Names the discernment people lack",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q9-e4",
@@ -1414,8 +1414,8 @@
           "source": "q9c4",
           "target": "q9c5",
           "relType": "Locates harm in mandate, not tool",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-2"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         },
         {
           "id": "q9-e5",
@@ -1423,8 +1423,8 @@
           "source": "q9c5",
           "target": "q9c1",
           "relType": "Specifies the amplified institution as policy",
-          "sourceHandle": "src-right-1",
-          "targetHandle": "tgt-left-4"
+          "sourceHandle": "src-right-0",
+          "targetHandle": "tgt-left-0"
         }
       ],
       "cruxId": "q9",
@@ -1436,8 +1436,8 @@
           },
           "nodeId": "q9c1",
           "position": {
-            "x": 2230,
-            "y": 177
+            "x": 2163,
+            "y": 126.66666666666666
           }
         },
         {
@@ -1447,8 +1447,8 @@
           },
           "nodeId": "q9c2",
           "position": {
-            "x": 2918,
-            "y": 363
+            "x": 2823,
+            "y": 133.33333333333331
           }
         },
         {
@@ -1459,7 +1459,7 @@
           "nodeId": "q9c3",
           "position": {
             "x": 92,
-            "y": 188
+            "y": 132
           }
         },
         {
@@ -1469,8 +1469,8 @@
           },
           "nodeId": "q9c4",
           "position": {
-            "x": 804,
-            "y": 188
+            "x": 770,
+            "y": 92
           }
         },
         {
@@ -1480,8 +1480,8 @@
           },
           "nodeId": "q9c5",
           "position": {
-            "x": 1535,
-            "y": 200
+            "x": 1481,
+            "y": 104
           }
         }
       ]
@@ -1495,7 +1495,7 @@
           "source": "q10c2",
           "target": "q10c1",
           "relType": "Supplies mechanism for flattening hierarchy",
-          "sourceHandle": "src-right-4",
+          "sourceHandle": "src-bottom-0",
           "targetHandle": "tgt-top-0"
         },
         {
@@ -1504,8 +1504,8 @@
           "source": "q10c3",
           "target": "q10c1",
           "relType": "Names the role shift enabling lateralness",
-          "sourceHandle": "src-right-2",
-          "targetHandle": "tgt-left-4"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q10-e2",
@@ -1513,8 +1513,8 @@
           "source": "q10c4",
           "target": "q10c1",
           "relType": "Counters lateral hope with asymmetric power",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-left-0"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q10-e3",
@@ -1522,8 +1522,8 @@
           "source": "q10c4",
           "target": "q10c3",
           "relType": "Recasts orchestrator as concentrated authority",
-          "sourceHandle": "src-right-4",
-          "targetHandle": "tgt-left-1"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         },
         {
           "id": "q10-e4",
@@ -1531,8 +1531,8 @@
           "source": "q10c5",
           "target": "q10c1",
           "relType": "Conditions lateralness on durable bonds",
-          "sourceHandle": "src-right-0",
-          "targetHandle": "tgt-bottom-0"
+          "sourceHandle": "src-bottom-0",
+          "targetHandle": "tgt-top-0"
         }
       ],
       "cruxId": "q10",
@@ -1544,8 +1544,8 @@
           },
           "nodeId": "q10c1",
           "position": {
-            "x": 1487,
-            "y": 452
+            "x": 514.8,
+            "y": 907
           }
         },
         {
@@ -1555,8 +1555,8 @@
           },
           "nodeId": "q10c2",
           "position": {
-            "x": 787,
-            "y": 226
+            "x": 491,
+            "y": 503
           }
         },
         {
@@ -1566,8 +1566,8 @@
           },
           "nodeId": "q10c3",
           "position": {
-            "x": 787,
-            "y": 456
+            "x": 853,
+            "y": 479
           }
         },
         {
@@ -1577,8 +1577,8 @@
           },
           "nodeId": "q10c4",
           "position": {
-            "x": 92,
-            "y": 441
+            "x": 899,
+            "y": 92
           }
         },
         {
@@ -1588,8 +1588,8 @@
           },
           "nodeId": "q10c5",
           "position": {
-            "x": 825,
-            "y": 710
+            "x": 167,
+            "y": 479
           }
         }
       ]

@@ -26,9 +26,32 @@
 // bundle (relevant for the AUTO-FORMAT button) and to dodge any subtle
 // Workflow-step bundling weirdness in production builds.
 
+import { execFile } from "child_process";
+import { resolve } from "path";
 import type { HandleId } from "@/lib/schema";
 import type { LayoutStrategyId } from "./strategies";
 import { LAYOUT_STRATEGIES } from "./strategies";
+
+// Run ELK in a child process to avoid blocking the Next.js event loop.
+// child_process.execFile is completely outside webpack/bundler scope, so
+// ELK's fake-worker message loop works correctly with plain require().
+function runElkInWorker(graph: unknown): Promise<ElkRootOut> {
+  return new Promise((res, rej) => {
+    const scriptPath = resolve(process.cwd(), "lib/layout/elk-worker.cjs");
+    const child = execFile(
+      "node",
+      [scriptPath],
+      { timeout: 30_000, maxBuffer: 10 * 1024 * 1024 },
+      (error, stdout, stderr) => {
+        if (error) { rej(new Error(`ELK child: ${error.message} — ${stderr}`)); return; }
+        try { res(JSON.parse(stdout) as ElkRootOut); }
+        catch (e) { rej(new Error(`ELK parse failed: ${stderr}`)); }
+      },
+    );
+    child.stdin?.write(JSON.stringify(graph));
+    child.stdin?.end();
+  });
+}
 
 export type ElkNodeIn = {
   id: string;
@@ -95,91 +118,31 @@ function clamp(v: number, lo: number, hi: number): number {
 }
 
 /**
- * Pick the source + target sides for one edge as a COUPLED pair so xyflow's
- * smoothstep edge produces the minimum number of kinks for the geometry:
+ * Pick the source + target sides for one edge as a COUPLED pair that always
+ * produces a direct (0-kink straight line) connection from the center of one
+ * side to the center of the opposite side:
  *
- *   - 0 kinks (straight line) when the nodes are axially aligned (one above
- *     the other, or one beside the other, within ~30% of node size).
- *   - 1 kink (L-shape) when the nodes are diagonal — one side is vertical,
- *     the other horizontal, so the path is one straight segment + one turn.
- *   - 2 kinks (Z-shape) — avoided by construction; only happens if the user
- *     manually drags an endpoint to a side that doesn't match the geometry.
+ *   |dy| >= |dx|  →  bottom→top  (or top→bottom for upward edges)
+ *   |dx| >  |dy|  →  right→left  (or left→right for leftward edges)
  *
- * Picking sides independently per endpoint (the previous approach) defaulted
- * to both-vertical or both-horizontal for diagonal cases, which forces
- * smoothstep into a Z. Coupling the choice fixes that.
+ * Diagonal edges always use the dominant axis so the path is a straight line
+ * between side-centers rather than an L-shaped bezier that appears to emerge
+ * from a corner.
  */
 function chooseSides(
   src: { x: number; y: number; width: number; height: number },
   tgt: { x: number; y: number; width: number; height: number },
-  flowHint?: "down" | "right",
 ): { srcSide: Side; tgtSide: Side } {
-  const sCx = src.x + src.width / 2;
-  const sCy = src.y + src.height / 2;
-  const tCx = tgt.x + tgt.width / 2;
-  const tCy = tgt.y + tgt.height / 2;
-  const dx = tCx - sCx;
-  const dy = tCy - sCy;
-  const ax = Math.abs(dx);
-  const ay = Math.abs(dy);
-
-  // "Axially aligned" — the off-axis displacement is small enough that an
-  // opposite-side connection produces a (near-)straight line. 30% of the
-  // smaller node's relevant extent is a practical threshold.
-  const xAligned = ax <= 0.3 * Math.min(src.width, tgt.width);
-  const yAligned = ay <= 0.3 * Math.min(src.height, tgt.height);
-
-  if (xAligned && !yAligned) {
-    // Nodes stacked vertically — straight top/bottom connection (0 kinks).
+  const dx = (tgt.x + tgt.width / 2) - (src.x + src.width / 2);
+  const dy = (tgt.y + tgt.height / 2) - (src.y + src.height / 2);
+  if (Math.abs(dy) >= Math.abs(dx)) {
     return dy >= 0
       ? { srcSide: "bottom", tgtSide: "top" }
       : { srcSide: "top", tgtSide: "bottom" };
   }
-  if (yAligned && !xAligned) {
-    // Nodes side-by-side — straight left/right connection (0 kinks).
-    return dx >= 0
-      ? { srcSide: "right", tgtSide: "left" }
-      : { srcSide: "left", tgtSide: "right" };
-  }
-  if (xAligned && yAligned) {
-    // Nodes basically overlap — fall back to whichever axis has any room.
-    return ay >= ax
-      ? dy >= 0
-        ? { srcSide: "bottom", tgtSide: "top" }
-        : { srcSide: "top", tgtSide: "bottom" }
-      : dx >= 0
-        ? { srcSide: "right", tgtSide: "left" }
-        : { srcSide: "left", tgtSide: "right" };
-  }
-
-  // Diagonal — target is in a quadrant relative to source. 1-kink L-shape:
-  // one endpoint uses a vertical side, the other a horizontal side. The
-  // dominant displacement axis decides which side the source exits, the
-  // perpendicular axis decides which side the target enters.
-  //
-  // For layered-down layouts: when the target is primarily below the source,
-  // always enter the target from the top so edges flow cleanly downward
-  // instead of arriving at the left/right side corners.
-  if (flowHint === "down" && dy > 0) {
-    return { srcSide: "bottom", tgtSide: "top" };
-  }
-  if (flowHint === "down" && dy < 0) {
-    return { srcSide: "top", tgtSide: "bottom" };
-  }
-  if (ax >= ay) {
-    // Primarily horizontal — source leaves through right/left, target
-    // enters through top/bottom. Path: long horizontal, then short vertical.
-    return {
-      srcSide: dx > 0 ? "right" : "left",
-      tgtSide: dy > 0 ? "top" : "bottom",
-    };
-  }
-  // Primarily vertical — source leaves through top/bottom, target enters
-  // through left/right. Path: long vertical, then short horizontal.
-  return {
-    srcSide: dy > 0 ? "bottom" : "top",
-    tgtSide: dx > 0 ? "left" : "right",
-  };
+  return dx > 0
+    ? { srcSide: "right", tgtSide: "left" }
+    : { srcSide: "left", tgtSide: "right" };
 }
 
 /** Where along its chosen side does this edge naturally want to attach? */
@@ -264,15 +227,10 @@ function assignSlots(
  *   targetHandle = `tgt-${side}-${slot}`  — same, from the target's POV
  *
  * Slots distribute edges that share a (node, side) so they don't stack.
- *
- * `flowHint` — pass "down" for layered-down layouts so diagonal edges
- * always enter the target from the top (not left/right), keeping the
- * downward-flow visual clean.
  */
 function assignClosestSideHandles(
   nodes: LaidOutNode[],
   edges: Array<{ id: string; source: string; target: string }>,
-  flowHint?: "down" | "right",
 ): Map<string, { sourceHandle: HandleId; targetHandle: HandleId }> {
   const nodeById = new Map<string, LaidOutNode>();
   for (const n of nodes) nodeById.set(n.id, n);
@@ -288,7 +246,7 @@ function assignClosestSideHandles(
     const sCy = s.y + s.height / 2;
     const tCx = t.x + t.width / 2;
     const tCy = t.y + t.height / 2;
-    const { srcSide, tgtSide } = chooseSides(s, t, flowHint);
+    const { srcSide, tgtSide } = chooseSides(s, t);
     infos.push({
       edgeId: e.id,
       sourceId: e.source,
@@ -336,8 +294,8 @@ function assignClosestSideHandles(
     { sourceHandle: HandleId; targetHandle: HandleId }
   >();
   for (const info of infos) {
-    const sSlot = srcSlotByEdge.get(info.edgeId) ?? 2;
-    const tSlot = tgtSlotByEdge.get(info.edgeId) ?? 2;
+    const sSlot = srcSlotByEdge.get(info.edgeId) ?? 0;
+    const tSlot = tgtSlotByEdge.get(info.edgeId) ?? 0;
     out.set(info.edgeId, {
       sourceHandle: `src-${info.srcSide}-${sSlot}` as HandleId,
       targetHandle: `tgt-${info.tgtSide}-${tSlot}` as HandleId,
@@ -359,17 +317,6 @@ export async function runElkLayout(
   elkOptionsOverride?: Record<string, string>,
 ): Promise<LaidOut | null> {
   if (nodes.length === 0) return null;
-
-  // elkjs ships a CommonJS bundle whose default export is the constructor.
-  // Dynamic import keeps it out of the main browser bundle and works in Node
-  // (workflow step) and the browser identically.
-  const mod = (await import("elkjs/lib/elk.bundled.js")) as unknown as {
-    default: new () => {
-      layout: (graph: unknown) => Promise<unknown>;
-    };
-  };
-  const ElkCtor = mod.default;
-  const elk = new ElkCtor();
 
   const strategy = LAYOUT_STRATEGIES[strategyId];
   const elkOptions = elkOptionsOverride
@@ -408,7 +355,7 @@ export async function runElkLayout(
     })),
   };
 
-  const result = (await elk.layout(graph)) as ElkRootOut;
+  const result = await runElkInWorker(graph);
 
   const children = result.children ?? [];
   const laidNodes: LaidOutNode[] = children.map((c) => ({
@@ -420,8 +367,7 @@ export async function runElkLayout(
   }));
 
   // Closest-side + slot assignment over ELK's chosen positions.
-  const flowHint = strategyId === "layered-down" ? "down" : strategyId === "layered-right" ? "right" : undefined;
-  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges, flowHint);
+  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges);
 
   const laidEdges: LaidOutEdge[] = [];
   for (const edge of result.edges ?? []) {

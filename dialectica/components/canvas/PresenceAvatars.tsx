@@ -27,7 +27,7 @@ export function PresenceAvatars({
   const all: PresenceUser[] = [{ userId, displayName }, ...others];
 
   return (
-    <div className="pointer-events-none fixed right-8 top-8 z-[100] flex items-center">
+    <div className="pointer-events-none fixed right-8 top-8 z-[200] flex items-center">
       {all.map((u, i) => (
         <Pip key={u.userId} user={u} index={i} total={all.length} isCurrentUser={u.userId === userId} />
       ))}

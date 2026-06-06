@@ -15,43 +15,53 @@
 //   - annotations, crossLinks, meta, createdAt, id, title
 
 import type { ArgMap, Edge, HandleId } from "@/lib/schema";
-import { runElkLayout, type ElkEdgeIn, type ElkNodeIn, type LaidOut } from "./elkAdapter";
+import { runElkLayout, type ElkEdgeIn, type ElkNodeIn } from "./elkAdapter";
 import { measureWrappedText } from "./measureText";
 import {
   DEFAULT_STRATEGY,
   type LayoutStrategyId,
 } from "./strategies";
 
-// Usable canvas dimensions after the fixed header is subtracted.
-// Used to score which ELK direction fills the viewport better.
-const VIEWPORT_W = 1200;
-const VIEWPORT_H = 640;
-
-// Run layered-down and layered-right in parallel and return whichever
-// produces a layout that fills the viewport more (higher min-scale factor).
-async function pickBestFrameLayout(
+// Pick layered-right vs layered-down based on graph topology — no extra ELK
+// call needed. For typical argument map frames (DAGs with one or two roots),
+// "depth" is the longest path from a root, "breadth" is the max number of
+// nodes at the same depth. If the graph is deeper than it is wide, a
+// horizontal (right) layout fits the viewport better.
+function pickFrameStrategy(
   nodes: ElkNodeIn[],
   edges: ElkEdgeIn[],
-): Promise<{ strategyId: LayoutStrategyId; layout: LaidOut }> {
-  const [down, right] = await Promise.all([
-    runElkLayout(nodes, edges, "layered-down"),
-    runElkLayout(nodes, edges, "layered-right"),
-  ]);
+): LayoutStrategyId {
+  if (nodes.length <= 1) return "layered-down";
 
-  const score = (layout: LaidOut) => {
-    const w = Math.max(...layout.nodes.map((n) => n.x + n.width));
-    const h = Math.max(...layout.nodes.map((n) => n.y + n.height));
-    // Higher score = layout fills more of the viewport = larger nodes on screen.
-    return Math.min(VIEWPORT_W / w, VIEWPORT_H / h);
-  };
-
-  const downScore = down ? score(down) : 0;
-  const rightScore = right ? score(right) : 0;
-
-  if (rightScore > downScore && right) {
-    return { strategyId: "layered-right", layout: right };
+  const inDegree = new Map<string, number>(nodes.map((n) => [n.id, 0]));
+  const adj = new Map<string, string[]>(nodes.map((n) => [n.id, []]));
+  for (const e of edges) {
+    inDegree.set(e.target, (inDegree.get(e.target) ?? 0) + 1);
+    adj.get(e.source)?.push(e.target);
   }
-  return { strategyId: "layered-down", layout: down! };
+
+  // BFS from all roots. Guard against cycles (feedback edges in pipeline maps)
+  // by capping total iterations — good-enough approximation for direction pick.
+  const depth = new Map<string, number>(nodes.map((n) => [n.id, 0]));
+  const queue = nodes.filter((n) => (inDegree.get(n.id) ?? 0) === 0).map((n) => n.id);
+  const maxIter = nodes.length * nodes.length;
+  for (let i = 0; i < queue.length && i < maxIter; i++) {
+    const cur = queue[i];
+    for (const next of adj.get(cur) ?? []) {
+      const d = (depth.get(cur) ?? 0) + 1;
+      if (d > (depth.get(next) ?? 0)) {
+        depth.set(next, d);
+        queue.push(next);
+      }
+    }
+  }
+
+  const maxDepth = Math.max(...depth.values());
+  const widthByLevel = new Array<number>(maxDepth + 1).fill(0);
+  for (const d of depth.values()) widthByLevel[d]++;
+  const maxBreadth = Math.max(...widthByLevel);
+
+  return maxDepth >= maxBreadth ? "layered-right" : "layered-down";
 }
 
 
@@ -236,28 +246,30 @@ export async function autoFormatArgMap(
       label: measureLabel(e.label),
     }));
 
-    const { strategyId: frameStrategy, layout: frameLayout } =
-      await pickBestFrameLayout(frameElkNodes, frameElkEdges);
+    const frameStrategy = pickFrameStrategy(frameElkNodes, frameElkEdges);
+    const frameLayout = await runElkLayout(frameElkNodes, frameElkEdges, frameStrategy);
     log(`  frame ${frameId} → ${frameStrategy}`);
 
     const positions = new Map<string, { x: number; y: number }>();
     const sizes = new Map<string, { width: number; height: number }>();
-    for (const n of frameLayout.nodes) {
-      positions.set(n.id, {
-        x: n.x + FRAME_ORIGIN.x,
-        y: n.y + FRAME_ORIGIN.y,
-      });
-      sizes.set(n.id, { width: n.width, height: n.height });
-    }
     const edgeHandles = new Map<
       string,
       { sourceHandle: HandleId; targetHandle: HandleId }
     >();
-    for (const e of frameLayout.edges) {
-      edgeHandles.set(e.id, {
-        sourceHandle: e.sourceHandle,
-        targetHandle: e.targetHandle,
-      });
+    if (frameLayout) {
+      for (const n of frameLayout.nodes) {
+        positions.set(n.id, {
+          x: n.x + FRAME_ORIGIN.x,
+          y: n.y + FRAME_ORIGIN.y,
+        });
+        sizes.set(n.id, { width: n.width, height: n.height });
+      }
+      for (const e of frameLayout.edges) {
+        edgeHandles.set(e.id, {
+          sourceHandle: e.sourceHandle,
+          targetHandle: e.targetHandle,
+        });
+      }
     }
 
     const nextNodeInstances = frame.nodeInstances.map((inst) => ({

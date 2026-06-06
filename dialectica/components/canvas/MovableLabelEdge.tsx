@@ -81,17 +81,17 @@ export function MovableLabelEdge({
     return () => clearTimeout(timer);
   }, [isExpandedOrHovered]);
 
-  // Direct connections (handles face each other: right→left, bottom→top, etc.)
-  // draw as a straight line. Turning connections keep the bezier.
-  const isDirect =
-    (sourcePosition === Position.Right && targetPosition === Position.Left) ||
-    (sourcePosition === Position.Left && targetPosition === Position.Right) ||
-    (sourcePosition === Position.Bottom && targetPosition === Position.Top) ||
-    (sourcePosition === Position.Top && targetPosition === Position.Bottom);
+  // Axially-aligned connections (endpoints differ only on one axis) draw as
+  // straight lines. Diagonal connections get a bezier so the convergent fan-in
+  // of multiple edges arriving at the same tile curves gracefully.
+  const DIAGONAL_PX = 40;
+  const isDiagonal =
+    Math.abs(targetX - sourceX) > DIAGONAL_PX &&
+    Math.abs(targetY - sourceY) > DIAGONAL_PX;
 
-  const [edgePath, midX, midY] = isDirect
-    ? getStraightPath({ sourceX, sourceY, targetX, targetY })
-    : getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature });
+  const [edgePath, midX, midY] = isDiagonal
+    ? getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: curvature || 0.25 })
+    : getStraightPath({ sourceX, sourceY, targetX, targetY });
 
   const pathMetrics = useMemo(() => {
     if (typeof document === "undefined") return null;
