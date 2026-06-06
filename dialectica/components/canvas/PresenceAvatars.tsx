@@ -4,7 +4,12 @@ import { useState } from "react";
 import { usePresence } from "@/lib/realtime/presence";
 import type { PresenceUser } from "@/lib/realtime/presence";
 
+const HEADSHOT: Record<string, string> = {
+  "dev-max": "/headshots/02.png",
+};
+
 function headshotSrc(id: string): string {
+  if (HEADSHOT[id]) return HEADSHOT[id];
   let h = 0;
   for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) & 0xffff;
   return `/headshots/0${(h % 4) + 1}.png`;
