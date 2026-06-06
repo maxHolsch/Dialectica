@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
+import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 import {
   MarkerType,
   type Node,
@@ -227,7 +228,12 @@ export function CruxCanvas({
       )}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
-        style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
+        style={{
+          height: 140,
+          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
+          backgroundSize: "auto, 700px 700px",
+          backgroundRepeat: "repeat",
+        }}
       />
       <div
         className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center"

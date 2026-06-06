@@ -48,18 +48,46 @@ export default async function ArtifactGatePage({
         <form action={action} className="mt-8 space-y-4">
           <label className="block">
             <span className="font-mono text-[11px] uppercase tracking-[1.2px] text-dia-fg-dim">
+              Name
+            </span>
+            <input
+              name="name"
+              type="text"
+              required
+              autoFocus
+              autoComplete="name"
+              className="mt-1 block h-11 w-full rounded-md border border-dia-border-strong bg-dia-bg px-3 font-mono text-[13px] text-dia-fg placeholder:text-dia-fg-dim outline-none focus:border-dia-mint"
+            />
+          </label>
+          <label className="block">
+            <span className="font-mono text-[11px] uppercase tracking-[1.2px] text-dia-fg-dim">
+              Email
+            </span>
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              className="mt-1 block h-11 w-full rounded-md border border-dia-border-strong bg-dia-bg px-3 font-mono text-[13px] text-dia-fg placeholder:text-dia-fg-dim outline-none focus:border-dia-mint"
+            />
+          </label>
+          <label className="block">
+            <span className="font-mono text-[11px] uppercase tracking-[1.2px] text-dia-fg-dim">
               Password
             </span>
             <input
               name="password"
               type="password"
               required
-              autoFocus
               autoComplete="off"
               className="mt-1 block h-11 w-full rounded-md border border-dia-border-strong bg-dia-bg px-3 font-mono text-[13px] text-dia-fg placeholder:text-dia-fg-dim outline-none focus:border-dia-mint"
             />
           </label>
-          {error ? (
+          {error === "fields" ? (
+            <p className="font-mono text-[12px] text-red-500">
+              Name and email are required.
+            </p>
+          ) : error ? (
             <p className="font-mono text-[12px] text-red-500">
               Incorrect password.
             </p>

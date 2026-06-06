@@ -7,6 +7,7 @@ import type { ArgMap, Frame, Annotation } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { FrameCanvas } from "./FrameCanvas";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
+import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 
 const ENTER_MS = 220;
 const EXIT_MS = 200;
@@ -91,8 +92,9 @@ export function FrameView({
           className="pointer-events-none absolute inset-x-0 top-0"
           style={{
             height: 220,
-            background:
-              "linear-gradient(to bottom, white 0%, white 60%, rgba(255,255,255,0) 100%)",
+            backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
+            backgroundSize: "auto, 700px 700px",
+            backgroundRepeat: "repeat",
           }}
         />
 

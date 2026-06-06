@@ -4,6 +4,7 @@ import { currentUser, avatarFor } from "@/lib/data/users";
 import { listAnnotationsForMap } from "@/lib/data/annotations";
 import { CruxCanvas } from "@/components/crux/CruxCanvas";
 import { LivePill } from "@/components/topbar/LivePill";
+import { getArtifactVisitor } from "@/lib/artifact";
 
 /**
  * Persistent map layout — the CruxCanvas stays mounted across crux↔frame
@@ -18,33 +19,49 @@ export default async function MapLayout({
   params: Promise<{ mapId: string }>;
 }) {
   const { mapId } = await params;
-  const [map, user, annotations] = await Promise.all([
+  const [map, user, annotations, artifactVisitor] = await Promise.all([
     getMap(mapId),
     currentUser(),
     listAnnotationsForMap(mapId),
+    getArtifactVisitor(mapId),
   ]);
   if (!map) notFound();
-  const avatar = user ? avatarFor(user) : { initials: "?", color: "#cdf4d3" };
+  // Artifact-mode visitors aren't real Supabase users; synthesize an AppUser-
+  // shaped identity from the unlock cookie so presence and on-canvas attribution
+  // can distinguish two people who used the same shared password.
+  const effectiveUser = user
+    ? user
+    : artifactVisitor
+      ? {
+          id: artifactVisitor.id,
+          email: artifactVisitor.email,
+          displayName: artifactVisitor.name,
+          role: "view" as const,
+        }
+      : null;
+  const avatar = effectiveUser
+    ? avatarFor(effectiveUser)
+    : { initials: "?", color: "#cdf4d3" };
 
   return (
     <div className="relative h-screen bg-dia-bg">
       <CruxCanvas
         map={map}
         annotations={annotations}
-        userId={user?.id ?? "anon"}
-        displayName={user?.displayName ?? "Anonymous"}
+        userId={effectiveUser?.id ?? "anon"}
+        displayName={effectiveUser?.displayName ?? "Anonymous"}
         userColor={avatar.color}
         isEditMode={user?.role === "edit"}
         hideClose={!user}
       />
       {/* Frame view mounts here as a fixed overlay; null on crux route */}
       {children}
-      {user ? (
+      {effectiveUser ? (
         <div className="pointer-events-auto fixed right-6 top-5 z-[60]">
           <LivePill
             channelKey={`map:${mapId}`}
-            userId={user.id}
-            displayName={user.displayName}
+            userId={effectiveUser.id}
+            displayName={effectiveUser.displayName}
           />
         </div>
       ) : null}

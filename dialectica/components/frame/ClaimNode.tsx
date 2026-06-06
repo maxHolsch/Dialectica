@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import type { NodeProps } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import { NodeHandles } from "@/components/canvas/NodeHandles";
 import { useUIStore } from "@/lib/state/useUIStore";
 
@@ -30,6 +31,7 @@ function SnippetQuoteButton({
 }) {
   const openSnippetDrawer = useUIStore((s) => s.openSnippetDrawer);
   const openSidePanel = useUIStore((s) => s.openSidePanel);
+  const { getNode, setViewport } = useReactFlow();
   const label =
     count > 0
       ? `Top ${count} related ${count === 1 ? "snippet" : "snippets"}`
@@ -46,6 +48,17 @@ function SnippetQuoteButton({
         e.stopPropagation();
         openSidePanel({ frameId, nodeId });
         openSnippetDrawer({ frameId, nodeId });
+        const node = getNode(nodeId);
+        if (node) {
+          const nodeW = (node.measured?.width ?? node.width ?? 368) as number;
+          const nodeH = (node.measured?.height ?? node.height ?? 300) as number;
+          const cx = node.position.x + nodeW / 2;
+          const cy = node.position.y + nodeH / 2;
+          setViewport(
+            { x: window.innerWidth / 2 - cx, y: window.innerHeight / 2 + 50 - cy, zoom: 0.85 },
+            { duration: 500 },
+          );
+        }
       }}
     >
       &ldquo;
