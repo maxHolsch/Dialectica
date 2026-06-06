@@ -28,7 +28,11 @@ export async function proxy(request: NextRequest) {
     artifactMapId !== null &&
     request.cookies.get(artifactCookieName(artifactMapId)) !== undefined;
 
-  if (!user && !isAuthRoute && !isWorkflowInternal && !isArtifactGate && !hasArtifactCookie) {
+  // Dev-only internal scripts (e.g. layout backfill) call /api/internal/*
+  // directly without a session — only reachable in development anyway.
+  const isInternalApi = pathname.startsWith("/api/internal/");
+
+  if (!user && !isAuthRoute && !isWorkflowInternal && !isArtifactGate && !hasArtifactCookie && !isInternalApi) {
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
     url.searchParams.set("next", pathname);

@@ -151,55 +151,45 @@ You have THREE things below:
 2. The sub-question.
 3. The claims under it.
 
-NO CATEGORY LABELS:
-- Do NOT classify connections into a fixed vocabulary like "supports /
-  challenges / qualifies / reframes / depends-on / raises".
-- Do NOT use "agrees", "disagrees", "is in tension with", "for", "against",
-  or anything that just restates that two claims are related.
-- Each connection has ONE field: a short verb phrase that names the actual
-  move from "from" to "to".
+EACH CONNECTION HAS TWO FIELDS:
 
-THE LABEL — THIS IS THE WHOLE POINT:
-- Each "label" is a short verb phrase describing what FROM does TO TO.
-- Hard length cap: 10 words MAXIMUM. Most should be ~4 words.
-- The label should make sense read on its own: "(from) <label> (to)".
-- Reference the substance of the move, not just the existence of the relation.
-- Concrete, active, specific. If you cannot write a label that earns its
-  edge, drop the connection. 3 sharp connections beat 6 flat ones.
-- please create 3-4 labels in total
+1. "type" — a single word from this palette that names the KIND of move:
+   Supports | Contests | Qualifies | Reframes | Extends | Grounds | Implies | Illustrates
+   If none fit, coin a short hyphenated word (e.g. "Narrows"). Never use
+   pro/con / for/against. This is the collapsed label shown by default in the UI.
 
-BAD (do not produce these):
+2. "label" — a short verb phrase (4–10 words) that names the SPECIFIC WAY
+   the connection holds in this case. This is revealed on hover.
+   - Must make sense read on its own: "(from) <label> (to)".
+   - Reference the actual substance — do NOT just restate the type word.
+   - Hard cap: 10 words. Aim for ~4–6.
+
+BAD label (do not produce these):
 - "agrees" ← restates that the claims are related, not how
-- "disagrees" ← same problem
 - "in tension with" ← flat, no substance
 - "supports the idea that" ← category-flavored filler
-- "is related to" ← contentless
 
-GOOD (this is the bar — short, active, specific):
-- "Gives explanation to"             (3 words)
-- "Contests the significance of"     (4 words)
-- "Shifts responsibility from tool to user"   (6 words)
-- "Reframes question from 'what' to 'how'"    (6 words)
-- "Provides empirical baseline for"   (4 words)
-
-The third and fourth examples are the target — labels that move the
-argument forward, not just classify it.
+GOOD examples (type → label):
+- Contests → "Contests the significance of"
+- Reframes → "Reframes question from 'what' to 'how'"
+- Grounds  → "Provides empirical baseline for"
+- Implies  → "Offloading cognition slides into passivity"
 
 NARRATIVE COHERENCE:
 - The set of connections should read as a small story, not a flat list. When
-  you have flexibility in how to phrase a label, prefer the framing that
-  makes the next connection feel like it follows.
+  you have flexibility, prefer the framing that makes the next connection
+  feel like it follows.
 
 HARD RULES:
 - Every "from"/"to" must be one of the claim ids you receive.
-- Every connection has a "label". MAX 10 words. Aim for ~4.
+- Every connection must have both "type" and "label".
 - "question_id" is the id of this question (provided in INPUT).
 - Don't force connections that don't exist.
 
 INPUT: transcript + sub-question + claims follow below.
 
 OUTPUT (return ONLY this JSON, no prose, no markdown fences):
-{"relationships":[{"from":"c1","to":"c2","label":"Gives explanation to","question_id":"q1"}]}`;
+{"relationships":[{"from":"c1","to":"c2","type":"Contests","label":"Contests the significance of","question_id":"q1"}]}`;
 
 // Cross-question stitching. We pass the transcript along so connections
 // between questions are grounded in what was actually said — same standard
@@ -543,9 +533,7 @@ export async function stage2RelateWithinQuestions(
       subQuestion: group.question,
       });
     const input = `TRANSCRIPT:\n${transcript}\n\nSUB-QUESTION (id ${group.questionId}): ${group.question}\n\nCLAIMS:\n${JSON.stringify(group.claims, null, 2)}`;
-    // New question-guided shape: each connection is just {from, to, label}.
-    // No category. No "type" enum. The label IS the connection.
-    type LlmRelEdge = { from: string; to: string; label?: string };
+    type LlmRelEdge = { from: string; to: string; type?: string; label?: string };
     const { parsed, usage } = await callJson<{
       relationships: LlmRelEdge[];
     }>(prompt, input, params);
@@ -556,15 +544,12 @@ export async function stage2RelateWithinQuestions(
       const words = s.trim().split(/\s+/).filter(Boolean);
       return words.length <= max ? words.join(" ") : words.slice(0, max).join(" ");
     };
-    // Mapping into the shared Relationship shape: keep `type` empty (no
-    // palette) and store the short verb phrase in `note`. mapToArgMap then
-    // produces edges with empty relType and the phrase as the edge `label`.
     const relationships: Relationship[] = (parsed.relationships ?? [])
       .filter((r) => valid.has(r.from) && valid.has(r.to))
       .map((r) => ({
         from: r.from,
         to: r.to,
-        type: "",
+        type: String(r.type ?? "").trim(),
         note: clampWords(String(r.label ?? "").trim(), 10),
         question_id: group.questionId,
       }))

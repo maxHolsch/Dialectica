@@ -474,55 +474,55 @@
       "edges": [
         {
           "id": "q1-e0",
-          "label": "Implies",
+          "label": "AI-assisted synthesis atrophies critical thinking practice",
           "source": "q1c1",
           "target": "q1c2",
-          "relType": "AI-assisted synthesis atrophies critical thinking practice",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q1-e1",
-          "label": "Implies",
+          "label": "Offloading cognition slides into intellectual passivity",
           "source": "q1c1",
           "target": "q1c4",
-          "relType": "Offloading cognition slides into intellectual passivity",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q1-e2",
-          "label": "Reframes",
+          "label": "Retrieval and recombination is not the same as understanding",
           "source": "q1c3",
           "target": "q1c1",
-          "relType": "Retrieval and recombination is not the same as understanding",
+          "relType": "Reframes",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q1-e3",
-          "label": "Extends",
+          "label": "Atrophied synthesis taken to the extreme becomes cognitive surrender",
           "source": "q1c2",
           "target": "q1c4",
-          "relType": "Atrophied synthesis taken to the extreme becomes cognitive surrender",
+          "relType": "Extends",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q1-e4",
-          "label": "Qualifies",
+          "label": "AI boosts surface-level verbal recall, not embodied judgment",
           "source": "q1c5",
           "target": "q1c1",
-          "relType": "AI boosts surface-level verbal recall, not embodied judgment",
+          "relType": "Qualifies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q1-e5",
-          "label": "Grounds",
+          "label": "Narrow factual retrieval is the cognition AI actually augments",
           "source": "q1c5",
           "target": "q1c3",
-          "relType": "Narrow factual retrieval is the cognition AI actually augments",
+          "relType": "Grounds",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -591,55 +591,55 @@
       "edges": [
         {
           "id": "q2-e0",
-          "label": "Implies",
+          "label": "Exposes hollowness behind claimed expertise",
           "source": "q2c1",
           "target": "q2c2",
-          "relType": "Exposes hollowness behind claimed expertise",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e1",
-          "label": "Instances",
+          "label": "Illustrates access mistaken for knowledge",
           "source": "q2c5",
           "target": "q2c1",
-          "relType": "Illustrates access mistaken for knowledge",
+          "relType": "Illustrates",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e2",
-          "label": "Contests",
+          "label": "Defends frontier expertise against dismissal",
           "source": "q2c3",
           "target": "q2c2",
-          "relType": "Defends frontier expertise against dismissal",
+          "relType": "Contests",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e3",
-          "label": "Grounds",
+          "label": "Grounds irreducible expertise in lived experience",
           "source": "q2c4",
           "target": "q2c3",
-          "relType": "Grounds irreducible expertise in lived experience",
+          "relType": "Grounds",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e4",
-          "label": "Qualifies",
+          "label": "Names what access leaves out",
           "source": "q2c4",
           "target": "q2c1",
-          "relType": "Names what access leaves out",
+          "relType": "Qualifies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q2-e5",
-          "label": "Contests",
+          "label": "Severs ability from earned mastery",
           "source": "q2c5",
           "target": "q2c3",
-          "relType": "Severs ability from earned mastery",
+          "relType": "Contests",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -708,55 +708,55 @@
       "edges": [
         {
           "id": "q3-e0",
-          "label": "Qualifies",
+          "label": "Supplies criteria the 21-day churn fails",
           "source": "q3c1",
           "target": "q3c2",
-          "relType": "Supplies criteria the 21-day churn fails",
+          "relType": "Qualifies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e1",
-          "label": "Instances",
+          "label": "Instances churn as cohort dissipation",
           "source": "q3c2",
           "target": "q3c3",
-          "relType": "Instances churn as cohort dissipation",
+          "relType": "Illustrates",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q3-e2",
-          "label": "Reframes",
+          "label": "Strips relational bonds from definition",
           "source": "q3c4",
           "target": "q3c1",
-          "relType": "Strips relational bonds from definition",
+          "relType": "Reframes",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e3",
-          "label": "Contests",
+          "label": "Reinserts trust against bare interconnection",
           "source": "q3c1",
           "target": "q3c4",
-          "relType": "Reinserts trust against bare interconnection",
+          "relType": "Contests",
           "sourceHandle": "src-top-2",
           "targetHandle": "tgt-bottom-2"
         },
         {
           "id": "q3-e4",
-          "label": "Contests",
+          "label": "Counters churn with band-like durability",
           "source": "q3c5",
           "target": "q3c2",
-          "relType": "Counters churn with band-like durability",
+          "relType": "Contests",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q3-e5",
-          "label": "Extends",
+          "label": "Adds 'works well together' to criteria",
           "source": "q3c5",
           "target": "q3c1",
-          "relType": "Adds 'works well together' to criteria",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -825,46 +825,46 @@
       "edges": [
         {
           "id": "q4-e0",
-          "label": "Implies",
+          "label": "Names emerging figure replacing",
           "source": "q4c2",
           "target": "q4c1",
-          "relType": "Names emerging figure replacing",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q4-e1",
-          "label": "Extends",
+          "label": "Specifies new function as",
           "source": "q4c1",
           "target": "q4c4",
-          "relType": "Specifies new function as",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q4-e2",
-          "label": "Contests",
+          "label": "Threatens to dissolve orchestrator role",
           "source": "q4c3",
           "target": "q4c1",
-          "relType": "Threatens to dissolve orchestrator role",
+          "relType": "Contests",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q4-e3",
-          "label": "Reframes",
+          "label": "Recasts orchestration as power concentration",
           "source": "q4c5",
           "target": "q4c1",
-          "relType": "Recasts orchestration as power concentration",
+          "relType": "Reframes",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q4-e4",
-          "label": "Qualifies",
+          "label": "Undercuts coaching framing with hierarchy",
           "source": "q4c5",
           "target": "q4c4",
-          "relType": "Undercuts coaching framing with hierarchy",
+          "relType": "Qualifies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -933,46 +933,46 @@
       "edges": [
         {
           "id": "q5-e0",
-          "label": "Instances",
+          "label": "Supplies somatic case for",
           "source": "q5c2",
           "target": "q5c1",
-          "relType": "Supplies somatic case for",
+          "relType": "Illustrates",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e1",
-          "label": "Grounds",
+          "label": "Supplies institutional case for",
           "source": "q5c3",
           "target": "q5c1",
-          "relType": "Supplies institutional case for",
+          "relType": "Grounds",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e2",
-          "label": "Extends",
+          "label": "Sharpens cognition gap as",
           "source": "q5c5",
           "target": "q5c1",
-          "relType": "Sharpens cognition gap as",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e3",
-          "label": "Supports",
+          "label": "Grounds collaboration claim in lived culture",
           "source": "q5c3",
           "target": "q5c4",
-          "relType": "Grounds collaboration claim in lived culture",
+          "relType": "Supports",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q5-e4",
-          "label": "Implies",
+          "label": "Illustrates frontier knowledge AI lacks",
           "source": "q5c2",
           "target": "q5c5",
-          "relType": "Illustrates frontier knowledge AI lacks",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1041,55 +1041,55 @@
       "edges": [
         {
           "id": "q6-e0",
-          "label": "Implies",
+          "label": "Translates lost utility into identity threat",
           "source": "q6c1",
           "target": "q6c3",
-          "relType": "Translates lost utility into identity threat",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e1",
-          "label": "Implies",
+          "label": "Triggers existential reckoning over meaning",
           "source": "q6c1",
           "target": "q6c2",
-          "relType": "Triggers existential reckoning over meaning",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e2",
-          "label": "Grounds",
+          "label": "Drives the nihilism it provokes",
           "source": "q6c3",
           "target": "q6c2",
-          "relType": "Drives the nihilism it provokes",
+          "relType": "Grounds",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q6-e3",
-          "label": "Reframes",
+          "label": "Reframes obsoleted utility as liberation",
           "source": "q6c4",
           "target": "q6c3",
-          "relType": "Reframes obsoleted utility as liberation",
+          "relType": "Reframes",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e4",
-          "label": "Contests",
+          "label": "Relocates value from utility to craft",
           "source": "q6c5",
           "target": "q6c1",
-          "relType": "Relocates value from utility to craft",
+          "relType": "Contests",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q6-e5",
-          "label": "Extends",
+          "label": "Specifies what freed time enables",
           "source": "q6c5",
           "target": "q6c4",
-          "relType": "Specifies what freed time enables",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1158,46 +1158,46 @@
       "edges": [
         {
           "id": "q7-e0",
-          "label": "Contests",
+          "label": "Names what mandates invert",
           "source": "q7c2",
           "target": "q7c3",
-          "relType": "Names what mandates invert",
+          "relType": "Contests",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q7-e1",
-          "label": "Extends",
+          "label": "Generalizes mandate pattern beyond AI",
           "source": "q7c4",
           "target": "q7c3",
-          "relType": "Generalizes mandate pattern beyond AI",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e2",
-          "label": "Implies",
+          "label": "Locates fun where minutiae stays low",
           "source": "q7c1",
           "target": "q7c2",
-          "relType": "Locates fun where minutiae stays low",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e3",
-          "label": "Grounds",
+          "label": "Supplies what scale erodes",
           "source": "q7c5",
           "target": "q7c1",
-          "relType": "Supplies what scale erodes",
+          "relType": "Grounds",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q7-e4",
-          "label": "Qualifies",
+          "label": "Mandated tracking displaces peer connection",
           "source": "q7c3",
           "target": "q7c5",
-          "relType": "Mandated tracking displaces peer connection",
+          "relType": "Qualifies",
           "sourceHandle": "src-top-2",
           "targetHandle": "tgt-bottom-2"
         }
@@ -1266,46 +1266,46 @@
       "edges": [
         {
           "id": "q8-e0",
-          "label": "Implies",
+          "label": "Collapsing credential path forces ability-based hiring",
           "source": "q8c4",
           "target": "q8c1",
-          "relType": "Collapsing credential path forces ability-based hiring",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e1",
-          "label": "Implies",
+          "label": "Broken track demands lifelong education redesign",
           "source": "q8c4",
           "target": "q8c3",
-          "relType": "Broken track demands lifelong education redesign",
+          "relType": "Implies",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e2",
-          "label": "Extends",
+          "label": "Extends making to learning capacity",
           "source": "q8c1",
           "target": "q8c2",
-          "relType": "Extends making to learning capacity",
+          "relType": "Extends",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         },
         {
           "id": "q8-e3",
-          "label": "Implies",
+          "label": "Adaptability hiring requires outcome over output metrics",
           "source": "q8c2",
           "target": "q8c5",
-          "relType": "Adaptability hiring requires outcome over output metrics",
+          "relType": "Implies",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q8-e4",
-          "label": "Supports",
+          "label": "Later-stage learning supplies the adaptable candidates",
           "source": "q8c3",
           "target": "q8c2",
-          "relType": "Later-stage learning supplies the adaptable candidates",
+          "relType": "Supports",
           "sourceHandle": "src-bottom-2",
           "targetHandle": "tgt-top-2"
         }
@@ -1374,55 +1374,55 @@
       "edges": [
         {
           "id": "q9-e0",
-          "label": "Yields jobs-corporatism reading as instance",
+          "label": "AI-in-employment is a case of technology-versus-institution confusion",
           "source": "q9c3",
           "target": "q9c1",
-          "relType": "AI-in-employment is a case of technology-versus-institution confusion",
+          "relType": "Yields jobs-corporatism reading as instance",
           "sourceHandle": "src-right-0",
           "targetHandle": "tgt-left-0"
         },
         {
           "id": "q9-e1",
-          "label": "Yields cheating-as-education-ground instance",
+          "label": "AI-in-education is another instance of blaming the tool",
           "source": "q9c3",
           "target": "q9c2",
-          "relType": "AI-in-education is another instance of blaming the tool",
+          "relType": "Yields cheating-as-education-ground instance",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-0"
         },
         {
           "id": "q9-e2",
-          "label": "Repeats amplification move on schools",
+          "label": "Both cases share the same amplification move",
           "source": "q9c1",
           "target": "q9c2",
-          "relType": "Both cases share the same amplification move",
+          "relType": "Repeats amplification move on schools",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-4"
         },
         {
           "id": "q9-e3",
-          "label": "Names the discernment people lack",
+          "label": "People eventually learn to see past institutional confusion",
           "source": "q9c3",
           "target": "q9c4",
-          "relType": "People eventually learn to see past institutional confusion",
+          "relType": "Names the discernment people lack",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q9-e4",
-          "label": "Locates harm in mandate, not tool",
+          "label": "Distinguishing tool from institution reveals policy as the real harm",
           "source": "q9c4",
           "target": "q9c5",
-          "relType": "Distinguishing tool from institution reveals policy as the real harm",
+          "relType": "Locates harm in mandate, not tool",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-2"
         },
         {
           "id": "q9-e5",
-          "label": "Specifies the amplified institution as policy",
+          "label": "Employment policy is the specific institution AI amplifies here",
           "source": "q9c5",
           "target": "q9c1",
-          "relType": "Employment policy is the specific institution AI amplifies here",
+          "relType": "Specifies the amplified institution as policy",
           "sourceHandle": "src-right-1",
           "targetHandle": "tgt-left-4"
         }
@@ -1491,46 +1491,46 @@
       "edges": [
         {
           "id": "q10-e0",
-          "label": "Supplies mechanism for flattening hierarchy",
+          "label": "Cross-disciplinary forcing produces more lateral team dynamics",
           "source": "q10c2",
           "target": "q10c1",
-          "relType": "Cross-disciplinary forcing produces more lateral team dynamics",
+          "relType": "Supplies mechanism for flattening hierarchy",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-top-0"
         },
         {
           "id": "q10-e1",
-          "label": "Names the role shift enabling lateralness",
+          "label": "Replacing the knowledge-hoarder enables more lateral, collaborative work",
           "source": "q10c3",
           "target": "q10c1",
-          "relType": "Replacing the knowledge-hoarder enables more lateral, collaborative work",
+          "relType": "Names the role shift enabling lateralness",
           "sourceHandle": "src-right-2",
           "targetHandle": "tgt-left-4"
         },
         {
           "id": "q10-e2",
-          "label": "Counters lateral hope with asymmetric power",
+          "label": "AI empowering only the top directly contradicts the lateral ideal",
           "source": "q10c4",
           "target": "q10c1",
-          "relType": "AI empowering only the top directly contradicts the lateral ideal",
+          "relType": "Counters lateral hope with asymmetric power",
           "sourceHandle": "src-right-0",
           "targetHandle": "tgt-left-0"
         },
         {
           "id": "q10-e3",
-          "label": "Recasts orchestrator as concentrated authority",
+          "label": "The orchestrator role may concentrate power rather than distribute it",
           "source": "q10c4",
           "target": "q10c3",
-          "relType": "The orchestrator role may concentrate power rather than distribute it",
+          "relType": "Recasts orchestrator as concentrated authority",
           "sourceHandle": "src-right-4",
           "targetHandle": "tgt-left-1"
         },
         {
           "id": "q10-e4",
-          "label": "Conditions lateralness on durable bonds",
+          "label": "Lateral dynamics require real team trust, not just cross-disciplinary assembly",
           "source": "q10c5",
           "target": "q10c1",
-          "relType": "Lateral dynamics require real team trust, not just cross-disciplinary assembly",
+          "relType": "Conditions lateralness on durable bonds",
           "sourceHandle": "src-right-0",
           "targetHandle": "tgt-bottom-0"
         }
