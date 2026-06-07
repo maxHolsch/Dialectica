@@ -17,6 +17,7 @@ import { applyMovePatch, applyDeletePatch, runAutoFormat, updateNodeText } from 
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
+import { stakeKey } from "@/lib/data/stakes-types";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
 import { SnippetDrawer } from "./SnippetDrawer";
 
@@ -53,6 +54,7 @@ export function FrameCanvas({
   const selectedNodeId = useUIStore((s) =>
     s.sidePanelNode?.frameId === frame.id ? s.sidePanelNode.nodeId : null,
   );
+  const hoveredNodeId = useUIStore((s) => s.hoveredNodeId);
 
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = frame.nodeInstances.map((inst) => {
@@ -67,9 +69,11 @@ export function FrameCanvas({
           text: canonical?.text ?? "",
           tint,
           selected: selectedNodeId === inst.nodeId,
-          // Snippet drawer affordance: the quote-mark button shows only when
-          // this claim has audio snippets. frameId lets the node open the
-          // drawer for the right (frame, node) pair.
+          hovered: hoveredNodeId === inst.nodeId,
+          stakes: stakes?.[stakeKey(frame.id, inst.nodeId)],
+          userId,
+          displayName,
+          mapId: map.id,
           frameId: frame.id,
           hasSnippets: !!canonical?.snippets?.length,
           snippetCount: canonical?.snippets?.length ?? 0,
@@ -101,7 +105,7 @@ export function FrameCanvas({
     }));
 
     return { nodes, edges };
-  }, [map, frame, selectedNodeId]);
+  }, [map, frame, selectedNodeId, hoveredNodeId, stakes, userId, displayName]);
 
   const onNodeMove = useCallback(
     (nodeId: string, position: { x: number; y: number }) => {

@@ -261,7 +261,7 @@ export function CruxCanvas({
         userColor={userColor}
         isEditMode={isEditMode}
         onNodeNavigate={onNodeNavigate}
-        onAutoFormat={isEditMode ? onAutoFormat : undefined}
+        onAutoFormat={undefined}
         moveHandlers={moveHandlers}
       />
     </div>

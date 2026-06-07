@@ -1,11 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Inter,
-  Roboto_Mono,
-  Merriweather,
-  DM_Sans,
-  Modern_Antiqua,
-} from "next/font/google";
+import { Inter, Roboto_Mono, Merriweather, DM_Sans, Caveat, Modern_Antiqua } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,6 +31,11 @@ const modernAntiqua = Modern_Antiqua({
   weight: "400",
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Dialectica",
   description: "A tool for creating, exploring, and annotating argument maps.",
@@ -50,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${robotoMono.variable} ${merriweather.variable} ${dmSans.variable} ${modernAntiqua.variable} h-full antialiased`}
+      className={`${inter.variable} ${robotoMono.variable} ${merriweather.variable} ${dmSans.variable} ${modernAntiqua.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-dia-bg text-dia-fg">
         {children}

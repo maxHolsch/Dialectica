@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { type NodeProps } from "@xyflow/react";
 import { getStroke } from "perfect-freehand";
 import {
@@ -9,24 +9,23 @@ import {
   isFreehandTool,
   toFreehandInput,
 } from "@/lib/canvas/freehand";
-import type { Annotation } from "@/lib/schema";
-import { createAnnotation } from "@/lib/data/mutations";
+import { hasPendingTextFocus, clearPendingTextFocus } from "@/lib/canvas/textFocus";
+import { createAnnotation, deleteAnnotation } from "@/lib/data/mutations";
 import { useUIStore } from "@/lib/state/useUIStore";
+import type { Annotation } from "@/lib/schema";
 
 type StrokeNodeData = {
   annotation: Annotation;
-  /** True when the active canvas mode is 'erase' — adds a hover affordance. */
   eraseHover: boolean;
-  /** True when the current user owns this annotation or is in edit mode. */
-  canEdit: boolean;
   mapId: string;
+  userId: string;
 };
 
 function StrokeNodeImpl({ data }: NodeProps) {
-  const { annotation, eraseHover, canEdit, mapId } = data as unknown as StrokeNodeData;
+  const { annotation, eraseHover, mapId, userId } = data as unknown as StrokeNodeData;
 
   if (annotation.tool === "textbox") {
-    return <TextBox annotation={annotation} eraseHover={eraseHover} canEdit={canEdit} mapId={mapId} />;
+    return <TextBox annotation={annotation} eraseHover={eraseHover} mapId={mapId} userId={userId} />;
   }
 
   return <FreehandStroke annotation={annotation} eraseHover={eraseHover} />;
@@ -41,12 +40,12 @@ function FreehandStroke({
   annotation: Annotation;
   eraseHover: boolean;
 }) {
-  const pathData = useMemo(() => {
+  const pathData = (() => {
     if (!isFreehandTool(annotation.tool)) return "";
     const preset = TOOL_PRESETS[annotation.tool];
     const stroke = getStroke(toFreehandInput(annotation.points), preset);
     return getSvgPathFromStroke(stroke);
-  }, [annotation.points, annotation.tool]);
+  })();
 
   const fillOpacity = isFreehandTool(annotation.tool)
     ? TOOL_PRESETS[annotation.tool].fillOpacity
@@ -81,91 +80,127 @@ function FreehandStroke({
 function TextBox({
   annotation,
   eraseHover,
-  canEdit,
   mapId,
 }: {
   annotation: Annotation;
   eraseHover: boolean;
-  canEdit: boolean;
   mapId: string;
+  userId: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const addOptimistic = useUIStore((s) => s.addOptimistic);
-  const lastDblClickRef = useRef<number>(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const mode = useUIStore((s) => s.mode);
+  const removeOptimistic = useUIStore((s) => s.removeOptimistic);
 
-  // Uncontrolled contentEditable: write the initial text once, then let the DOM own it.
-  // Re-rendering the children of a contentEditable resets the caret to the start.
+  // Set initial text content once on mount (uncontrolled contentEditable).
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const initial = annotation.text && annotation.text.length > 0 ? annotation.text : "text";
-    if (el.innerText !== initial) {
-      el.innerText = initial;
-    }
-    // Only auto-focus a freshly-placed textbox that belongs to the current user.
-    if (!canEdit) return;
-    const age = Date.now() - new Date(annotation.createdAt).getTime();
-    if (age > 3000) return;
+    el.innerText = annotation.text ?? "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Set true just before calling setIsEditing(true) so useLayoutEffect knows
+  // to focus+move-caret when it sees isEditing flip to true.
+  const focusOnEdit = useRef(false);
+
+  const enterEdit = useCallback(() => {
+    focusOnEdit.current = true;
+    setIsEditing(true);
+  }, []);
+
+  // useLayoutEffect fires synchronously after React commits the DOM (including
+  // contentEditable=true) but before the browser paints. This guarantees the
+  // div is actually focusable when we call focus(), which a rAF cannot.
+  useLayoutEffect(() => {
+    if (!isEditing || !focusOnEdit.current) return;
+    focusOnEdit.current = false;
+    clearPendingTextFocus();
+    const el = ref.current;
+    if (!el) return;
     el.focus({ preventScroll: true });
     const range = document.createRange();
     range.selectNodeContents(el);
     range.collapse(false);
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    // Only on mount — annotation.text is the placement-time value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+  }, [isEditing]);
 
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    const now = Date.now();
-    const el = ref.current;
-    if (!el) return;
-    if (now - lastDblClickRef.current < 600) {
-      // Second double-click: select all text
-      e.preventDefault();
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+  // Auto-enter edit mode for newly placed textboxes. hasPendingTextFocus does
+  // NOT consume the token, so React StrictMode's double-invocation of effects
+  // both see it; clearPendingTextFocus is called in useLayoutEffect above.
+  useEffect(() => {
+    if (hasPendingTextFocus(annotation.id)) {
+      enterEdit();
     }
-    lastDblClickRef.current = now;
-  }, []);
+  // annotation.id is fixed; enterEdit is stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [annotation.id]);
 
-  const handleBlur = useCallback(() => {
-    const el = ref.current;
-    if (!el) return;
-    const text = el.innerText;
-    const updated = { ...annotation, text };
-    addOptimistic(updated);
-    void createAnnotation(mapId, updated).catch((err) =>
-      console.error("[textbox] save text failed", err),
-    );
-  }, [annotation, mapId, addOptimistic]);
+  const handleBlur = useCallback(async () => {
+    setIsEditing(false);
+    const text = ref.current?.innerText ?? "";
+    // Auto-delete textboxes left empty.
+    if (text.trim() === "") {
+      removeOptimistic(annotation.id);
+      try {
+        await deleteAnnotation(mapId, annotation.id);
+      } catch (err) {
+        console.error("[drawing] deleteAnnotation (empty textbox) failed", err);
+      }
+      return;
+    }
+    if (text === (annotation.text ?? "")) return;
+    void createAnnotation(mapId, { ...annotation, text });
+  }, [annotation, mapId, removeOptimistic]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      ref.current?.blur();
+    }
+    // Let Enter, Backspace, etc. work naturally inside the contentEditable.
+  }, []);
 
   return (
     <div
       ref={ref}
       role="textbox"
-      contentEditable={canEdit && !eraseHover}
+      aria-multiline="true"
+      contentEditable={isEditing && !eraseHover}
       suppressContentEditableWarning
-      onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-      onDoubleClick={handleDoubleClick}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+        // If already editing, let the browser handle word selection natively.
+        if (!isEditing) enterEdit();
+      }}
+      onClick={(e) => {
+        // In erase mode let the event bubble so the node-click handler can erase.
+        if (eraseHover || mode === "erase") return;
+        e.stopPropagation();
+        if (!isEditing) enterEdit();
+      }}
       onBlur={handleBlur}
-      className="font-mono text-[12px] leading-tight outline-none"
+      onKeyDown={isEditing ? handleKeyDown : undefined}
+      onPointerDown={(e) => {
+        // Prevent canvas drawing/panning from starting when editing.
+        if (isEditing) e.stopPropagation();
+      }}
+      className="whitespace-pre-wrap break-words outline-none"
       style={{
+        fontFamily: "var(--font-caveat), Caveat, cursive",
+        fontSize: annotation.size,
+        lineHeight: 1.35,
         color: annotation.color,
-        minWidth: annotation.width,
-        minHeight: annotation.height,
+        minWidth: 80,
         padding: 4,
         background: "transparent",
         border: eraseHover
-          ? "1px dashed rgba(255,255,255,0.35)"
+          ? "1px dashed rgba(0,0,0,0.3)"
+          : isEditing
+          ? "1px dashed rgba(0,0,0,0.2)"
           : "1px dashed transparent",
-        cursor: eraseHover ? "crosshair" : canEdit ? "text" : "default",
+        cursor: eraseHover ? "crosshair" : isEditing ? "text" : undefined,
       }}
     />
   );

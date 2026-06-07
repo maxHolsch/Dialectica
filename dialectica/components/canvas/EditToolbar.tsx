@@ -14,8 +14,10 @@ import { clsx } from "clsx";
 import {
   useUIStore,
   SWATCHES,
+  TEXT_FONT_SIZES,
   type DrawingTool,
   type CanvasMode,
+  type TextFontSize,
 } from "@/lib/state/useUIStore";
 import { CURSORS } from "@/lib/canvas/cursors";
 import {
@@ -42,9 +44,11 @@ export function EditToolbar({
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
   const color = useUIStore((s) => s.color);
+  const fontSize = useUIStore((s) => s.fontSize);
   const setMode = useUIStore((s) => s.setMode);
   const setTool = useUIStore((s) => s.setTool);
   const setColor = useUIStore((s) => s.setColor);
+  const setFontSize = useUIStore((s) => s.setFontSize);
   const undo = useUIStore((s) => s.undo);
   const redo = useUIStore((s) => s.redo);
   const addOptimistic = useUIStore((s) => s.addOptimistic);
@@ -145,6 +149,22 @@ export function EditToolbar({
             <ToolButton tool="highlighter" active={mode === "draw" && tool === "highlighter"} onClick={() => setTool("highlighter")} aria-label="Highlighter">
               <Highlighter size={18} />
             </ToolButton>
+            <Divider />
+          </>
+        )}
+
+        {/* Font size S/M/L — only shown in text sub-toolbar */}
+        {activeSub === "text" && (
+          <>
+            {TEXT_FONT_SIZES.map((sz, i) => (
+              <FontSizeButton
+                key={sz}
+                size={sz}
+                label={["S", "M", "L"][i]!}
+                active={fontSize === sz}
+                onClick={() => setFontSize(sz as TextFontSize)}
+              />
+            ))}
             <Divider />
           </>
         )}
@@ -339,6 +359,39 @@ function Btn({
       {...rest}
     >
       {children}
+    </button>
+  );
+}
+
+function FontSizeButton({
+  size,
+  label,
+  active,
+  onClick,
+}: {
+  size: TextFontSize;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  // Visual size of the "A" scales with the font size option so the user can
+  // see the difference at a glance. Mapped to 11/14/18px for the pill context.
+  const displaySize = size === 16 ? 11 : size === 24 ? 14 : 18;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Font size ${label}`}
+      aria-pressed={active}
+      className={clsx(
+        "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
+        active
+          ? "bg-[#F9F9F9] text-black"
+          : "text-black/50 hover:bg-black/5 hover:text-black",
+      )}
+      style={{ fontFamily: "var(--font-caveat), Caveat, cursive", fontSize: displaySize, lineHeight: 1 }}
+    >
+      A
     </button>
   );
 }

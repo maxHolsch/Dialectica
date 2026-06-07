@@ -40,7 +40,6 @@ import {
   NodeContextMenu,
   type NodeContextMenuState,
 } from "@/components/frame/ContextMenu";
-import { AgreeBar } from "@/components/frame/AgreeBar";
 
 /**
  * Move-mode handlers supplied by the parent canvas. Each canvas (crux vs
@@ -204,7 +203,7 @@ function Canvas({
       const contentNodes = reactFlow.getNodes().filter((n) => n.type !== "stroke");
       if (contentNodes.length > 0) {
         const bounds = getNodesBounds(contentNodes);
-        const vp = getViewportForBounds(bounds, window.innerWidth, window.innerHeight, 0.5, 2, 0.35);
+        const vp = getViewportForBounds(bounds, window.innerWidth, window.innerHeight, 0.05, 2, 0.35);
         reactFlow.setViewport({ ...vp, y: vp.y + 50 }, { duration: 500 });
         return;
       }
@@ -224,6 +223,7 @@ function Canvas({
   const sidePanelNode = useUIStore((s) => s.sidePanelNode);
   const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
   const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
+  const setHoveredNode = useUIStore((s) => s.setHoveredNode);
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
@@ -418,7 +418,7 @@ function Canvas({
       id: a.id,
       type: "stroke",
       position: a.origin,
-      data: { annotation: a, eraseHover: mode === "erase" && (isEditMode || a.userId === userId), canEdit: isEditMode || a.userId === userId, mapId },
+      data: { annotation: a, eraseHover: mode === "erase" && (isEditMode || a.userId === userId), mapId, userId },
       width: a.width,
       height: a.height,
       draggable: mode === "select" && (isEditMode || a.userId === userId),
@@ -616,6 +616,7 @@ function Canvas({
       // Frame view: zoom to the clicked claim/question and open the agree bar.
       if (frameId && (node.type === "claim" || node.type === "question")) {
         setExpandedEdgeId(null);
+        setHoveredNode(null);
         openSidePanel({ frameId, nodeId: node.id });
         // Direct setViewport: centers the tile in the visible area below the
         // fixed 2-line header in a single animated call. fitView with a nodes[]
@@ -626,10 +627,11 @@ function Canvas({
         const cy = node.position.y + nodeH2 / 2;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        // visible-area center = (headerH + vh) / 2 ≈ vh/2 + 50
-        // at zoom=1: viewport.x + cx = vw/2, viewport.y + cy = vh/2 + 50
+        const zoom = 1.5;
+        // screen = flow * zoom + viewport, so to center (cx,cy) at (vw/2, vh/2+50):
+        // viewport.x = vw/2 - cx*zoom, viewport.y = vh/2+50 - cy*zoom
         reactFlow.setViewport(
-          { x: vw / 2 - cx, y: vh / 2 + 50 - cy, zoom: 0.85 },
+          { x: vw / 2 - cx * zoom, y: vh / 2 + 50 - cy * zoom, zoom },
           { duration: 500 },
         );
         return;
@@ -638,13 +640,34 @@ function Canvas({
       const target = onNodeNavigate?.(node.id);
       if (target) router.push(target);
     },
-    [mode, drawing, frameId, reactFlow, openSidePanel, setExpandedEdgeId, onNodeNavigate, router],
+    [mode, drawing, frameId, reactFlow, openSidePanel, setExpandedEdgeId, setHoveredNode, onNodeNavigate, router],
   );
 
   const handlePaneClick = useCallback(() => {
     if (sidePanelNode) closeSidePanel();
     setExpandedEdgeId(null);
-  }, [sidePanelNode, closeSidePanel, setExpandedEdgeId]);
+    setHoveredNode(null);
+  }, [sidePanelNode, closeSidePanel, setExpandedEdgeId, setHoveredNode]);
+
+  // Hover expands the tile to reveal the agree bar, without zooming or fading.
+  // Suppressed when another tile is already click-selected (sidePanelNode).
+  const handleNodeMouseEnter: NodeMouseHandler = useCallback(
+    (_, node) => {
+      if (mode !== "select") return;
+      if (!frameId) return;
+      if (node.type !== "claim" && node.type !== "question") return;
+      if (sidePanelNode) return;
+      setHoveredNode(node.id);
+    },
+    [mode, frameId, sidePanelNode, setHoveredNode],
+  );
+
+  const handleNodeMouseLeave: NodeMouseHandler = useCallback(
+    () => {
+      setHoveredNode(null);
+    },
+    [setHoveredNode],
+  );
 
   // Right-click on a content node (claim/question in frame view, cruxTile in crux view)
   // opens the context menu. PRD §10.1.
@@ -773,6 +796,7 @@ function Canvas({
   const activeCursor =
     moveActive ? undefined :
     mode === "erase" ? CURSORS.eraser :
+    mode === "draw" && tool === "textbox" ? "text" :
     mode === "draw" && tool === "pen" ? CURSORS.pen :
     mode === "draw" && tool === "highlighter" ? CURSORS.highlighter :
     mode === "draw" ? CURSORS.pencil :
@@ -801,6 +825,8 @@ function Canvas({
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         onNodeContextMenu={handleNodeContextMenu}
         onPaneClick={handlePaneClick}
         onNodesChange={handleNodesChange}
@@ -812,6 +838,7 @@ function Canvas({
         // reserved for selecting and dragging stroke nodes in select mode.
         panOnDrag={false}
         panOnScroll
+        minZoom={0.05}
         zoomOnScroll={false}
         zoomOnPinch
         onInit={handleInit}
@@ -868,16 +895,6 @@ function Canvas({
       ) : null}
       <InFlightStrokeLayer />
       <RemoteCursorLayer cursors={cursorChannel.cursors} />
-      {sidePanelNode && frameId && stakes && (
-        <AgreeBar
-          mapId={mapId}
-          frameId={sidePanelNode.frameId}
-          nodeId={sidePanelNode.nodeId}
-          stakes={stakes[stakeKey(sidePanelNode.frameId, sidePanelNode.nodeId)]}
-          userId={userId}
-          displayName={displayName}
-        />
-      )}
       <button
         type="button"
         onClick={handleFitView}

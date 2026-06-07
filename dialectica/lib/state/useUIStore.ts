@@ -7,6 +7,8 @@ export type CanvasMode = "select" | "draw" | "erase" | "move";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
 export const SWATCHES = ["#0D90D3", "#54A96D", "#F4652C", "#885CBF"];
+export const TEXT_FONT_SIZES = [16, 24, 36] as const;
+export type TextFontSize = (typeof TEXT_FONT_SIZES)[number];
 
 type HistoryAction =
   | { type: "create"; annotation: Annotation }
@@ -27,13 +29,19 @@ type UIStore = {
   mode: CanvasMode;
   tool: DrawingTool;
   color: string;
+  fontSize: TextFontSize;
   setMode: (mode: CanvasMode) => void;
   setTool: (tool: DrawingTool) => void;
   setColor: (color: string) => void;
+  setFontSize: (size: TextFontSize) => void;
 
   // Current map context — used to reset local state on map switch
   activeMapId: string | null;
   bindMap: (mapId: string) => void;
+
+  // Hovered node in frame view — expands the tile but does not zoom/fade.
+  hoveredNodeId: string | null;
+  setHoveredNode: (id: string | null) => void;
 
   // Side panel (Phase 4) — null when no claim is selected.
   sidePanelNode: SidePanelTarget | null;
@@ -81,9 +89,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
   mode: "select",
   tool: "pen",
   color: "#0D90D3",
+  fontSize: 24,
   setMode: (mode) => set({ mode }),
   setTool: (tool) => set({ tool, mode: "draw" }),
   setColor: (color) => set({ color }),
+  setFontSize: (size) => set({ fontSize: size }),
 
   activeMapId: null,
   bindMap: (mapId) => {
@@ -100,8 +110,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
       snippetDrawerNode: null,
       heatmapSplit: HEATMAP_SPLIT_DEFAULT,
       expandedEdgeId: null,
+      hoveredNodeId: null,
     });
   },
+
+  hoveredNodeId: null,
+  setHoveredNode: (id) => set({ hoveredNodeId: id }),
 
   sidePanelNode: null,
   sidePanelMode: "compact",

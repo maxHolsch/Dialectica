@@ -5,6 +5,7 @@ import { useReactFlow } from "@xyflow/react";
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useUIStore, type DrawingTool } from "@/lib/state/useUIStore";
 import { isFreehandTool, pointsBoundingBox } from "@/lib/canvas/freehand";
+import { setPendingTextFocus } from "@/lib/canvas/textFocus";
 import type { Annotation, StrokePoint } from "@/lib/schema";
 import { createAnnotation, deleteAnnotation } from "@/lib/data/mutations";
 
@@ -79,6 +80,7 @@ export function useDrawingHandlers({
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
   const color = useUIStore((s) => s.color);
+  const fontSize = useUIStore((s) => s.fontSize);
   const setMode = useUIStore((s) => s.setMode);
   const startStroke = useUIStore((s) => s.startStroke);
   const appendStrokePoint = useUIStore((s) => s.appendStrokePoint);
@@ -174,16 +176,17 @@ export function useDrawingHandlers({
         points: [],
         tool: "textbox",
         color,
-        size: defaultSizeFor("textbox"),
+        size: fontSize,
         origin: flow,
         width: 160,
         height: 32,
-        text: "text",
+        text: "",
         userId,
         createdAt: new Date().toISOString(),
       };
       addOptimistic(annotation);
       pushHistory({ type: "create", annotation });
+      setPendingTextFocus(annotation.id);
       setMode("select");
       try {
         await createAnnotation(mapId, annotation);
@@ -195,6 +198,7 @@ export function useDrawingHandlers({
       mode,
       tool,
       color,
+      fontSize,
       frameId,
       userId,
       screenToFlowPosition,
