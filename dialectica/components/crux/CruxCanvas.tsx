@@ -75,13 +75,13 @@ export function CruxCanvas({
         height: topSize.height,
         draggable: false,
       },
-      ...map.cruxes.map((c) => {
+      ...map.cruxes.map((c, idx) => {
         const size = c.size ?? { width: 200, height: 200 };
         return {
           id: c.id,
           type: "cruxTile",
           position: c.position,
-          data: { text: c.question, tint: "#ffc2ec" },
+          data: { text: c.question, tint: "#ffc2ec", index: idx + 1 },
           width: size.width,
           height: size.height,
           draggable: false,
