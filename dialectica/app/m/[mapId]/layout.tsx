@@ -4,7 +4,6 @@ import { currentUser, avatarFor } from "@/lib/data/users";
 import { listAnnotationsForMap } from "@/lib/data/annotations";
 import { CruxCanvas } from "@/components/crux/CruxCanvas";
 import { PresenceAvatars } from "@/components/canvas/PresenceAvatars";
-import { LivePill } from "@/components/topbar/LivePill";
 import { getArtifactVisitor } from "@/lib/artifact";
 
 /**
@@ -62,15 +61,6 @@ export default async function MapLayout({
       />
       {/* Frame view mounts here as a fixed overlay; null on crux route */}
       {children}
-      {effectiveUser ? (
-        <div className="pointer-events-auto fixed right-6 top-5 z-[60]">
-          <LivePill
-            channelKey={`map:${mapId}`}
-            userId={effectiveUser.id}
-            displayName={effectiveUser.displayName}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

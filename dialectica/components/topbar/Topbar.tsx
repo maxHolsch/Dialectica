@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { LivePill } from "./LivePill";
 import { AvatarMenu } from "./AvatarMenu";
 
 /**
@@ -18,12 +17,6 @@ export type Crumb =
 export type Avatar = { initials: string; color: string };
 export type PresencePill =
   | { kind: "live"; count: number }
-  | {
-      kind: "live-room";
-      channelKey: string;
-      userId: string;
-      displayName: string;
-    }
   | { kind: "settings" };
 
 export function Topbar({
@@ -113,15 +106,6 @@ function PresencePillView({ pill }: { pill: PresencePill }) {
       <span className="flex h-6 items-center rounded-full border border-dia-border-strong px-3 font-mono text-[12px] tracking-[0.48px] text-dia-fg-muted">
         Settings
       </span>
-    );
-  }
-  if (pill.kind === "live-room") {
-    return (
-      <LivePill
-        channelKey={pill.channelKey}
-        userId={pill.userId}
-        displayName={pill.displayName}
-      />
     );
   }
   return (
