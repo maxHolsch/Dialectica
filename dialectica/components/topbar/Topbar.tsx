@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LivePill } from "./LivePill";
+import { AvatarMenu } from "./AvatarMenu";
 
 /**
  * Topbar — shared chrome across DIA-HOME-1, DIA-VIEW-1, DIA-VIEW-2.
@@ -46,7 +47,7 @@ export function Topbar({
         <PresencePillView pill={pill} />
         <div className="ml-1 flex items-center -space-x-1.5">
           {avatars.map((a, i) => (
-            <AvatarChip key={i} avatar={a} />
+            <AvatarMenu key={i} avatar={a} />
           ))}
         </div>
       </div>

@@ -19,6 +19,9 @@ export type StoredUsage = {
 export type RunRow = {
   id: string;
   workflow_run_id: string | null;
+  // 'generation' builds a new map; 'snippets' enriches an existing map with
+  // per-claim audio snippets. Older rows predate the column → default applies.
+  job_kind?: "generation" | "snippets";
   source_kind: "text" | "audio";
   source_label: string | null;
   params: {
@@ -39,6 +42,7 @@ export type RunRow = {
     | "relating"
     | "fact_checking"
     | "quoting"
+    | "snippeting"
     | "mapping"
     | "succeeded"
     | "failed";
@@ -50,6 +54,7 @@ export type RunRow = {
   relations_path: string | null;
   fact_check_path: string | null;
   quotes_path: string | null;
+  snippets_path: string | null;
   map_id: string | null;
   log: { at: string; stage: string; message: string }[] | null;
   created_at: string;

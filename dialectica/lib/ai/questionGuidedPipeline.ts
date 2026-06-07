@@ -48,7 +48,7 @@ export const PROMPT_PROPOSE_QUESTIONS = ({
 }: {
   topQuestion: string;
   target: number;
-}) => `You are proposing the central sub-questions of a discussion.
+}) =>`You are proposing the central sub-questions of a discussion.
 
 INPUT: a top-level question the participants were trying to answer, and the
 full transcript of the discussion. Your job: read the transcript and surface
@@ -59,13 +59,24 @@ which ones become the cruxes of the argument map.
 TOP-LEVEL QUESTION: ${topQuestion}
 
 WHAT MAKES A GOOD SUB-QUESTION:
-- Anchored in this transcript. Not a generic question about the topic.
-- Open-ended. "What…", "How…", "Why…", "When…", "Whether…". Never a yes/no.
-- Neutral. Does NOT presuppose a side. Multiple positions can plausibly answer it.
-- Substantive. The kind of thing the conversation kept circling back to —
+- A live tension, not a topic. Find the axis the room actually split on — where
+  thoughtful people in the transcript gave genuinely different answers. The best
+  sub-questions have an implicit "versus" inside them (X or Y? strengthens or
+  erodes? this role or that one?).
+- Anchored in the ARGUMENT, not just the vocabulary. The connection to the
+  top-level question need not be literal or direct — a question can avoid the
+  words "team" or "future" entirely and still be the crux. What matters is that
+  resolving it changes the answer to the top-level question.
+- Open-ended. Start with "What / How / Why / When / Whether", OR frame it
+  conditionally: "If [something the transcript treats as true or likely], then
+  what…". Never a yes/no.
+- Neutral. Does NOT presuppose which side is right. Multiple positions voiced in
+  the room can plausibly answer it.
+- Substantive and recurring. Something the conversation kept circling back to —
   not a passing remark.
-- Distinct from the others. Two sub-questions that boil down to the same thing
-  should be one.
+- Distinct. Two sub-questions that boil down to the same crux should be one.
+- Easy to understand on first read.
+- Tied to a decision or action if answered well, whichever side one lands on.
 
 HARD RULES:
 - Return ${target} sub-questions (you may emit ${Math.max(3, target - 2)}-${target + 2}
@@ -97,12 +108,14 @@ WHAT A "CLAIM" IS HERE:
   CLAIM is what survives the speaker.
 - Distinct from the other claims for this question. If two utterances boil
   down to the same assertion, ONE claim covers both.
+- Every claim should be reasonable: for example: "Return-to-office mandates, tracking, and policies suck the joy out of an inherently good experience" is not reasonable, because no one reasonable would call it inherently good. Return-to-office mandates, tracking, and policies suck the joy out of the experience.
 
 CALIBRATION:
 - Target ${target}. Emit 4-5 if the material supports it. Emit fewer (3) only
   when there genuinely aren't more distinct positions in the transcript.
 - These should be the load-bearing claims — the ones the conversation actually
   pivoted on, not asides.
+- Claims on the map should potentially be in contradiction with one another, showing the different sides of the argument. All claims should be the best version of their argument.
 
 OPTIONAL FLAGS:
 - "is_factual": true ONLY for claims that are empirically checkable (a number,
@@ -192,7 +205,7 @@ You have THREE things below:
 2. The central questions (cruxes), each with an id.
 3. The full list of claims, namespaced by question.
 
-GOAL: surface the connections that turn the cruxes from a flat list into a
+GOAL: surface 6-7 the connections that turn the cruxes from a flat list into a
 small story — where one sub-question's framing pre-supposes another, where
 resolving one would unlock another, where one reframes the territory the
 other is operating on.

@@ -41,6 +41,13 @@ type UIStore = {
   heatmapSplit: number; // 0..1, Dialectica-side width fraction
   openSidePanel: (target: SidePanelTarget) => void;
   closeSidePanel: () => void;
+
+  // Snippet drawer (audio snippets) — null when closed. Opened by the
+  // quote-mark button on a claim node; independent of the side panel.
+  snippetDrawerNode: SidePanelTarget | null;
+  openSnippetDrawer: (target: SidePanelTarget) => void;
+  closeSnippetDrawer: () => void;
+
   expandHeatmap: () => void;
   restoreHeatmap: () => void;
   setHeatmapSplit: (fraction: number) => void;
@@ -90,6 +97,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       cursor: 0,
       sidePanelNode: null,
       sidePanelMode: "compact",
+      snippetDrawerNode: null,
       heatmapSplit: HEATMAP_SPLIT_DEFAULT,
       expandedEdgeId: null,
     });
@@ -102,6 +110,10 @@ export const useUIStore = create<UIStore>((set, get) => ({
     set({ sidePanelNode: target, sidePanelMode: "compact", expandedEdgeId: null }),
   closeSidePanel: () =>
     set({ sidePanelNode: null, sidePanelMode: "compact" }),
+
+  snippetDrawerNode: null,
+  openSnippetDrawer: (target) => set({ snippetDrawerNode: target }),
+  closeSnippetDrawer: () => set({ snippetDrawerNode: null }),
 
   expandedEdgeId: null,
   setExpandedEdgeId: (id) => set({ expandedEdgeId: id, sidePanelNode: null }),

@@ -13,10 +13,12 @@ import type { ArgMap, Frame, Annotation, HandleId } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, applyDeletePatch } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch, runAutoFormat, updateNodeText } from "@/lib/data/mutations";
+import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
+import { SnippetDrawer } from "./SnippetDrawer";
 
 const NODE_TYPES: NodeTypes = {
   claim: ClaimNode,
@@ -65,6 +67,12 @@ export function FrameCanvas({
           text: canonical?.text ?? "",
           tint,
           selected: selectedNodeId === inst.nodeId,
+          // Snippet drawer affordance: the quote-mark button shows only when
+          // this claim has audio snippets. frameId lets the node open the
+          // drawer for the right (frame, node) pair.
+          frameId: frame.id,
+          hasSnippets: !!canonical?.snippets?.length,
+          snippetCount: canonical?.snippets?.length ?? 0,
         },
         width: size.width,
         height: size.height,
@@ -162,26 +170,51 @@ export function FrameCanvas({
     [map.id, frame.id, router],
   );
 
+  const onRenameNode = useCallback(
+    (nodeId: string, text: string) => {
+      void updateNodeText(map.id, nodeId, text)
+        .then(() => router.refresh())
+        .catch((err) => console.error("[frame] rename node failed", err));
+    },
+    [map.id, router],
+  );
+
   const moveHandlers: MoveHandlers | undefined = isEditMode
-    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete, onRenameNode }
     : undefined;
 
+  const onAutoFormat = useCallback(
+    async (strategy: LayoutStrategyId) => {
+      try {
+        await runAutoFormat(map.id, strategy);
+        router.refresh();
+      } catch (err) {
+        console.error("[frame] auto-format failed", err);
+      }
+    },
+    [map.id, router],
+  );
+
   return (
-    <CanvasShell
-      nodes={nodes}
-      edges={edges}
-      nodeTypes={NODE_TYPES}
-      edgeTypes={EDGE_TYPES}
-      annotations={annotations}
-      mapId={map.id}
-      frameId={frame.id}
-      userId={userId}
-      displayName={displayName}
-      userColor={userColor}
-      isEditMode={isEditMode}
-      onReady={onReady}
-      stakes={stakes}
-      moveHandlers={moveHandlers}
-    />
+    <>
+      <CanvasShell
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={NODE_TYPES}
+        edgeTypes={EDGE_TYPES}
+        annotations={annotations}
+        mapId={map.id}
+        frameId={frame.id}
+        userId={userId}
+        displayName={displayName}
+        userColor={userColor}
+        isEditMode={isEditMode}
+        onAutoFormat={isEditMode ? onAutoFormat : undefined}
+        onReady={onReady}
+        stakes={stakes}
+        moveHandlers={moveHandlers}
+      />
+      <SnippetDrawer map={map} />
+    </>
   );
 }

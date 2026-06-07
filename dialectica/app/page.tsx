@@ -19,7 +19,16 @@ export default async function HomePage() {
           { kind: "sep-slash" },
           { kind: "medium", label: "Home" },
         ]}
-        pill={{ kind: "live", count: 2 }}
+        pill={
+          user
+            ? {
+                kind: "live-room",
+                channelKey: "home",
+                userId: user.id,
+                displayName: user.displayName,
+              }
+            : { kind: "live", count: 1 }
+        }
         avatars={[avatar]}
       />
       <main className="mx-auto w-full max-w-[1840px] flex-1 px-20 pb-20">

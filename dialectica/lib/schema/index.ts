@@ -20,6 +20,22 @@ export type Size = z.infer<typeof Size>;
 export const NodeType = z.enum(["claim", "question"]);
 export type NodeType = z.infer<typeof NodeType>;
 
+// Audio snippet feature — one related transcript span for a claim, with exact
+// audio timestamps so the claim's quote-mark drawer can play the recording.
+// `startMs`/`endMs` are offsets into the conversation recording referenced by
+// `ArgMap.meta.audio`. Produced by the standalone snippet pipeline (admin),
+// ranked 1..5 by an LLM. See lib/ai/snippets/.
+export const ClaimSnippet = z.object({
+  rank: z.number(),
+  speakerName: z.string(),
+  speakerLabel: z.string().optional(),
+  text: z.string(),
+  startMs: z.number(),
+  endMs: z.number(),
+  relevance: z.string().optional(),
+});
+export type ClaimSnippet = z.infer<typeof ClaimSnippet>;
+
 export const Node = z.object({
   id: z.string(),
   type: NodeType,
@@ -30,11 +46,14 @@ export const Node = z.object({
   // by Stage 2 (dedup) — surfaced in the side panel for merge transparency.
   // `quotes` holds verbatim supporting excerpts from the source transcript,
   // with the speaker label preserved from the labeled transcript format.
+  // `snippets` holds the top-5 related transcript spans WITH audio timestamps
+  // (the quote-mark drawer); produced by the standalone snippet pipeline.
   isFactual: z.boolean().optional(),
   absorbed: z.array(z.string()).optional(),
   quotes: z
     .array(z.object({ speaker: z.string(), text: z.string() }))
     .optional(),
+  snippets: z.array(ClaimSnippet).optional(),
 });
 export type Node = z.infer<typeof Node>;
 
@@ -196,6 +215,20 @@ export const ArgMap = z.object({
       momentum: Momentum.optional(),
       factCheckTodos: z.array(FactCheckTodo).default([]),
       generationRunId: z.string().optional(),
+      // The conversation recording these snippets index into. `path` is the
+      // Supabase Storage object path; `publicUrl` is set when served from a
+      // public bucket (otherwise the client mints a signed URL). `durationMs`
+      // is the full recording length. Written by the snippet pipeline.
+      audio: z
+        .object({
+          // Storage bucket + object path; the client mints a signed URL via
+          // /api/maps/[mapId]/audio (works for public or private buckets).
+          bucket: z.string().optional(),
+          path: z.string(),
+          publicUrl: z.string().optional(),
+          durationMs: z.number().optional(),
+        })
+        .optional(),
     })
     .optional(),
   createdAt: z.string(),

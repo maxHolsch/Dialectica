@@ -85,6 +85,17 @@ export async function upsertAnnotationRow(
   const { error: insertErr } = await supabase
     .from("Dialectica_annotations")
     .insert(row);
+  // 23505 = unique_violation: concurrent request inserted the same id between
+  // our UPDATE check and this INSERT. Fall back to UPDATE to resolve the race.
+  if (insertErr?.code === "23505") {
+    const { error: retryErr } = await supabase
+      .from("Dialectica_annotations")
+      .update(updatePayload)
+      .eq("id", parsed.id)
+      .eq("map_id", mapId);
+    if (retryErr) throw new Error(retryErr.message);
+    return;
+  }
   if (insertErr) throw new Error(insertErr.message);
 }
 

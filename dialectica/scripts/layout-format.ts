@@ -1,6 +1,5 @@
 /**
  * Apply ELK auto-format to a map via the dev API route.
- * Requires the Dialectica dev server to be running.
  * Triggers revalidatePath so changes appear immediately without a hard-refresh.
  *
  * Usage:
@@ -13,12 +12,13 @@ import { createClient } from "@supabase/supabase-js";
 const TARGET_TITLE = process.argv[2] ?? "Google Xi Test7";
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 async function main() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+
+
   const { data, error } = await supabase
     .from("Dialectica_maps")
     .select("id, title")

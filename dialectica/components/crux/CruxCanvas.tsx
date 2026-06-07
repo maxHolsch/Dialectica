@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
+import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 import {
   MarkerType,
   type Node,
@@ -15,7 +16,8 @@ import {
 import type { ArgMap, Annotation, HandleId } from "@/lib/schema";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
-import { applyMovePatch, applyDeletePatch, runAutoFormat } from "@/lib/data/mutations";
+import { applyMovePatch, applyDeletePatch, runAutoFormat, updateCruxText } from "@/lib/data/mutations";
+import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
@@ -36,6 +38,7 @@ export function CruxCanvas({
   displayName,
   userColor,
   isEditMode,
+  hideClose = false,
 }: {
   map: ArgMap;
   annotations: Annotation[];
@@ -43,6 +46,7 @@ export function CruxCanvas({
   displayName: string;
   userColor: string;
   isEditMode: boolean;
+  hideClose?: boolean;
 }) {
   // Hide header during frame-view back-transition to avoid colliding with the
   // morphing header text in FrameView, which occupies the same screen position.
@@ -186,8 +190,17 @@ export function CruxCanvas({
     [map.id, router],
   );
 
+  const onRenameNode = useCallback(
+    (cruxId: string, text: string) => {
+      void updateCruxText(map.id, cruxId, text)
+        .then(() => router.refresh())
+        .catch((err) => console.error("[crux] rename crux failed", err));
+    },
+    [map.id, router],
+  );
+
   const moveHandlers: MoveHandlers | undefined = isEditMode
-    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete }
+    ? { onNodeMove, onEdgeReconnect, onEdgeLabelOffset, onDelete, onRenameNode }
     : undefined;
 
   const onAutoFormat = useCallback(
@@ -204,16 +217,23 @@ export function CruxCanvas({
 
   return (
     <div className="relative h-full w-full">
-      <Link
-        href="/"
-        className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-        style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
-      >
-        <X size={18} weight="regular" />
-      </Link>
+      {hideClose ? null : (
+        <Link
+          href="/"
+          className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+        >
+          <X size={18} weight="regular" />
+        </Link>
+      )}
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
-        style={{ height: 140, background: "linear-gradient(to bottom, white 0%, white 55%, transparent 100%)" }}
+        style={{
+          height: 140,
+          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
+          backgroundSize: "auto, 700px 700px",
+          backgroundRepeat: "repeat",
+        }}
       />
       <div
         className="pointer-events-none fixed left-0 right-0 z-50 flex justify-center"

@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Roboto_Mono, Merriweather, DM_Sans } from "next/font/google";
+import {
+  Inter,
+  Roboto_Mono,
+  Merriweather,
+  DM_Sans,
+  Modern_Antiqua,
+} from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -23,6 +29,14 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
+// Display serif used only for the claim-node quote-mark glyph (the snippet
+// drawer affordance). Single weight — Modern Antiqua ships 400 only.
+const modernAntiqua = Modern_Antiqua({
+  variable: "--font-modern-antiqua",
+  subsets: ["latin"],
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: "Dialectica",
   description: "A tool for creating, exploring, and annotating argument maps.",
@@ -36,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${robotoMono.variable} ${merriweather.variable} ${dmSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${robotoMono.variable} ${merriweather.variable} ${dmSans.variable} ${modernAntiqua.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-dia-bg text-dia-fg">
         {children}

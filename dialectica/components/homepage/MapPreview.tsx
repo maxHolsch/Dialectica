@@ -1,21 +1,21 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { MapPreviewKind } from "@/lib/data/maps";
-import { nightSkyImageForIndex } from "@/lib/data/nightSkyImages";
+import { nightSkyImageForId } from "@/lib/data/nightSkyImages";
 
 /** Stylized preview tile rendered in the top half of a MapCard. */
 export function MapPreview({
   kind,
-  index,
+  id,
 }: {
   kind: MapPreviewKind;
-  index: number;
+  id: string;
 }) {
   return (
     <div className="relative h-[180px] w-full overflow-hidden bg-black">
       {kind === "empty" && (
         <Image
-          src={nightSkyImageForIndex(index)}
+          src={nightSkyImageForId(id)}
           alt=""
           fill
           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"

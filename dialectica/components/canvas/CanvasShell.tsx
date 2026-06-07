@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CornersOut } from "@phosphor-icons/react";
 import {
@@ -35,6 +35,7 @@ import { EditToolbar } from "./EditToolbar";
 import { StrokeNode } from "./StrokeNode";
 import { InFlightStrokeLayer } from "./InFlightStrokeLayer";
 import { RemoteCursorLayer } from "./RemoteCursorLayer";
+import { PaperTextureBackground } from "./PaperTextureBackground";
 import {
   NodeContextMenu,
   type NodeContextMenuState,
@@ -57,6 +58,8 @@ export type MoveHandlers = {
   onEdgeLabelOffset: (edgeId: string, offset: number) => void;
   /** Delete a current selection of content nodes and/or edges. */
   onDelete: (selection: { nodeIds: string[]; edgeIds: string[] }) => void;
+  /** Rename a single canonical node (frame view only). */
+  onRenameNode?: (nodeId: string, text: string) => void;
 };
 
 /**
@@ -415,10 +418,10 @@ function Canvas({
       id: a.id,
       type: "stroke",
       position: a.origin,
-      data: { annotation: a, eraseHover: mode === "erase" },
+      data: { annotation: a, eraseHover: mode === "erase" && (isEditMode || a.userId === userId), canEdit: isEditMode || a.userId === userId, mapId },
       width: a.width,
       height: a.height,
-      draggable: mode === "select",
+      draggable: mode === "select" && (isEditMode || a.userId === userId),
       selectable: mode === "select" || mode === "erase",
       // Annotations live above content nodes visually.
       zIndex: 5,
@@ -431,6 +434,8 @@ function Canvas({
     mode,
     moveHandlers,
     deletedNodeIds,
+    userId,
+    isEditMode,
   ]);
 
   // Apply edge overrides + inject the per-edge label-offset callback so the
@@ -592,11 +597,19 @@ function Canvas({
   );
 
   const handleNodeClick: NodeMouseHandler = useCallback(
-    (_, node) => {
+    (event, node) => {
       // Eraser: clicking any stroke node deletes that annotation.
       if (mode === "erase" && node.type === "stroke") {
         const ann = (node.data as { annotation?: Annotation }).annotation;
         if (ann) void drawing.eraseAnnotation(ann);
+        return;
+      }
+      // Drawing tool: textbox click over a content node should place the
+      // textbox at the click position (like freehand strokes go over nodes).
+      // onPaneClick doesn't fire when the click lands on a node, so we
+      // forward it here.
+      if (mode === "draw" && node.type !== "stroke") {
+        drawing.onPaneClick(event as unknown as ReactMouseEvent<HTMLDivElement>);
         return;
       }
       if (mode !== "select" || node.type === "stroke") return;
@@ -633,22 +646,38 @@ function Canvas({
     setExpandedEdgeId(null);
   }, [sidePanelNode, closeSidePanel, setExpandedEdgeId]);
 
-  // Right-click on a content node opens the stake context menu. PRD §10.1.
+  // Right-click on a content node (claim/question in frame view, cruxTile in crux view)
+  // opens the context menu. PRD §10.1.
   const handleNodeContextMenu: NodeMouseHandler = useCallback(
     (event, node) => {
-      if (!frameId) return;
-      if (node.type !== "claim" && node.type !== "question") return;
       event.preventDefault();
       event.stopPropagation();
-      const bucket = stakes?.[stakeKey(frameId, node.id)];
-      setContextMenu({
-        mapId,
-        frameId,
-        nodeId: node.id,
-        selfStaked: bucket?.selfStaked ?? false,
-        x: event.clientX,
-        y: event.clientY,
-      });
+      const isFrameNode = node.type === "claim" || node.type === "question";
+      const isCruxTile = node.type === "cruxTile";
+      if (!isFrameNode && !isCruxTile) return;
+      if (isFrameNode && !frameId) return;
+      const nodeText = (node.data as { text?: string }).text ?? "";
+      if (isFrameNode) {
+        const bucket = stakes?.[stakeKey(frameId!, node.id)];
+        setContextMenu({
+          mapId,
+          frameId: frameId!,
+          nodeId: node.id,
+          selfStaked: bucket?.selfStaked ?? false,
+          nodeText,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      } else {
+        setContextMenu({
+          mapId,
+          nodeId: node.id,
+          selfStaked: false,
+          nodeText,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
     },
     [frameId, mapId, stakes],
   );
@@ -751,7 +780,7 @@ function Canvas({
 
   return (
     <div
-      className={`relative h-full w-full bg-dia-bg ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
+      className={`relative h-full w-full ${canvasAnimDone ? "canvas-drawn" : canvasReady ? "canvas-loaded" : "canvas-loading"} ${sidePanelNode && frameId ? "canvas-tile-focused" : ""} ${expandedEdge && frameId ? "canvas-edge-focused" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -765,6 +794,7 @@ function Canvas({
         "--canvas-cursor": moveActive ? "grab" : (activeCursor ?? "auto"),
       } as React.CSSProperties}
     >
+      <PaperTextureBackground />
       <ReactFlow
         nodes={allNodes}
         edges={allEdges}
@@ -791,9 +821,15 @@ function Canvas({
         defaultEdgeOptions={{
           style: { stroke: "#3a3a3a", strokeWidth: 1.5 },
         }}
+        style={{ background: "transparent" }}
       >
-        <Background color="#1a1a1a" gap={32} size={1} />
+        {/*
+          Optional dot grid on top of the paper texture — uncomment to stack:
+          <Background color="#1a1a1a" gap={32} size={1} />
+        */}
       </ReactFlow>
+      {/* Make all React Flow internal layers transparent so the texture shows through */}
+      <style dangerouslySetInnerHTML={{ __html: `.react-flow,.react-flow__pane,.react-flow__renderer,.react-flow__background{background:transparent!important}` }} />
       {mode === "select" ? (
         <style
           dangerouslySetInnerHTML={{
@@ -861,6 +897,22 @@ function Canvas({
       <NodeContextMenu
         state={contextMenu}
         onClose={() => setContextMenu(null)}
+        onDelete={
+          isEditMode && moveHandlers
+            ? (nodeId) => {
+                setContextMenu(null);
+                moveHandlers.onDelete({ nodeIds: [nodeId], edgeIds: [] });
+              }
+            : undefined
+        }
+        onRenameNode={
+          isEditMode && moveHandlers?.onRenameNode
+            ? (nodeId, text) => {
+                setContextMenu(null);
+                moveHandlers.onRenameNode!(nodeId, text);
+              }
+            : undefined
+        }
       />
     </div>
   );

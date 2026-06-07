@@ -132,6 +132,7 @@ function clamp(v: number, lo: number, hi: number): number {
 function chooseSides(
   src: { x: number; y: number; width: number; height: number },
   tgt: { x: number; y: number; width: number; height: number },
+  flowHint?: "down" | "right",
 ): { srcSide: Side; tgtSide: Side } {
   const dx = (tgt.x + tgt.width / 2) - (src.x + src.width / 2);
   const dy = (tgt.y + tgt.height / 2) - (src.y + src.height / 2);
@@ -227,10 +228,15 @@ function assignSlots(
  *   targetHandle = `tgt-${side}-${slot}`  — same, from the target's POV
  *
  * Slots distribute edges that share a (node, side) so they don't stack.
+ *
+ * `flowHint` — pass "down" for layered-down layouts so diagonal edges
+ * always enter the target from the top (not left/right), keeping the
+ * downward-flow visual clean.
  */
 function assignClosestSideHandles(
   nodes: LaidOutNode[],
   edges: Array<{ id: string; source: string; target: string }>,
+  flowHint?: "down" | "right",
 ): Map<string, { sourceHandle: HandleId; targetHandle: HandleId }> {
   const nodeById = new Map<string, LaidOutNode>();
   for (const n of nodes) nodeById.set(n.id, n);
@@ -246,7 +252,7 @@ function assignClosestSideHandles(
     const sCy = s.y + s.height / 2;
     const tCx = t.x + t.width / 2;
     const tCy = t.y + t.height / 2;
-    const { srcSide, tgtSide } = chooseSides(s, t);
+    const { srcSide, tgtSide } = chooseSides(s, t, flowHint);
     infos.push({
       edgeId: e.id,
       sourceId: e.source,
@@ -367,7 +373,8 @@ export async function runElkLayout(
   }));
 
   // Closest-side + slot assignment over ELK's chosen positions.
-  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges);
+  const flowHint = strategyId === "layered-down" ? "down" : strategyId === "layered-right" ? "right" : undefined;
+  const handlesByEdge = assignClosestSideHandles(laidNodes, safeEdges, flowHint);
 
   const laidEdges: LaidOutEdge[] = [];
   for (const edge of result.edges ?? []) {

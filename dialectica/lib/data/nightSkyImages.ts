@@ -22,8 +22,10 @@ export const NIGHT_SKY_IMAGES = [
   "/night-sky/cosmos_9299704.jpeg",
 ] as const;
 
-export function nightSkyImageForIndex(index: number): string {
-  const i = ((index % NIGHT_SKY_IMAGES.length) + NIGHT_SKY_IMAGES.length) %
-    NIGHT_SKY_IMAGES.length;
-  return NIGHT_SKY_IMAGES[i];
+export function nightSkyImageForId(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) {
+    h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  return NIGHT_SKY_IMAGES[h % NIGHT_SKY_IMAGES.length];
 }
