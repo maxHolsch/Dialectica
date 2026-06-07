@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { FlagPennant } from "@phosphor-icons/react";
+import { FlagBanner } from "@phosphor-icons/react";
 import { clsx } from "clsx";
 import { toggleStake } from "@/lib/data/mutations";
 import type { FrameNodeStakes, Staker } from "@/lib/data/stakes-types";
@@ -32,7 +32,8 @@ export function InlineAgreeBar({
   const [localStaker, setLocalStaker] = useState<Staker | null>(null);
   const agreed = optimistic ?? (stakes?.selfStaked ?? false);
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const next = !agreed;
     setOptimistic(next);
     if (next) {
@@ -61,17 +62,18 @@ export function InlineAgreeBar({
     <div className="flex items-center gap-3">
       <button
         type="button"
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={handleToggle}
         disabled={pending}
         className={clsx(
           "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] transition-all duration-150",
           agreed
-            ? "border-[#0D90D3]/25 bg-[#0D90D3]/10 text-[#0D90D3]"
+            ? "border-[#0D90D3]/25 bg-[#0D90D3]/10 text-[#0D90D3] hover:bg-[#0D90D3]/20 hover:border-[#0D90D3]/40"
             : "border-[#DDDDDD] bg-white text-black hover:border-black/25",
         )}
         style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
       >
-        <FlagPennant size={14} weight={agreed ? "fill" : "regular"} />
+        <FlagBanner size={14} weight={agreed ? "fill" : "regular"} />
         {agreed ? "Agreed" : "Agree"}
       </button>
 

@@ -6,6 +6,8 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import type { ArgMap, Frame, Annotation } from "@/lib/schema";
 import type { StakeMap } from "@/lib/data/stakes-types";
 import { FrameCanvas } from "./FrameCanvas";
+import { SnippetDrawer, SNIPPET_DRAWER_DEFAULT_WIDTH, DRAWER_ANIM_MS } from "./SnippetDrawer";
+import { useUIStore } from "@/lib/state/useUIStore";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
 import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 
@@ -35,6 +37,7 @@ export function FrameView({
   const router = useRouter();
   const [exiting, setExiting] = useState(false);
   const [ready, setReady] = useState(false);
+  const drawerOpen = useUIStore((s) => !!s.snippetDrawerNode);
 
   const cruxQuestion =
     frame.cruxId === "top"
@@ -91,8 +94,8 @@ export function FrameView({
         <div
           className="pointer-events-none absolute inset-x-0 top-0"
           style={{
-            height: 220,
-            backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
+            height: 150,
+            backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 72%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
             backgroundSize: "auto, 700px 700px",
             backgroundRepeat: "repeat",
           }}
@@ -110,8 +113,13 @@ export function FrameView({
 
         {/* Two-line header */}
         <div
-          className="pointer-events-none absolute left-0 right-0 flex flex-col items-center"
-          style={{ top: 36, gap: 5 }}
+          className="pointer-events-none absolute left-0 flex flex-col items-center overflow-hidden"
+          style={{
+            top: 36,
+            gap: 5,
+            right: drawerOpen ? SNIPPET_DRAWER_DEFAULT_WIDTH : 0,
+            transition: `right ${DRAWER_ANIM_MS}ms ease-out`,
+          }}
         >
           {/* Parent question — morphs from small/dim to full-size on exit */}
           <button
@@ -146,6 +154,10 @@ export function FrameView({
           </p>
         </div>
       </div>
+
+      {/* Snippet drawer — rendered last so its z-[310] beats the header's z-[150]
+          without any portal / stacking-context ambiguity. */}
+      <SnippetDrawer map={map} />
     </>
   );
 }

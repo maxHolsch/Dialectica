@@ -91,6 +91,11 @@ function TextBox({
   const [isEditing, setIsEditing] = useState(false);
   const mode = useUIStore((s) => s.mode);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
+  const setIsEditingTextbox = useUIStore((s) => s.setIsEditingTextbox);
+
+  useEffect(() => {
+    setIsEditingTextbox(isEditing);
+  }, [isEditing, setIsEditingTextbox]);
 
   // Set initial text content once on mount (uncontrolled contentEditable).
   useEffect(() => {

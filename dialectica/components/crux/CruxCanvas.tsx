@@ -99,8 +99,8 @@ export function CruxCanvas({
       type: "movable",
       markerEnd: e.undirected
         ? undefined
-        : { type: MarkerType.ArrowClosed, color: "#8a8a8a", width: 18, height: 18 },
-      style: { stroke: "#8a8a8a", strokeWidth: 1.2 },
+        : { type: MarkerType.ArrowClosed, color: "#000", width: 18, height: 18 },
+      style: { stroke: "#000", strokeWidth: 1.2 },
       data: {
         label: e.label,
         labelOffset: e.labelOffset ?? 0,

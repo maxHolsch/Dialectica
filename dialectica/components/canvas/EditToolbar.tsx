@@ -55,6 +55,19 @@ export function EditToolbar({
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
   // "draw" = drawing sub-toolbar open, "text" = text sub-toolbar open, null = closed
   const [activeSub, setActiveSub] = useState<"draw" | "text" | null>(null);
+  const isEditingTextbox = useUIStore((s) => s.isEditingTextbox);
+
+  // Close the text sub-toolbar when the user finishes editing a textbox
+  // (isEditingTextbox true→false). This keeps the toolbar open while typing
+  // so color/size controls remain accessible.
+  const prevEditingRef = useRef(false);
+  useEffect(() => {
+    const wasEditing = prevEditingRef.current;
+    prevEditingRef.current = isEditingTextbox;
+    if (wasEditing && !isEditingTextbox) {
+      setActiveSub((prev) => (prev === "text" ? null : prev));
+    }
+  }, [isEditingTextbox]);
 
   const onUndo = useCallback(async () => {
     const action = undo();
@@ -293,9 +306,10 @@ function AutoFormatButton({ onFormat }: { onFormat: () => void | Promise<void> }
       onClick={handleClick}
       disabled={busy}
       aria-label="Auto-format layout"
-      className="flex items-center rounded-full border border-dashed border-black/25 px-3 py-1 font-mono text-[11px] font-medium tracking-wide text-black/50 transition-colors hover:border-black/40 hover:text-black disabled:opacity-40"
+      className="flex items-center rounded-full border border-[#DDDDDD] px-4 py-2 text-[14px] text-black transition-all duration-150 hover:border-black/25 disabled:opacity-40"
+      style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
     >
-      {busy ? "FORMATTING…" : "FORMAT"}
+      {busy ? "Formatting…" : "Format"}
     </button>
   );
 }

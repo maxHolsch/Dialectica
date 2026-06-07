@@ -35,6 +35,11 @@ type UIStore = {
   setColor: (color: string) => void;
   setFontSize: (size: TextFontSize) => void;
 
+  // True while any TextBox contentEditable is focused. EditToolbar watches
+  // this to close the text sub-toolbar when the user finishes editing.
+  isEditingTextbox: boolean;
+  setIsEditingTextbox: (v: boolean) => void;
+
   // Current map context — used to reset local state on map switch
   activeMapId: string | null;
   bindMap: (mapId: string) => void;
@@ -94,6 +99,9 @@ export const useUIStore = create<UIStore>((set, get) => ({
   setTool: (tool) => set({ tool, mode: "draw" }),
   setColor: (color) => set({ color }),
   setFontSize: (size) => set({ fontSize: size }),
+
+  isEditingTextbox: false,
+  setIsEditingTextbox: (v) => set({ isEditingTextbox: v }),
 
   activeMapId: null,
   bindMap: (mapId) => {

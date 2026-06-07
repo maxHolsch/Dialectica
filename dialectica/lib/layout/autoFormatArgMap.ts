@@ -130,6 +130,7 @@ export async function autoFormatArgMap(
   map: ArgMap,
   strategy: LayoutStrategyId = DEFAULT_STRATEGY,
   logger?: AutoFormatLogger,
+  onlyFrameId?: string,
 ): Promise<ArgMap> {
   const log = logger ?? (() => {});
   log(`auto-format start · strategy=${strategy}`);
@@ -155,10 +156,17 @@ export async function autoFormatArgMap(
 
   const TILE_GAP = 48;
   const n = map.cruxes.length;
-  const cols = Math.ceil(Math.sqrt(n));
-  const rows = Math.ceil(n / cols);
   const tileD = map.cruxes.reduce((m, c) => Math.max(m, cruxSizes.get(c.id)!.width), 0);
   const cell = tileD + TILE_GAP;
+
+  // For 6–9 tiles use a 2-row layout: smaller group on top, larger on bottom.
+  // ceil(n * 0.6) tiles on the bottom row gives 3:5 for n=8.
+  const useTwoRows = n >= 6 && n <= 9;
+  const bottomCols = useTwoRows ? Math.ceil(n * 0.6) : 0;
+  const topCols = useTwoRows ? n - bottomCols : 0;
+  const cols = useTwoRows ? bottomCols : Math.ceil(Math.sqrt(n));
+  const rows = useTwoRows ? 2 : Math.ceil(n / cols);
+
   const gridW = cols * cell - TILE_GAP;
   const gridH = rows * cell - TILE_GAP;
 
@@ -168,12 +176,19 @@ export async function autoFormatArgMap(
 
   const cruxPositions = new Map<string, { x: number; y: number }>();
   map.cruxes.forEach((c, i) => {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const tilesInRow = row === rows - 1 ? n - row * cols : cols;
+    let row: number, colWithinRow: number, tilesInRow: number;
+    if (useTwoRows) {
+      row = i < topCols ? 0 : 1;
+      colWithinRow = i < topCols ? i : i - topCols;
+      tilesInRow = i < topCols ? topCols : bottomCols;
+    } else {
+      row = Math.floor(i / cols);
+      colWithinRow = i % cols;
+      tilesInRow = row === rows - 1 ? n - row * cols : cols;
+    }
     const rowInset = ((cols - tilesInRow) * cell) / 2;
     cruxPositions.set(c.id, {
-      x: startX + col * cell + rowInset,
+      x: startX + colWithinRow * cell + rowInset,
       y: startY + row * cell,
     });
   });
@@ -219,9 +234,13 @@ export async function autoFormatArgMap(
     `crux subgraph laid out · ${map.cruxes.length} tiles · ${map.cruxEdges.length} edges`,
   );
 
-  // ───── 2. Frames: one ELK pass per frame ─────
+  // ───── 2. Frames: one ELK pass per frame (or just the scoped frame) ─────
   const nextFrames: ArgMap["frames"] = {};
   for (const [frameId, frame] of Object.entries(map.frames)) {
+    if (onlyFrameId && frameId !== onlyFrameId) {
+      nextFrames[frameId] = frame;
+      continue;
+    }
     const frameNodeMeasures = new Map<
       string,
       { width: number; height: number }

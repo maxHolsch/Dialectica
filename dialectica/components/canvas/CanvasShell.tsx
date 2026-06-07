@@ -203,12 +203,12 @@ function Canvas({
       const contentNodes = reactFlow.getNodes().filter((n) => n.type !== "stroke");
       if (contentNodes.length > 0) {
         const bounds = getNodesBounds(contentNodes);
-        const vp = getViewportForBounds(bounds, window.innerWidth, window.innerHeight, 0.05, 2, 0.35);
+        const vp = getViewportForBounds(bounds, window.innerWidth, window.innerHeight, 0.05, 1.0, 0.1);
         reactFlow.setViewport({ ...vp, y: vp.y + 50 }, { duration: 500 });
         return;
       }
     }
-    reactFlow.fitView({ padding: 0.35, duration: 500 });
+    reactFlow.fitView({ padding: 0.1, maxZoom: 1.0, duration: 500 });
   }, [reactFlow, frameId]);
   const mode = useUIStore((s) => s.mode);
   const tool = useUIStore((s) => s.tool);
@@ -224,6 +224,8 @@ function Canvas({
   const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
   const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
   const setHoveredNode = useUIStore((s) => s.setHoveredNode);
+  const snippetDrawerNode = useUIStore((s) => s.snippetDrawerNode);
+  const prevDrawerNodeRef = useRef(snippetDrawerNode);
   const [contextMenu, setContextMenu] = useState<NodeContextMenuState | null>(
     null,
   );
@@ -247,6 +249,25 @@ function Canvas({
   useEffect(() => {
     if (expandedEdgeId) closeSidePanel();
   }, [expandedEdgeId, closeSidePanel]);
+
+  // When the snippet drawer closes, re-center the tile in the full viewport
+  // (the quote-button zoom offset for the drawer is no longer needed).
+  useEffect(() => {
+    const prev = prevDrawerNodeRef.current;
+    prevDrawerNodeRef.current = snippetDrawerNode;
+    if (prev === null || snippetDrawerNode !== null || !frameId) return;
+    const node = reactFlow.getNode(prev.nodeId);
+    if (!node) return;
+    const nodeW = (node.measured?.width ?? node.width ?? 368) as number;
+    const nodeH = (node.measured?.height ?? node.height ?? 300) as number;
+    const cx = node.position.x + nodeW / 2;
+    const cy = node.position.y + nodeH / 2;
+    const zoom = 1.5;
+    reactFlow.setViewport(
+      { x: window.innerWidth / 2 - cx * zoom, y: window.innerHeight / 2 + 50 - cy * zoom, zoom },
+      { duration: 400 },
+    );
+  }, [snippetDrawerNode, reactFlow, frameId]);
 
   // Phase 5 / DIA-ANNO-4 — subscribe to Supabase Realtime so other users'
   // strokes appear in this client within ~200ms. Inserts/updates land in the
@@ -843,7 +864,7 @@ function Canvas({
         zoomOnPinch
         onInit={handleInit}
         fitView
-        fitViewOptions={{ padding: 0.35 }}
+        fitViewOptions={{ padding: 0.1, maxZoom: 1.0 }}
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{
           style: { stroke: "#3a3a3a", strokeWidth: 1.5 },

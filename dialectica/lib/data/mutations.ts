@@ -491,16 +491,15 @@ export async function updateMapLayout(
 // edit-mode AUTO-FORMAT toolbar button.
 export async function runAutoFormat(
   mapId: string,
-  strategyRaw?: string,
+  frameId?: string,
 ): Promise<void> {
   const user = await currentUser();
   if (!user || user.role !== "edit") {
     throw new Error("Only edit-role users can auto-format a map.");
   }
-  const strategy: LayoutStrategyId = resolveStrategy(strategyRaw);
   const map = await getMap(mapId);
   if (!map) throw new Error(`Map ${mapId} not found`);
-  const next = await autoFormatArgMap(map, strategy);
+  const next = await autoFormatArgMap(map, undefined, undefined, frameId);
   await updateMapLayout(mapId, next);
   revalidatePath(`/m/${mapId}/crux`);
   revalidatePath(`/m/${mapId}/frame/[frameId]`, "page");

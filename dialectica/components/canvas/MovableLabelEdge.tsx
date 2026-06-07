@@ -272,7 +272,7 @@ export function MovableLabelEdge({
                   border: "1px solid",
                   borderColor: isExpandedOrHovered ? "#AAAAAA" : "transparent",
                   backgroundColor: "#ffffff",
-                  color: isExpandedOrHovered ? "#000000" : "#555555",
+                  color: "#000000",
                   overflow: "hidden",
                   whiteSpace: showFull ? "normal" : "nowrap",
                   textAlign: "center",

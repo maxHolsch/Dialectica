@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import type { ArgMap } from "@/lib/schema";
 import { useUIStore } from "@/lib/state/useUIStore";
@@ -10,6 +9,8 @@ import { SnippetAudioPlayer } from "./SnippetAudioPlayer";
 // Side-scroll drawer opened by a claim's quote-mark button. Shows the claim
 // text plus its top related transcript snippets, each with an audio player that
 // plays that span from the conversation recording (map.meta.audio).
+
+export const SNIPPET_DRAWER_DEFAULT_WIDTH = 560;
 
 // Card palettes cycled per-snippet. Background + foreground pair; foreground
 // is also used (at lower opacity) for borders and the audio-player tint.
@@ -33,7 +34,7 @@ function clock(ms: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-const DRAWER_ANIM_MS = 260;
+export const DRAWER_ANIM_MS = 260;
 
 export function SnippetDrawer({ map }: { map: ArgMap }) {
   const target = useUIStore((s) => s.snippetDrawerNode);
@@ -61,7 +62,7 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
   const hasAudio = !!map.meta?.audio?.path;
   // Drawer width — defaults to 560px (40% wider than the original 400px).
   // Drag the left edge to resize between 360px and 90vw.
-  const [width, setWidth] = useState(560);
+  const [width, setWidth] = useState(SNIPPET_DRAWER_DEFAULT_WIDTH);
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
 
   const onResizeStart = useCallback(
@@ -127,22 +128,21 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
   }, [target, map]);
 
   if (!target || !claim) return null;
-  if (typeof document === "undefined") return null;
 
   const snippets = [...(claim.snippets ?? [])].sort((a, b) => a.rank - b.rank);
 
-  return createPortal(
+  return (
     <>
       {/* Click-catching backdrop — closes on outside click without blocking the
           page visually. */}
       <div
-        className="fixed inset-0 z-[190]"
+        className="fixed inset-0 z-[300]"
         aria-hidden
         onClick={close}
       />
       <aside
         aria-label="Related transcript snippets"
-        className="fixed right-0 top-0 z-[200] flex h-full max-w-[92vw] flex-col bg-transparent"
+        className="fixed right-0 top-0 z-[310] flex h-full max-w-[92vw] flex-col bg-white"
         style={{
           width,
           animation: exiting
@@ -161,28 +161,21 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
           onPointerCancel={onResizeEnd}
           className="absolute left-0 top-0 z-10 h-full w-2 -translate-x-1/2 cursor-col-resize"
         />
-        <header className="flex items-start justify-between gap-3 bg-transparent px-5 pb-2 pt-2">
-          <div className="flex min-w-0 flex-col gap-1" aria-hidden>
-            <span className="invisible font-mono text-[9px] uppercase tracking-[1.5px]">
-              Where this was said
-            </span>
-            <p className="invisible font-serif text-[15px] leading-[1.4]">
-              {claim.text}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close snippets"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full text-dia-fg-dim transition-colors hover:bg-dia-surface-2 hover:text-dia-fg"
-          >
-            <X className="size-4" strokeWidth={1.5} />
-          </button>
-        </header>
+
+        {/* Close button — matches the style and margins of Back / FitView. */}
+        <button
+          type="button"
+          onClick={close}
+          aria-label="Close snippets"
+          className="absolute z-10 flex items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-gray-50"
+          style={{ top: 28, right: 28, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+        >
+          <X size={18} strokeWidth={1.5} />
+        </button>
 
         <div
-          className="flex flex-1 flex-col gap-7 overflow-y-auto px-7 pb-7"
-          style={{ paddingTop: 60 }}
+          className="flex h-full flex-col gap-7 overflow-y-auto px-7 pb-7"
+          style={{ paddingTop: 96 }}
         >
           {snippets.length === 0 ? (
             <p className="font-mono text-[12px] leading-[1.6] text-dia-fg-dim">
@@ -248,19 +241,6 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
           )}
         </div>
       </aside>
-      {/* Top fade overlay sits ABOVE the drawer so snippet cards scroll under
-          a soft white veil. Same gradient pattern as FrameView's header fade,
-          but shorter so it ends higher up than that one. */}
-      <div
-        className="pointer-events-none fixed right-0 top-0 z-[210]"
-        style={{
-          width,
-          height: 147,
-          background:
-            "linear-gradient(to bottom, white 0%, white 60%, rgba(255,255,255,0) 100%)",
-        }}
-      />
-    </>,
-    document.body,
+    </>
   );
 }

@@ -3,7 +3,16 @@
     "allow": [
       "Bash(git merge *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git stash *)",
+      "Bash(kill 86316)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/dev/login?user=max)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:3000/dev/login?user=max\")",
+      "Bash(curl -s -m 30 -w \"\\\\nHTTP %{http_code} \\(%{time_total}s\\)\" \"http://localhost:3000/dev/login?user=max\")",
+      "Bash(kill 86301 86310 86316 87687 86317)",
+      "Bash(curl -s -m 15 -o /dev/null -w \"%{http_code}\" \"http://localhost:3002/dev/login?user=max\")",
+      "Bash(node --env-file=.env.local scripts/reformat-crux-positions.cjs)",
+      "Bash(curl -s -m 5 -o /dev/null -w \"%{http_code}\" \"http://localhost:3002/\")"
     ]
   }
 }

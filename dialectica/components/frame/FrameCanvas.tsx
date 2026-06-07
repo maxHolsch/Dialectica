@@ -14,12 +14,10 @@ import type { StakeMap } from "@/lib/data/stakes-types";
 import { CanvasShell, type MoveHandlers } from "@/components/canvas/CanvasShell";
 import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
 import { applyMovePatch, applyDeletePatch, runAutoFormat, updateNodeText } from "@/lib/data/mutations";
-import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { stakeKey } from "@/lib/data/stakes-types";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
-import { SnippetDrawer } from "./SnippetDrawer";
 
 const NODE_TYPES: NodeTypes = {
   claim: ClaimNode,
@@ -93,8 +91,8 @@ export function FrameCanvas({
       type: "labeled",
       markerEnd: e.undirected
         ? undefined
-        : { type: MarkerType.ArrowClosed, color: "#8a8a8a", width: 18, height: 18 },
-      style: { stroke: "#8a8a8a", strokeWidth: 1.2 },
+        : { type: MarkerType.ArrowClosed, color: "#000", width: 18, height: 18 },
+      style: { stroke: "#000", strokeWidth: 1.2 },
       data: {
         label: e.label,
         relType: e.relType,
@@ -188,37 +186,34 @@ export function FrameCanvas({
     : undefined;
 
   const onAutoFormat = useCallback(
-    async (strategy: LayoutStrategyId) => {
+    async () => {
       try {
-        await runAutoFormat(map.id, strategy);
+        await runAutoFormat(map.id, frame.id);
         router.refresh();
       } catch (err) {
         console.error("[frame] auto-format failed", err);
       }
     },
-    [map.id, router],
+    [map.id, frame.id, router],
   );
 
   return (
-    <>
-      <CanvasShell
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={NODE_TYPES}
-        edgeTypes={EDGE_TYPES}
-        annotations={annotations}
-        mapId={map.id}
-        frameId={frame.id}
-        userId={userId}
-        displayName={displayName}
-        userColor={userColor}
-        isEditMode={isEditMode}
-        onAutoFormat={isEditMode ? onAutoFormat : undefined}
-        onReady={onReady}
-        stakes={stakes}
-        moveHandlers={moveHandlers}
-      />
-      <SnippetDrawer map={map} />
-    </>
+    <CanvasShell
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={NODE_TYPES}
+      edgeTypes={EDGE_TYPES}
+      annotations={annotations}
+      mapId={map.id}
+      frameId={frame.id}
+      userId={userId}
+      displayName={displayName}
+      userColor={userColor}
+      isEditMode={isEditMode}
+      onAutoFormat={isEditMode ? onAutoFormat : undefined}
+      onReady={onReady}
+      stakes={stakes}
+      moveHandlers={moveHandlers}
+    />
   );
 }

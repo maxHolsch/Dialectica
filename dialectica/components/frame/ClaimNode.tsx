@@ -3,17 +3,20 @@
 import { memo } from "react";
 import type { NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
+import { Quotes } from "@phosphor-icons/react";
 import { NodeHandles } from "@/components/canvas/NodeHandles";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { InlineAgreeBar } from "./AgreeBar";
+import { SNIPPET_DRAWER_DEFAULT_WIDTH } from "./SnippetDrawer";
 import type { FrameNodeStakes } from "@/lib/data/stakes-types";
 
-const BORDER = "1px solid rgba(0,0,0,0.3)";
+const BORDER = "1px solid #000";
+const TILE_ZOOM = 1.5;
 
 /**
- * Quote-mark affordance, bottom-right. Visible only when the claim has audio
- * snippets. Clicking opens the snippet drawer WITHOUT triggering the canvas
- * node-click (zoom/side-panel) — hence `nodrag nopan` + stopPropagation.
+ * Quote-mark affordance. Clicking opens the snippet drawer WITHOUT triggering
+ * the canvas node-click — hence `nodrag nopan` + stopPropagation.
+ * Zoom formula matches the tile-click handler in CanvasShell.
  */
 function SnippetQuoteButton({
   frameId,
@@ -36,8 +39,7 @@ function SnippetQuoteButton({
       type="button"
       aria-label={label}
       title={label}
-      className="nodrag nopan absolute bottom-2 right-3 flex h-8 w-8 items-end justify-center leading-none text-black/35 transition-colors hover:text-black"
-      style={{ fontFamily: "var(--font-quote)", fontSize: 34 }}
+      className="nodrag nopan flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#DDDDDD] bg-white text-black transition-all duration-150 hover:border-black/25"
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         e.stopPropagation();
@@ -49,14 +51,20 @@ function SnippetQuoteButton({
           const nodeH = (node.measured?.height ?? node.height ?? 300) as number;
           const cx = node.position.x + nodeW / 2;
           const cy = node.position.y + nodeH / 2;
+          // Center tile in the visible canvas area (left of the drawer).
+          const visibleCenterX = (window.innerWidth - SNIPPET_DRAWER_DEFAULT_WIDTH) / 2;
           setViewport(
-            { x: window.innerWidth / 2 - cx, y: window.innerHeight / 2 + 50 - cy, zoom: 0.85 },
+            {
+              x: visibleCenterX - cx * TILE_ZOOM,
+              y: window.innerHeight / 2 + 50 - cy * TILE_ZOOM,
+              zoom: TILE_ZOOM,
+            },
             { duration: 500 },
           );
         }
       }}
     >
-      &ldquo;
+      <Quotes size={16} weight="regular" />
     </button>
   );
 }
@@ -89,50 +97,42 @@ export const ClaimNode = memo(function ClaimNode({
       style={{
         width: w,
         border: BORDER,
-        // Flatten bottom corners when expanded so the extension looks seamless.
-        borderRadius: expanded ? "12px 12px 0 0" : "12px",
-        transition: "border-radius 200ms ease",
+        borderRadius: 12,
       }}
     >
       <div className="p-8">
         <p className="font-serif text-[16px] leading-[1.5] text-black">{text}</p>
       </div>
-      {hasSnippets && frameId ? (
-        <SnippetQuoteButton frameId={frameId} nodeId={id} count={snippetCount} />
-      ) : null}
 
-      {/* Absolutely positioned so RF's ResizeObserver never sees a height change,
-          keeping edge endpoints fixed as the tile expands. */}
+      {/* Floating action bar — appears 16px below the tile, detached. Absolutely
+          positioned so RF's ResizeObserver never sees the tile height change. */}
       {showAgree && (
         <div
+          className="nodrag nopan"
           style={{
             position: "absolute",
-            left: -1,
-            right: -1,
-            // Overlap the main tile's bottom border by 1px to avoid a double line.
-            top: "calc(100% - 1px)",
-            maxHeight: expanded ? 100 : 0,
+            left: 0,
+            right: 0,
+            top: "calc(100% + 16px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
             opacity: expanded ? 1 : 0,
-            overflow: "hidden",
-            transition: "max-height 200ms ease, opacity 150ms ease",
-            borderLeft: BORDER,
-            borderRight: BORDER,
-            borderBottom: BORDER,
-            borderBottomLeftRadius: 12,
-            borderBottomRightRadius: 12,
-            background: "white",
+            pointerEvents: expanded ? "auto" : "none",
+            transition: "opacity 150ms ease",
           }}
         >
-          <div style={{ padding: "0 32px 32px" }}>
-            <InlineAgreeBar
-              mapId={mapId!}
-              frameId={frameId!}
-              nodeId={id}
-              stakes={stakes}
-              userId={userId!}
-              displayName={displayName!}
-            />
-          </div>
+          <InlineAgreeBar
+            mapId={mapId!}
+            frameId={frameId!}
+            nodeId={id}
+            stakes={stakes}
+            userId={userId!}
+            displayName={displayName!}
+          />
+          {hasSnippets && frameId && (
+            <SnippetQuoteButton frameId={frameId} nodeId={id} count={snippetCount} />
+          )}
         </div>
       )}
 
@@ -163,8 +163,7 @@ export const QuestionNode = memo(function QuestionNode({ id, data, width }: Node
       style={{
         width: w,
         border: BORDER,
-        borderRadius: expanded ? "12px 12px 0 0" : "12px",
-        transition: "border-radius 200ms ease",
+        borderRadius: 12,
       }}
     >
       <div className="p-8">
@@ -173,33 +172,24 @@ export const QuestionNode = memo(function QuestionNode({ id, data, width }: Node
 
       {showAgree && (
         <div
+          className="nodrag nopan"
           style={{
             position: "absolute",
-            left: -1,
-            right: -1,
-            top: "calc(100% - 1px)",
-            maxHeight: expanded ? 100 : 0,
+            left: 0,
+            top: "calc(100% + 16px)",
             opacity: expanded ? 1 : 0,
-            overflow: "hidden",
-            transition: "max-height 200ms ease, opacity 150ms ease",
-            borderLeft: BORDER,
-            borderRight: BORDER,
-            borderBottom: BORDER,
-            borderBottomLeftRadius: 12,
-            borderBottomRightRadius: 12,
-            background: "white",
+            pointerEvents: expanded ? "auto" : "none",
+            transition: "opacity 150ms ease",
           }}
         >
-          <div style={{ padding: "0 32px 32px" }}>
-            <InlineAgreeBar
-              mapId={mapId!}
-              frameId={frameId!}
-              nodeId={id}
-              stakes={stakes}
-              userId={userId!}
-              displayName={displayName!}
-            />
-          </div>
+          <InlineAgreeBar
+            mapId={mapId!}
+            frameId={frameId!}
+            nodeId={id}
+            stakes={stakes}
+            userId={userId!}
+            displayName={displayName!}
+          />
         </div>
       )}
 
