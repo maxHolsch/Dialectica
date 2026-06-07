@@ -27,7 +27,8 @@
 // Workflow-step bundling weirdness in production builds.
 
 import { execFile } from "child_process";
-import { resolve } from "path";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 import type { HandleId } from "@/lib/schema";
 import type { LayoutStrategyId } from "./strategies";
 import { LAYOUT_STRATEGIES } from "./strategies";
@@ -37,9 +38,9 @@ import { LAYOUT_STRATEGIES } from "./strategies";
 // ELK's fake-worker message loop works correctly with plain require().
 function runElkInWorker(graph: unknown): Promise<ElkRootOut> {
   return new Promise((res, rej) => {
-    const scriptPath = resolve(process.cwd(), "lib/layout/elk-worker.cjs");
+    const scriptPath = resolve(dirname(fileURLToPath(import.meta.url)), "elk-worker.cjs");
     const child = execFile(
-      "node",
+      process.execPath,
       [scriptPath],
       { timeout: 30_000, maxBuffer: 10 * 1024 * 1024 },
       (error, stdout, stderr) => {
