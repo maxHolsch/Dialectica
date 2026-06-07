@@ -17,7 +17,7 @@
   /* Dialectica brand palette — sourced from Figma node ids 2:5 / 2:9 / 2:15.
    * shadcn tokens above are kept for shadcn components; Dialectica surfaces use
    * --color-dia-* directly via `bg-dia-bg` / `text-dia-dim` / etc. */
-  --color-dia-bg: #ffffff;
+  --color-dia-bg: #F6F4F2;
   --color-dia-surface: #f5f5f5;
   --color-dia-surface-2: #efefef;
   --color-dia-border: #d0d0d0;

@@ -145,6 +145,7 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
         className="fixed right-0 top-0 z-[310] flex h-full max-w-[92vw] flex-col bg-white"
         style={{
           width,
+          borderLeft: "1px solid #000",
           animation: exiting
             ? `snippet-drawer-out ${DRAWER_ANIM_MS}ms ease-in forwards`
             : `snippet-drawer-in ${DRAWER_ANIM_MS}ms ease-out`,
@@ -168,7 +169,7 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
           onClick={close}
           aria-label="Close snippets"
           className="absolute z-10 flex items-center justify-center rounded-full bg-white text-black transition-colors hover:bg-gray-50"
-          style={{ top: 28, right: 28, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+          style={{ top: 28, right: 28, width: 48, height: 48, border: "1px solid #EEEEEE" }}
         >
           <X size={18} strokeWidth={1.5} />
         </button>
@@ -189,24 +190,24 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                 return (
                   <li
                     key={i}
-                    className="rounded-[12px] border p-3"
+                    className="border p-3"
                     style={{
                       backgroundColor: p.bg,
-                      borderColor: `${p.fg}33`,
+                      borderColor: "#000",
                       color: p.fg,
                       fontFamily: "Georgia, serif",
                     }}
                   >
                     <div className="mb-1.5 flex items-baseline justify-between gap-2">
                       <span
-                        className="truncate font-mono text-[9px] uppercase tracking-[1.2px]"
-                        style={{ color: p.fg, opacity: 0.75 }}
+                        className="truncate text-[12px]"
+                        style={{ color: p.fg, opacity: 0.75, fontFamily: "var(--font-dm-sans), sans-serif", textTransform: "capitalize" }}
                       >
                         {s.speakerName}
                       </span>
                       <span
-                        className="shrink-0 font-mono text-[10px] tabular-nums"
-                        style={{ color: p.fg, opacity: 0.75 }}
+                        className="shrink-0 tabular-nums text-[12px]"
+                        style={{ color: p.fg, opacity: 0.75, fontFamily: "var(--font-dm-sans), sans-serif" }}
                       >
                         {clock(s.startMs)}
                       </span>

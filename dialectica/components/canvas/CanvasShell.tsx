@@ -921,7 +921,7 @@ function Canvas({
         onClick={handleFitView}
         aria-label="Fit view"
         className="pointer-events-auto absolute bottom-7 right-7 z-20 flex items-center justify-center rounded-full bg-white text-black transition-colors"
-        style={{ width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)", cursor: CURSORS.pointer }}
+        style={{ width: 48, height: 48, border: "1px solid #EEEEEE", cursor: CURSORS.pointer }}
       >
         <CornersOut size={18} />
       </button>

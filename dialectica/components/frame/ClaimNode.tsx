@@ -97,7 +97,7 @@ export const ClaimNode = memo(function ClaimNode({
       style={{
         width: w,
         border: BORDER,
-        borderRadius: 12,
+        borderRadius: 0,
       }}
     >
       <div className="p-8">
@@ -163,7 +163,7 @@ export const QuestionNode = memo(function QuestionNode({ id, data, width }: Node
       style={{
         width: w,
         border: BORDER,
-        borderRadius: 12,
+        borderRadius: 0,
       }}
     >
       <div className="p-8">

@@ -9,7 +9,6 @@ import { FrameCanvas } from "./FrameCanvas";
 import { SnippetDrawer, SNIPPET_DRAWER_DEFAULT_WIDTH, DRAWER_ANIM_MS } from "./SnippetDrawer";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
-import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 
 const ENTER_MS = 220;
 const EXIT_MS = 200;
@@ -95,9 +94,7 @@ export function FrameView({
           className="pointer-events-none absolute inset-x-0 top-0"
           style={{
             height: 150,
-            backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 72%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
-            backgroundSize: "auto, 700px 700px",
-            backgroundRepeat: "repeat",
+            backgroundImage: `linear-gradient(to bottom, #F6F4F2 0%, #F6F4F2 72%, rgba(246,244,242,0) 100%)`,
           }}
         />
 
@@ -106,7 +103,7 @@ export function FrameView({
           onClick={goBack}
           aria-label="Back to map"
           className="pointer-events-auto absolute flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE" }}
         >
           <ArrowLeft size={18} weight="regular" />
         </button>

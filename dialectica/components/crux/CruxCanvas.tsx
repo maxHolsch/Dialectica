@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
 import { FRAME_EXIT_EVENT, FRAME_EXIT_DONE_EVENT } from "@/lib/navTransition";
-import { PAPER_RAW_URI } from "@/lib/canvas/paperTexture";
 import {
   MarkerType,
   type Node,
@@ -221,7 +220,7 @@ export function CruxCanvas({
         <Link
           href="/"
           className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", boxShadow: "0 1px 6px rgba(0,0,0,0.07)" }}
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE" }}
         >
           <X size={18} weight="regular" />
         </Link>
@@ -230,9 +229,7 @@ export function CruxCanvas({
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
         style={{
           height: 140,
-          backgroundImage: `linear-gradient(to bottom, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.92) 55%, rgba(255,255,255,0) 100%), url("${PAPER_RAW_URI}")`,
-          backgroundSize: "auto, 700px 700px",
-          backgroundRepeat: "repeat",
+          backgroundImage: `linear-gradient(to bottom, #F6F4F2 0%, #F6F4F2 55%, rgba(246,244,242,0) 100%)`,
         }}
       />
       <div
