@@ -88,20 +88,23 @@ export const ClaimNode = memo(function ClaimNode({
   const mapId = data?.mapId as string | undefined;
   const frameId = (data?.frameId as string | undefined) ?? undefined;
   const showAgree = !!(mapId && frameId && userId && displayName);
+  const bgColor = (data?.bgColor as string) ?? "#ffffff";
+  const textColor = (data?.textColor as string) ?? "#000000";
 
   const w = width ?? 368;
 
   return (
     <div
-      className="relative flex items-center bg-white"
+      className="relative flex items-center"
       style={{
         width: w,
         border: BORDER,
         borderRadius: 0,
+        backgroundColor: bgColor,
       }}
     >
       <div className="p-8">
-        <p className="font-serif text-[16px] leading-[1.5] text-black">{text}</p>
+        <p className="font-serif text-[16px] leading-[1.5]" style={{ color: textColor }}>{text}</p>
       </div>
 
       {/* Floating action bar — appears 16px below the tile, detached. Absolutely
@@ -129,6 +132,8 @@ export const ClaimNode = memo(function ClaimNode({
             stakes={stakes}
             userId={userId!}
             displayName={displayName!}
+            tilePale={bgColor}
+            tileDeep={textColor}
           />
           {hasSnippets && frameId && (
             <SnippetQuoteButton frameId={frameId} nodeId={id} count={snippetCount} />
@@ -154,20 +159,23 @@ export const QuestionNode = memo(function QuestionNode({ id, data, width }: Node
   const mapId = data?.mapId as string | undefined;
   const frameId = data?.frameId as string | undefined;
   const showAgree = !!(mapId && frameId && userId && displayName);
+  const bgColor = (data?.bgColor as string) ?? "#ffffff";
+  const textColor = (data?.textColor as string) ?? "#000000";
 
   const w = width ?? 368;
 
   return (
     <div
-      className="relative flex items-center bg-white"
+      className="relative flex items-center"
       style={{
         width: w,
         border: BORDER,
         borderRadius: 0,
+        backgroundColor: bgColor,
       }}
     >
       <div className="p-8">
-        <p className="font-serif text-[16px] italic leading-[1.5] text-black">{text}</p>
+        <p className="font-serif text-[16px] italic leading-[1.5]" style={{ color: textColor }}>{text}</p>
       </div>
 
       {showAgree && (
@@ -189,6 +197,8 @@ export const QuestionNode = memo(function QuestionNode({ id, data, width }: Node
             stakes={stakes}
             userId={userId!}
             displayName={displayName!}
+            tilePale={bgColor}
+            tileDeep={textColor}
           />
         </div>
       )}

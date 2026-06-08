@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import type { Annotation, StrokePoint } from "@/lib/schema";
 
-export type CanvasMode = "select" | "draw" | "erase" | "move";
+export type CanvasMode = "select" | "draw" | "erase" | "move" | "drag";
 export type DrawingTool = "pencil" | "pen" | "highlighter" | "textbox";
 
 export const SWATCHES = ["#0D90D3", "#54A96D", "#F4652C", "#885CBF"];

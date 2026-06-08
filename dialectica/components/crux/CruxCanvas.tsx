@@ -19,6 +19,7 @@ import { applyMovePatch, applyDeletePatch, runAutoFormat, updateCruxText } from 
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { CURSORS } from "@/lib/canvas/cursors";
+import { cruxColorByIndex } from "@/lib/palette";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
 
@@ -93,11 +94,12 @@ export function CruxCanvas({
       },
       ...map.cruxes.map((c, idx) => {
         const size = c.size ?? { width: 200, height: 200 };
+        const { pale, deep } = cruxColorByIndex(idx);
         return {
           id: c.id,
           type: "cruxTile",
           position: c.position,
-          data: { text: c.question, tint: "#ffc2ec", index: idx + 1 },
+          data: { text: c.question, tint: pale, index: idx + 1, bgColor: pale, textColor: deep },
           width: size.width,
           height: size.height,
           draggable: false,
@@ -235,8 +237,8 @@ export function CruxCanvas({
       {hideClose ? null : (
         <Link
           href="/"
-          className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", cursor: CURSORS.pointer }}
+          className="fixed z-[51] flex items-center justify-center rounded-full"
+          style={{ top: 32, left: 32, width: 48, height: 48, backgroundColor: "#131313", border: "1px solid #2a2a2a", color: "#ffffff", cursor: CURSORS.pointer }}
         >
           <X size={18} weight="regular" />
         </Link>
