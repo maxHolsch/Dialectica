@@ -13,7 +13,26 @@
       "Bash(curl -s -m 15 -o /dev/null -w \"%{http_code}\" \"http://localhost:3002/dev/login?user=max\")",
       "Bash(node --env-file=.env.local scripts/reformat-crux-positions.cjs)",
       "Bash(curl -s -m 5 -o /dev/null -w \"%{http_code}\" \"http://localhost:3002/\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(git push *)",
+      "Bash(vercel --version)",
+      "Bash(grep -r \"color\" /Users/omgokhale/Desktop/Coding/dialectica-om/dialectica --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.css\" --include=\"*.scss\" ! -path \"*/node_modules/*\")",
+      "Bash(grep -rn \"#ffc2ec\\\\|#cdf4d3\\\\|question.*color\\\\|claim.*color\" /Users/omgokhale/Desktop/Coding/dialectica-om/dialectica --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.css\" ! -path \"*/node_modules/*\")",
+      "Bash(grep -rn \"data.tint\\\\|data?.tint\\\\|node.data.tint\" /Users/omgokhale/Desktop/Coding/dialectica-om/dialectica --include=\"*.tsx\" --include=\"*.ts\" ! -path \"*/node_modules/*\")",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om branch --show-current)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om commit -m ' *)",
+      "Bash(gh pr create --base main --head om/prototype --title 'ui: color palette, frosted toolbar, drag mode, agree bar polish' --body ' *)",
+      "Bash(gh pr *)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om log --oneline origin/main..HEAD)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om diff origin/main...HEAD -- dialectica/components/canvas/CanvasShell.tsx dialectica/components/canvas/EditToolbar.tsx dialectica/lib/canvas/cursors.ts dialectica/lib/state/useUIStore.ts)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om diff origin/main...HEAD -- dialectica/lib/palette.ts dialectica/components/crux/CruxCanvas.tsx dialectica/components/crux/CruxTileNode.tsx dialectica/components/frame/FrameCanvas.tsx dialectica/components/frame/ClaimNode.tsx dialectica/components/frame/AgreeBar.tsx dialectica/components/frame/FrameView.tsx)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om diff --stat HEAD)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om log --oneline -3)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om add dialectica/app/globals.css dialectica/components/canvas/CanvasShell.tsx dialectica/components/canvas/MovableLabelEdge.tsx dialectica/components/crux/CruxCanvas.tsx dialectica/components/frame/AgreeBar.tsx dialectica/components/frame/FrameView.tsx dialectica/lib/canvas/cursors.ts)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om diff)",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om add dialectica/app/globals.css dialectica/components/canvas/CanvasShell.tsx dialectica/components/canvas/StrokeNode.tsx)",
+      "Bash(node -e \"const d=require\\('/Users/omgokhale/Desktop/Coding/dialectica-om/dialectica/lib/fixtures/google-xi-test6.json'\\); console.log\\(Object.keys\\(d\\)\\); console.log\\(JSON.stringify\\(d\\).slice\\(0,500\\)\\)\")",
+      "Bash(git -C /Users/omgokhale/Desktop/Coding/dialectica-om add dialectica/lib/data/synthetic-stakes.ts dialectica/lib/data/dev-stake-store.ts dialectica/components/frame/AgreeBar.tsx dialectica/app/m/[mapId]/frame/[frameId]/page.tsx)"
     ]
   }
 }
