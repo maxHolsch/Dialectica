@@ -53,6 +53,7 @@ export function MovableLabelEdge({
   const mode = useUIStore((s) => s.mode);
   const expandedEdgeId = useUIStore((s) => s.expandedEdgeId);
   const setExpandedEdgeId = useUIStore((s) => s.setExpandedEdgeId);
+  const tileFocused = useUIStore((s) => !!s.sidePanelNode);
   const edgeData = (data ?? {}) as MovableLabelEdgeData;
   const label = typeof edgeData.label === "string" ? edgeData.label : undefined;
   const relType = typeof edgeData.relType === "string" ? edgeData.relType : undefined;
@@ -272,7 +273,7 @@ export function MovableLabelEdge({
                   border: "1px solid",
                   borderColor: isExpandedOrHovered ? "#555555" : "transparent",
                   backgroundColor: "#131313",
-                  color: "#D0D0D0",
+                  color: tileFocused && !dimmed ? "rgba(208,208,208,0.15)" : "#D0D0D0",
                   overflow: "hidden",
                   whiteSpace: showFull ? "normal" : "nowrap",
                   textAlign: "center",

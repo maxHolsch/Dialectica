@@ -75,8 +75,8 @@ export function InlineAgreeBar({
         )}
         style={{
           fontFamily: "var(--font-dm-sans), sans-serif",
-          ...(agreed && tilePale && tileDeep
-            ? { backgroundColor: tilePale, color: tileDeep, borderColor: tileDeep }
+          ...(agreed
+            ? { backgroundColor: tilePale ?? "#0D90D3", color: tileDeep ?? "#ffffff", borderColor: tileDeep ?? "#0D90D3" }
             : {}),
         }}
       >
@@ -112,6 +112,7 @@ function StakerAvatar({ staker, index }: { staker: Staker; index: number }) {
           width: 32,
           height: 32,
           transform: hovered ? "scale(1.18)" : "scale(1)",
+          border: "2px solid #131313",
         }}
       />
       {hovered && (

@@ -772,6 +772,12 @@ function Canvas({
         eraseAtPoint(e.clientX, e.clientY);
         return;
       }
+      // Don't start drawing when the pointer is on an overlay (toolbar, minimap,
+      // context menu) — only clicks that land inside the react-flow canvas trigger strokes.
+      if (mode === "draw") {
+        const target = e.target as Element | null;
+        if (!target?.closest(".react-flow")) return;
+      }
       drawing.onPointerDown(e);
     },
     [mode, drawing, eraseAtPoint],
@@ -896,9 +902,7 @@ function Canvas({
         <style
           dangerouslySetInnerHTML={{
             __html:
-              `.canvas-tile-focused .react-flow__node:not([data-id="${sidePanelNode.nodeId}"]){opacity:0.12}` +
-              `.canvas-tile-focused .react-flow__edge{opacity:0.12}` +
-              `.canvas-tile-focused .react-flow__edgelabel-renderer{opacity:0.12}`,
+              `.canvas-tile-focused .react-flow__node:not([data-id="${sidePanelNode.nodeId}"])::after{opacity:1}`,
           }}
         />
       ) : null}
@@ -906,8 +910,8 @@ function Canvas({
         <style
           dangerouslySetInnerHTML={{
             __html:
-              `.canvas-edge-focused .react-flow__node:not([data-id="${expandedEdge.source}"]):not([data-id="${expandedEdge.target}"]){opacity:0.12}` +
-              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.12}`,
+              `.canvas-edge-focused .react-flow__node:not([data-id="${expandedEdge.source}"]):not([data-id="${expandedEdge.target}"])::after{opacity:1}` +
+              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.08}`,
           }}
         />
       ) : null}

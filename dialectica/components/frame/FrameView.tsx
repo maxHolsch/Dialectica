@@ -54,6 +54,7 @@ export function FrameView({
 
   function goBack() {
     setExiting(true);
+    setHeaderH(102); // animate header back down to crux height while canvas fades
     window.dispatchEvent(new CustomEvent(FRAME_EXIT_EVENT));
     // Reveal the crux-canvas header just before the animation ends so it
     // reaches full opacity at the same moment the parent text does.

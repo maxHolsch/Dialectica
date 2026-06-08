@@ -209,8 +209,23 @@
 /* Persistent opacity transition on edge wrappers so focus-fade reverses smoothly */
 .canvas-drawn .react-flow__edge { transition: opacity 200ms ease; }
 
-/* Tile focus mode — dims non-selected nodes/edges so the selected tile stands out */
-.canvas-drawn.canvas-tile-focused .react-flow__edges { opacity: 0.12; transition: opacity 200ms ease; }
+/* Tile / edge focus mode — edge lines fade out; non-selected nodes get an opaque overlay */
+.canvas-drawn.canvas-tile-focused .react-flow__edges,
+.canvas-drawn.canvas-edge-focused .react-flow__edges { opacity: 0.08; transition: opacity 200ms ease; }
+
+/* Base overlay — invisible by default, fades in on non-selected nodes in focus modes.
+   ::after sits inside the node's stacking context so the tile background stays opaque
+   (no grid bleed-through) and edge-label containers are unaffected. */
+.canvas-drawn .react-flow__node::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(19,19,19,0.88);
+  pointer-events: none;
+  z-index: 99999;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
 
 /* Cursor — set --canvas-cursor on the wrapper div; applies to every React Flow layer */
 .react-flow__pane,

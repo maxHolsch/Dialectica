@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
@@ -49,32 +49,17 @@ export function CruxCanvas({
   isEditMode: boolean;
   hideClose?: boolean;
 }) {
-  // Hide header during frame-view back-transition to avoid colliding with the
-  // morphing header text in FrameView, which occupies the same screen position.
+  // Hide the crux question text while FrameView's header occupies the same spot,
+  // then reveal it once the back-transition is complete.
   const [headerVisible, setHeaderVisible] = useState(true);
-  // headerH: animate from frame height (128) back down to crux height (102)
-  // when the frame-exit completes, giving a smooth bottom-edge morph.
-  const [headerH, setHeaderH] = useState(102);
-  const morphRafRef = useRef<number>(0);
   useEffect(() => {
-    const onExit = () => {
-      setHeaderH(128);      // pre-size to match the frame header (still hidden)
-      setHeaderVisible(false);
-    };
-    const onDone = () => {
-      setHeaderVisible(true);   // reveal at 128px
-      // Two rAFs: first lets React commit the 128px height, second triggers
-      // the CSS transition so the browser sees an actual change 128 → 102.
-      morphRafRef.current = requestAnimationFrame(() => {
-        morphRafRef.current = requestAnimationFrame(() => setHeaderH(102));
-      });
-    };
+    const onExit = () => setHeaderVisible(false);
+    const onDone = () => setHeaderVisible(true);
     window.addEventListener(FRAME_EXIT_EVENT, onExit);
     window.addEventListener(FRAME_EXIT_DONE_EVENT, onDone);
     return () => {
       window.removeEventListener(FRAME_EXIT_EVENT, onExit);
       window.removeEventListener(FRAME_EXIT_DONE_EVENT, onDone);
-      cancelAnimationFrame(morphRafRef.current);
     };
   }, []);
 
@@ -246,10 +231,9 @@ export function CruxCanvas({
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
         style={{
-          height: headerH,
+          height: 102,
           backgroundColor: "#131313",
           borderBottom: "1px solid #1C1C1C",
-          transition: "height 200ms ease-in-out",
         }}
       />
       <div
