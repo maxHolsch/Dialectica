@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getMap } from "@/lib/data/maps";
 import { currentUser, avatarFor } from "@/lib/data/users";
 import { listStakesForMap } from "@/lib/data/stakes";
+import { mergeSyntheticStakes } from "@/lib/data/synthetic-stakes";
 import { listAnnotationsForMap } from "@/lib/data/annotations";
 import { FrameView } from "@/components/frame/FrameView";
 
@@ -19,6 +20,7 @@ export default async function FramePage({
     listAnnotationsForMap(mapId),
   ]);
   if (!map) notFound();
+  const mergedStakes = mergeSyntheticStakes(map, stakes, user?.id ?? "");
   const avatar = user ? avatarFor(user) : { initials: "?", color: "#cdf4d3" };
 
   const frame = map.frames[frameId];
@@ -38,7 +40,7 @@ export default async function FramePage({
       displayName={user?.displayName ?? "Anonymous"}
       userColor={avatar.color}
       isEditMode={user?.role === "edit"}
-      stakes={stakes}
+      stakes={mergedStakes}
     />
   );
 }
