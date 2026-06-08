@@ -210,8 +210,9 @@
 .canvas-drawn .react-flow__edge { transition: opacity 200ms ease; }
 
 /* Tile / edge focus mode — edge lines fade out; non-selected nodes get an opaque overlay */
-.canvas-drawn.canvas-tile-focused .react-flow__edges,
-.canvas-drawn.canvas-edge-focused .react-flow__edges { opacity: 0.08; transition: opacity 200ms ease; }
+/* Tile focus: fade all edges together via container. Edge focus: handled per-edge
+   in the injected style so the selected edge can be restored to full opacity. */
+.canvas-drawn.canvas-tile-focused .react-flow__edges { opacity: 0.08; transition: opacity 200ms ease; }
 
 /* Base overlay — invisible by default, fades in on non-selected nodes in focus modes.
    ::after sits inside the node's stacking context so the tile background stays opaque
