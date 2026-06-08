@@ -22,10 +22,10 @@ export function PaperTextureBackground() {
       style={{
         position: "absolute",
         inset: 0,
-        backgroundColor: "#F6F4F2",
+        backgroundColor: "#131313",
         backgroundImage: [
-          "linear-gradient(#F0E6DC 1px, transparent 1px)",
-          "linear-gradient(90deg, #F0E6DC 1px, transparent 1px)",
+          "linear-gradient(#1C1C1C 1px, transparent 1px)",
+          "linear-gradient(90deg, #1C1C1C 1px, transparent 1px)",
         ].join(", "),
         backgroundSize: `${tileSize}px ${tileSize}px`,
         backgroundPosition: `${bpx}px ${bpy}px`,

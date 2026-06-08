@@ -15,7 +15,7 @@ export const CruxTileNode = memo(function CruxTileNode({
   const h = height ?? 200;
   return (
     <div
-      className="relative cursor-pointer border border-black bg-white hover:bg-[#FAFAFA] transition-colors duration-150"
+      className="relative bg-white hover:bg-[#FAFAFA] transition-colors duration-150"
       style={{ width: w, height: h }}
     >
       <span

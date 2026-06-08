@@ -142,10 +142,9 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
       />
       <aside
         aria-label="Related transcript snippets"
-        className="fixed right-0 top-0 z-[310] flex h-full max-w-[92vw] flex-col bg-white"
+        className="fixed right-0 top-0 z-[310] flex h-full max-w-[92vw] flex-col"
         style={{
           width,
-          borderLeft: "1px solid #000",
           animation: exiting
             ? `snippet-drawer-out ${DRAWER_ANIM_MS}ms ease-in forwards`
             : `snippet-drawer-in ${DRAWER_ANIM_MS}ms ease-out`,

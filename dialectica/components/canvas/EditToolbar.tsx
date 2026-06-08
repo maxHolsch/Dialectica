@@ -188,6 +188,7 @@ export function EditToolbar({
             key={swatch}
             type="button"
             aria-label={`Color ${swatch}`}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setColor(swatch)}
             className={clsx(
               "flex size-7 items-center justify-center rounded-full transition-colors hover:bg-black/5",
@@ -394,6 +395,7 @@ function FontSizeButton({
   return (
     <button
       type="button"
+      onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       aria-label={`Font size ${label}`}
       aria-pressed={active}

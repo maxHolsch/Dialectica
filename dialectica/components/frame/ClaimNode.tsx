@@ -10,7 +10,7 @@ import { InlineAgreeBar } from "./AgreeBar";
 import { SNIPPET_DRAWER_DEFAULT_WIDTH } from "./SnippetDrawer";
 import type { FrameNodeStakes } from "@/lib/data/stakes-types";
 
-const BORDER = "1px solid #000";
+const BORDER = "none";
 const TILE_ZOOM = 1.5;
 
 /**
