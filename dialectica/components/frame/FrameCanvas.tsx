@@ -17,6 +17,7 @@ import { applyMovePatch, applyDeletePatch, runAutoFormat, updateNodeText } from 
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
 import { useUIStore } from "@/lib/state/useUIStore";
 import { stakeKey } from "@/lib/data/stakes-types";
+import { cruxColorByIndex } from "@/lib/palette";
 import { ClaimNode, QuestionNode } from "./ClaimNode";
 
 const NODE_TYPES: NodeTypes = {
@@ -55,9 +56,11 @@ export function FrameCanvas({
   const hoveredNodeId = useUIStore((s) => s.hoveredNodeId);
 
   const { nodes, edges } = useMemo(() => {
+    const cruxIndex = map.cruxes.findIndex((c) => c.id === frame.cruxId);
+    const { pale, deep } = cruxColorByIndex(cruxIndex);
     const nodes: Node[] = frame.nodeInstances.map((inst) => {
       const canonical = map.nodes[inst.nodeId];
-      const tint = canonical?.type === "question" ? "#ffc2ec" : "#cdf4d3";
+      const tint = pale;
       const size = inst.size ?? { width: 368, height: 300 };
       return {
         id: inst.nodeId,
@@ -66,6 +69,8 @@ export function FrameCanvas({
         data: {
           text: canonical?.text ?? "",
           tint,
+          bgColor: pale,
+          textColor: deep,
           selected: selectedNodeId === inst.nodeId,
           hovered: hoveredNodeId === inst.nodeId,
           stakes: stakes?.[stakeKey(frame.id, inst.nodeId)],
@@ -91,8 +96,8 @@ export function FrameCanvas({
       type: "labeled",
       markerEnd: e.undirected
         ? undefined
-        : { type: MarkerType.ArrowClosed, color: "#000", width: 18, height: 18 },
-      style: { stroke: "#000", strokeWidth: 1.2 },
+        : { type: MarkerType.ArrowClosed, color: "#fff", width: 18, height: 18 },
+      style: { stroke: "#fff", strokeWidth: 1.2 },
       data: {
         label: e.label,
         relType: e.relType,

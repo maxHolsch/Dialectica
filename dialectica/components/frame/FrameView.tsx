@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import type { ArgMap, Frame, Annotation } from "@/lib/schema";
@@ -37,6 +37,15 @@ export function FrameView({
   const [exiting, setExiting] = useState(false);
   const [ready, setReady] = useState(false);
   const drawerOpen = useUIStore((s) => !!s.snippetDrawerNode);
+  // Animate header height from crux height (102) up to frame height (128) on enter.
+  const [headerH, setHeaderH] = useState(102);
+  const morphRafRef = useRef<number>(0);
+  useEffect(() => {
+    morphRafRef.current = requestAnimationFrame(() => {
+      morphRafRef.current = requestAnimationFrame(() => setHeaderH(128));
+    });
+    return () => cancelAnimationFrame(morphRafRef.current);
+  }, []);
 
   const cruxQuestion =
     frame.cruxId === "top"
@@ -93,8 +102,10 @@ export function FrameView({
         <div
           className="pointer-events-none absolute inset-x-0 top-0"
           style={{
-            height: 150,
-            backgroundImage: `linear-gradient(to bottom, #F6F4F2 0%, #F6F4F2 72%, rgba(246,244,242,0) 100%)`,
+            height: headerH,
+            backgroundColor: "#131313",
+            borderBottom: "1px solid #1C1C1C",
+            transition: "height 200ms ease-in-out",
           }}
         />
 
@@ -102,8 +113,8 @@ export function FrameView({
         <button
           onClick={goBack}
           aria-label="Back to map"
-          className="pointer-events-auto absolute flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE" }}
+          className="pointer-events-auto absolute flex items-center justify-center rounded-full"
+          style={{ top: 32, left: 32, width: 48, height: 48, backgroundColor: "#131313", border: "1px solid #2a2a2a", color: "#ffffff" }}
         >
           <ArrowLeft size={18} weight="regular" />
         </button>
@@ -124,12 +135,12 @@ export function FrameView({
             className="pointer-events-auto cursor-pointer whitespace-nowrap font-serif text-[13px] hover:opacity-70"
             style={
               exiting
-                ? { color: "#727272", background: "none", border: "none", padding: 0,
+                ? { color: "#FFFFFF", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-exit ${EXIT_MS}ms ease-in-out forwards` }
                 : ready
-                ? { color: "#727272", background: "none", border: "none", padding: 0,
+                ? { color: "#FFFFFF", background: "none", border: "none", padding: 0,
                     animation: `frame-parent-enter ${ENTER_MS}ms ease-in-out forwards` }
-                : { color: "#727272", background: "none", border: "none", padding: 0,
+                : { color: "#FFFFFF", background: "none", border: "none", padding: 0,
                     opacity: 1, transform: "scale(1.54) translateY(4px)" }
             }
           >
@@ -138,13 +149,13 @@ export function FrameView({
 
           {/* Crux question — rapidly fades out on exit */}
           <p
-            className="whitespace-nowrap font-serif text-[20px] text-dia-fg"
+            className="whitespace-nowrap font-serif text-[20px]"
             style={
               exiting
-                ? { animation: `frame-crux-exit ${CRUX_EXIT_MS}ms ease-out forwards` }
+                ? { color: "#FFFFFF", animation: `frame-crux-exit ${CRUX_EXIT_MS}ms ease-out forwards` }
                 : ready
-                ? { animation: `frame-crux-enter ${ENTER_MS}ms ease-in-out 40ms backwards` }
-                : { opacity: 0, filter: "blur(8px)", transform: "translateY(6px)" }
+                ? { color: "#FFFFFF", animation: `frame-crux-enter ${ENTER_MS}ms ease-in-out 40ms backwards` }
+                : { color: "#FFFFFF", opacity: 0, filter: "blur(8px)", transform: "translateY(6px)" }
             }
           >
             {cruxQuestion}

@@ -178,6 +178,7 @@ function Canvas({
   const reactFlow = useReactFlow();
   const [canvasReady, setCanvasReady] = useState(false);
   const [canvasAnimDone, setCanvasAnimDone] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
   const handleInit = useCallback(() => {
     setCanvasReady(true);
     onReady?.();
@@ -756,6 +757,10 @@ function Canvas({
 
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (mode === "drag" && e.button === 0) {
+        setIsPanning(true);
+        return;
+      }
       if (mode === "erase" && e.button === 0) {
         // Don't hijack clicks on UI overlays (toolbar, minimap, context menu);
         // only the actual React Flow canvas area should start an erase session.
@@ -792,11 +797,13 @@ function Canvas({
   );
 
   const handlePointerLeave = useCallback(() => {
+    setIsPanning(false);
     cursorChannel.signalLeave();
   }, [cursorChannel]);
 
   const handlePointerUp = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
+      setIsPanning(false);
       if (eraseSessionRef.current.active) {
         e.currentTarget.releasePointerCapture?.(e.pointerId);
         eraseSessionRef.current = { active: false, erased: new Set() };
@@ -816,6 +823,7 @@ function Canvas({
 
   const activeCursor =
     moveActive ? undefined :
+    mode === "drag" ? (isPanning ? CURSORS.grabbing : CURSORS.grab) :
     mode === "erase" ? CURSORS.eraser :
     mode === "draw" && tool === "textbox" ? "text" :
     mode === "draw" && tool === "pen" ? CURSORS.pen :
@@ -855,9 +863,8 @@ function Canvas({
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable
-        // Pan with 2-finger trackpad scroll (or wheel). Single-finger / mouse drag is
-        // reserved for selecting and dragging stroke nodes in select mode.
-        panOnDrag={false}
+        // In drag mode, enable click-drag panning. Otherwise reserved for 2-finger scroll.
+        panOnDrag={mode === "drag"}
         panOnScroll
         minZoom={0.05}
         zoomOnScroll={false}
@@ -920,8 +927,8 @@ function Canvas({
         type="button"
         onClick={handleFitView}
         aria-label="Fit view"
-        className="pointer-events-auto absolute bottom-7 right-7 z-20 flex items-center justify-center rounded-full bg-white text-black transition-colors"
-        style={{ width: 48, height: 48, border: "1px solid #EEEEEE", cursor: CURSORS.pointer }}
+        className="pointer-events-auto absolute bottom-7 right-7 z-20 flex items-center justify-center rounded-full transition-colors"
+        style={{ width: 48, height: 48, backgroundColor: "#131313", border: "1px solid #2a2a2a", color: "#ffffff", cursor: CURSORS.pointer }}
       >
         <CornersOut size={18} />
       </button>
