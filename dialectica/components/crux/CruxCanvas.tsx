@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X } from "@phosphor-icons/react";
@@ -18,6 +18,7 @@ import { MovableLabelEdge } from "@/components/canvas/MovableLabelEdge";
 import { applyMovePatch, applyDeletePatch, runAutoFormat, updateCruxText } from "@/lib/data/mutations";
 import type { LayoutStrategyId } from "@/lib/layout/strategies";
 import { normalizeHandleId } from "@/lib/layout/normalizeHandle";
+import { CURSORS } from "@/lib/canvas/cursors";
 import { TopQuestionNode } from "./TopQuestionNode";
 import { CruxTileNode } from "./CruxTileNode";
 
@@ -50,14 +51,29 @@ export function CruxCanvas({
   // Hide header during frame-view back-transition to avoid colliding with the
   // morphing header text in FrameView, which occupies the same screen position.
   const [headerVisible, setHeaderVisible] = useState(true);
+  // headerH: animate from frame height (128) back down to crux height (102)
+  // when the frame-exit completes, giving a smooth bottom-edge morph.
+  const [headerH, setHeaderH] = useState(102);
+  const morphRafRef = useRef<number>(0);
   useEffect(() => {
-    const onExit = () => setHeaderVisible(false);
-    const onDone = () => setHeaderVisible(true);
+    const onExit = () => {
+      setHeaderH(128);      // pre-size to match the frame header (still hidden)
+      setHeaderVisible(false);
+    };
+    const onDone = () => {
+      setHeaderVisible(true);   // reveal at 128px
+      // Two rAFs: first lets React commit the 128px height, second triggers
+      // the CSS transition so the browser sees an actual change 128 → 102.
+      morphRafRef.current = requestAnimationFrame(() => {
+        morphRafRef.current = requestAnimationFrame(() => setHeaderH(102));
+      });
+    };
     window.addEventListener(FRAME_EXIT_EVENT, onExit);
     window.addEventListener(FRAME_EXIT_DONE_EVENT, onDone);
     return () => {
       window.removeEventListener(FRAME_EXIT_EVENT, onExit);
       window.removeEventListener(FRAME_EXIT_DONE_EVENT, onDone);
+      cancelAnimationFrame(morphRafRef.current);
     };
   }, []);
 
@@ -98,8 +114,8 @@ export function CruxCanvas({
       type: "movable",
       markerEnd: e.undirected
         ? undefined
-        : { type: MarkerType.ArrowClosed, color: "#000", width: 18, height: 18 },
-      style: { stroke: "#000", strokeWidth: 1.2 },
+        : { type: MarkerType.ArrowClosed, color: "#fff", width: 18, height: 18 },
+      style: { stroke: "#fff", strokeWidth: 1.2 },
       data: {
         label: e.label,
         labelOffset: e.labelOffset ?? 0,
@@ -220,7 +236,7 @@ export function CruxCanvas({
         <Link
           href="/"
           className="fixed z-[51] flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE" }}
+          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE", cursor: CURSORS.pointer }}
         >
           <X size={18} weight="regular" />
         </Link>
@@ -228,8 +244,10 @@ export function CruxCanvas({
       <div
         className="pointer-events-none fixed inset-x-0 top-0 z-50"
         style={{
-          height: 140,
-          backgroundImage: `linear-gradient(to bottom, #F6F4F2 0%, #F6F4F2 55%, rgba(246,244,242,0) 100%)`,
+          height: headerH,
+          backgroundColor: "#131313",
+          borderBottom: "1px solid #1C1C1C",
+          transition: "height 200ms ease-in-out",
         }}
       />
       <div
@@ -237,8 +255,9 @@ export function CruxCanvas({
         style={{ top: 36 }}
       >
         <p
-          className="whitespace-nowrap font-serif text-[20px] text-dia-fg"
+          className="whitespace-nowrap font-serif text-[20px]"
           style={{
+            color: "#FFFFFF",
             opacity: headerVisible ? 1 : 0,
             transition: 'opacity 20ms ease-out',
           }}

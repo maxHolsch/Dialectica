@@ -89,21 +89,73 @@ function TextBox({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [hasSelection, setHasSelection] = useState(false);
   const mode = useUIStore((s) => s.mode);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
   const setIsEditingTextbox = useUIStore((s) => s.setIsEditingTextbox);
+  const storeColor = useUIStore((s) => s.color);
+  const storeFontSize = useUIStore((s) => s.fontSize);
+  const prevColorRef = useRef(storeColor);
+  const prevFontSizeRef = useRef(storeFontSize);
 
   useEffect(() => {
     setIsEditingTextbox(isEditing);
   }, [isEditing, setIsEditingTextbox]);
 
   // Set initial text content once on mount (uncontrolled contentEditable).
+  // innerHTML preserves any inline formatting spans from prior edits.
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    el.innerText = annotation.text ?? "";
+    el.innerHTML = annotation.text ?? "";
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Track whether this textbox has an active text selection.
+  useEffect(() => {
+    if (!isEditing) { setHasSelection(false); return; }
+    const onSelChange = () => {
+      const sel = window.getSelection();
+      const el = ref.current;
+      setHasSelection(!!(sel && !sel.isCollapsed && el && el.contains(sel.anchorNode)));
+    };
+    document.addEventListener("selectionchange", onSelChange);
+    return () => document.removeEventListener("selectionchange", onSelChange);
+  }, [isEditing]);
+
+  // Apply toolbar color to the current selection via execCommand.
+  // prevColorRef guards against re-applying on unrelated re-renders.
+  useEffect(() => {
+    if (storeColor === prevColorRef.current) return;
+    prevColorRef.current = storeColor;
+    if (!isEditing || !hasSelection) return;
+    document.execCommand("styleWithCSS", false, "true");
+    document.execCommand("foreColor", false, storeColor);
+  }, [storeColor, isEditing, hasSelection]);
+
+  // Apply toolbar font size to the current selection by wrapping in a span.
+  useEffect(() => {
+    if (storeFontSize === prevFontSizeRef.current) return;
+    prevFontSizeRef.current = storeFontSize;
+    if (!isEditing || !hasSelection) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0);
+    const span = document.createElement("span");
+    span.style.fontSize = `${storeFontSize}px`;
+    try {
+      range.surroundContents(span);
+    } catch {
+      // Selection spans element boundaries — extract and rewrap.
+      const frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    sel.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(span);
+    sel.addRange(newRange);
+  }, [storeFontSize, isEditing, hasSelection]);
 
   // Set true just before calling setIsEditing(true) so useLayoutEffect knows
   // to focus+move-caret when it sees isEditing flip to true.
@@ -144,9 +196,9 @@ function TextBox({
 
   const handleBlur = useCallback(async () => {
     setIsEditing(false);
-    const text = ref.current?.innerText ?? "";
+    const plainText = ref.current?.innerText ?? "";
     // Auto-delete textboxes left empty.
-    if (text.trim() === "") {
+    if (plainText.trim() === "") {
       removeOptimistic(annotation.id);
       try {
         await deleteAnnotation(mapId, annotation.id);
@@ -155,8 +207,10 @@ function TextBox({
       }
       return;
     }
-    if (text === (annotation.text ?? "")) return;
-    void createAnnotation(mapId, { ...annotation, text });
+    // Store innerHTML so inline formatting spans (color, size) survive reload.
+    const html = ref.current?.innerHTML ?? "";
+    if (html === (annotation.text ?? "")) return;
+    void createAnnotation(mapId, { ...annotation, text: html });
   }, [annotation, mapId, removeOptimistic]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -206,6 +260,8 @@ function TextBox({
           ? "1px dashed rgba(0,0,0,0.2)"
           : "1px dashed transparent",
         cursor: eraseHover ? "crosshair" : isEditing ? "text" : undefined,
+        // Override React Flow's user-select:none so native word-selection works.
+        userSelect: isEditing ? "text" : undefined,
       }}
     />
   );

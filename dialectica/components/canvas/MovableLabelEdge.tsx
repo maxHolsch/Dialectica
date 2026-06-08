@@ -247,7 +247,7 @@ export function MovableLabelEdge({
             {variant === "crux" ? (
               <div
                 className={
-                  "rounded bg-[#F6F4F2] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#1a1a1a]" +
+                  "rounded bg-[#131313] px-1.5 py-1 font-mono text-[12px] leading-[1.2] text-[#D0D0D0]" +
                   (draggable ? " ring-1 ring-[#ffc943]" : "")
                 }
               >
@@ -270,9 +270,9 @@ export function MovableLabelEdge({
                   padding: isExpandedOrHovered ? "8px 16px" : "2px 8px",
                   borderRadius: isExpandedOrHovered ? "9999px" : "4px",
                   border: "1px solid",
-                  borderColor: isExpandedOrHovered ? "#AAAAAA" : "transparent",
-                  backgroundColor: "#F6F4F2",
-                  color: "#000000",
+                  borderColor: isExpandedOrHovered ? "#555555" : "transparent",
+                  backgroundColor: "#131313",
+                  color: "#D0D0D0",
                   overflow: "hidden",
                   whiteSpace: showFull ? "normal" : "nowrap",
                   textAlign: "center",

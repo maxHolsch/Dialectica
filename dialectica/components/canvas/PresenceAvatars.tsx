@@ -66,7 +66,7 @@ function Pip({
       <img
         src={headshotSrc(user.userId)}
         alt={user.displayName}
-        className="block select-none rounded-full border-2 border-white object-cover"
+        className="block select-none rounded-full object-cover"
         style={{ width: 48, height: 48 }}
       />
       {hovered && (
