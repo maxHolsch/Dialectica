@@ -9,6 +9,8 @@ import {
   Broom,
   Cursor,
   TextT,
+  Hand,
+  HandGrabbing,
 } from "@phosphor-icons/react";
 import { clsx } from "clsx";
 import {
@@ -32,7 +34,7 @@ type Props = {
   onClear?: () => void;
 };
 
-const SHADOW = {};
+const GLASS = "border border-white/10 bg-black/70 backdrop-blur-xl";
 
 export function EditToolbar({
   mapId,
@@ -135,6 +137,7 @@ export function EditToolbar({
     <PencilSimple size={18} />;
 
   const subOpen = activeSub !== null;
+  const [isDragging, setIsDragging] = useState(false);
 
   return (
     <div className="pointer-events-none absolute bottom-7 left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-2 select-none">
@@ -142,12 +145,13 @@ export function EditToolbar({
           Drawing tool variants only appear when the draw sub is open. */}
       <div
         className={clsx(
-          "flex h-12 items-center gap-0.5 rounded-full border border-[#EEEEEE] bg-white pl-2 pr-2.5 transition-all duration-200 ease-out",
+          "flex h-12 items-center gap-0.5 rounded-full pl-2 pr-2.5 transition-all duration-200 ease-out",
+          GLASS,
           subOpen
             ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
             : "pointer-events-none translate-y-1 scale-95 opacity-0",
         )}
-        style={{ ...SHADOW, cursor: CURSORS.pointer }}
+        style={{ cursor: CURSORS.pointer }}
         aria-hidden={!subOpen}
       >
         {/* Drawing tool variants — only shown in draw sub-toolbar */}
@@ -191,11 +195,11 @@ export function EditToolbar({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => setColor(swatch)}
             className={clsx(
-              "flex size-7 items-center justify-center rounded-full transition-colors hover:bg-black/5",
-              color === swatch && "ring-1 ring-black/25",
+              "flex size-7 items-center justify-center rounded-full transition-colors hover:bg-white/10",
+              color === swatch && "ring-1 ring-white/40",
             )}
           >
-            <span className="block size-3.5 rounded-full border border-[#EEEEEE]" style={{ background: swatch }} />
+            <span className="block size-3.5 rounded-full border border-white/20" style={{ background: swatch }} />
           </button>
         ))}
 
@@ -217,9 +221,28 @@ export function EditToolbar({
 
       {/* Main pill — always visible */}
       <div
-        className="pointer-events-auto flex h-12 items-center gap-1 rounded-full border border-[#EEEEEE] bg-white px-2"
-        style={{ ...SHADOW, cursor: CURSORS.pointer }}
+        className={clsx("pointer-events-auto flex h-12 items-center gap-1 rounded-full px-2", GLASS)}
+        style={{ cursor: CURSORS.pointer }}
       >
+        {/* Drag / pan mode */}
+        <button
+          type="button"
+          onPointerDown={() => { setIsDragging(true); setMode("drag"); setActiveSub(null); }}
+          onPointerUp={() => setIsDragging(false)}
+          onPointerLeave={() => setIsDragging(false)}
+          onClick={() => { setMode("drag"); setActiveSub(null); }}
+          aria-label="Drag to pan"
+          aria-pressed={mode === "drag"}
+          className={clsx(
+            "flex size-9 items-center justify-center transition-colors",
+            mode === "drag"
+              ? "rounded-full bg-white/15 text-white"
+              : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
+          )}
+        >
+          {mode === "drag" && isDragging ? <HandGrabbing size={18} /> : <Hand size={18} />}
+        </button>
+
         {/* Cursor / select mode */}
         <button
           type="button"
@@ -229,8 +252,8 @@ export function EditToolbar({
           className={clsx(
             "flex size-9 items-center justify-center transition-colors",
             mode === "select"
-              ? "rounded-full bg-[#F9F9F9] text-black"
-              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+              ? "rounded-full bg-white/15 text-white"
+              : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
           )}
         >
           <Cursor size={18} />
@@ -253,8 +276,8 @@ export function EditToolbar({
           className={clsx(
             "flex size-9 items-center justify-center transition-colors",
             activeSub === "draw"
-              ? "rounded-full bg-[#F9F9F9] text-black"
-              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+              ? "rounded-full bg-white/15 text-white"
+              : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
           )}
         >
           {drawIcon}
@@ -276,8 +299,8 @@ export function EditToolbar({
           className={clsx(
             "flex size-9 items-center justify-center transition-colors",
             activeSub === "text"
-              ? "rounded-full bg-[#F9F9F9] text-black"
-              : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+              ? "rounded-full bg-white/15 text-white"
+              : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
           )}
         >
           <TextT size={18} />
@@ -307,7 +330,7 @@ function AutoFormatButton({ onFormat }: { onFormat: () => void | Promise<void> }
       onClick={handleClick}
       disabled={busy}
       aria-label="Auto-format layout"
-      className="flex items-center rounded-full border border-[#DDDDDD] px-4 py-2 text-[14px] text-black transition-all duration-150 hover:border-black/25 disabled:opacity-40"
+      className="flex items-center rounded-full border border-white/20 px-4 py-2 text-[14px] text-white transition-all duration-150 hover:border-white/40 disabled:opacity-40"
       style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
     >
       {busy ? "Formatting…" : "Format"}
@@ -316,7 +339,7 @@ function AutoFormatButton({ onFormat }: { onFormat: () => void | Promise<void> }
 }
 
 function Divider() {
-  return <span className="mx-0.5 h-4 w-px bg-[#EEEEEE]" aria-hidden />;
+  return <span className="mx-0.5 h-4 w-px bg-white/15" aria-hidden />;
 }
 
 function ToolButton({
@@ -339,8 +362,8 @@ function ToolButton({
       className={clsx(
         "flex size-7 items-center justify-center transition-colors",
         active
-          ? "rounded-full bg-[#F9F9F9] text-black"
-          : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+          ? "rounded-full bg-white/15 text-white"
+          : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
       )}
       {...rest}
     >
@@ -368,8 +391,8 @@ function Btn({
       className={clsx(
         "flex size-7 items-center justify-center transition-colors",
         active
-          ? "rounded-full bg-[#F9F9F9] text-black"
-          : "rounded-full text-black/50 hover:bg-black/5 hover:text-black",
+          ? "rounded-full bg-white/15 text-white"
+          : "rounded-full text-white/60 hover:bg-white/10 hover:text-white",
       )}
       {...rest}
     >
@@ -402,8 +425,8 @@ function FontSizeButton({
       className={clsx(
         "flex h-7 w-7 items-center justify-center rounded-full transition-colors",
         active
-          ? "bg-[#F9F9F9] text-black"
-          : "text-black/50 hover:bg-black/5 hover:text-black",
+          ? "bg-white/15 text-white"
+          : "text-white/60 hover:bg-white/10 hover:text-white",
       )}
       style={{ fontFamily: "var(--font-caveat), Caveat, cursive", fontSize: displaySize, lineHeight: 1 }}
     >

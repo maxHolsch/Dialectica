@@ -19,6 +19,8 @@ export function InlineAgreeBar({
   stakes,
   userId,
   displayName,
+  tilePale,
+  tileDeep,
 }: {
   mapId: string;
   frameId: string;
@@ -26,6 +28,8 @@ export function InlineAgreeBar({
   stakes: FrameNodeStakes | undefined;
   userId: string;
   displayName: string;
+  tilePale?: string;
+  tileDeep?: string;
 }) {
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const [pending, startTransition] = useTransition();
@@ -67,11 +71,14 @@ export function InlineAgreeBar({
         disabled={pending}
         className={clsx(
           "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] transition-all duration-150",
-          agreed
-            ? "border-[#0D90D3]/25 bg-[#0D90D3]/10 text-[#0D90D3] hover:bg-[#0D90D3]/20 hover:border-[#0D90D3]/40"
-            : "border-[#DDDDDD] bg-white text-black hover:border-black/25",
+          agreed ? "" : "border-[#DDDDDD] bg-white text-black hover:border-black/25",
         )}
-        style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
+        style={{
+          fontFamily: "var(--font-dm-sans), sans-serif",
+          ...(agreed && tilePale && tileDeep
+            ? { backgroundColor: tilePale, color: tileDeep, borderColor: tileDeep }
+            : {}),
+        }}
       >
         <FlagBanner size={14} weight={agreed ? "fill" : "regular"} />
         {agreed ? "Agreed" : "Agree"}
@@ -100,7 +107,7 @@ function StakerAvatar({ staker, index }: { staker: Staker; index: number }) {
       <img
         src={headshotSrc(staker.id)}
         alt={staker.displayName}
-        className="rounded-full border-2 border-white select-none object-cover transition-transform duration-150"
+        className="rounded-full select-none object-cover transition-transform duration-150"
         style={{
           width: 32,
           height: 32,

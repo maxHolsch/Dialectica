@@ -113,8 +113,8 @@ export function FrameView({
         <button
           onClick={goBack}
           aria-label="Back to map"
-          className="pointer-events-auto absolute flex items-center justify-center rounded-full bg-white"
-          style={{ top: 32, left: 32, width: 48, height: 48, border: "1px solid #EEEEEE" }}
+          className="pointer-events-auto absolute flex items-center justify-center rounded-full"
+          style={{ top: 32, left: 32, width: 48, height: 48, backgroundColor: "#131313", border: "1px solid #2a2a2a", color: "#ffffff" }}
         >
           <ArrowLeft size={18} weight="regular" />
         </button>
