@@ -416,6 +416,7 @@ function Canvas({
     >
   >({});
 
+  const isEditingTextbox = useUIStore((s) => s.isEditingTextbox);
   const drawingActive = mode === "draw";
   const moveActive = mode === "move" && !!moveHandlers;
 
@@ -443,7 +444,7 @@ function Canvas({
       data: { annotation: a, eraseHover: mode === "erase" && (isEditMode || a.userId === userId), mapId, userId },
       width: a.width,
       height: a.height,
-      draggable: mode === "select" && (isEditMode || a.userId === userId),
+      draggable: mode === "select" && (isEditMode || a.userId === userId) && !isEditingTextbox,
       selectable: mode === "select" || mode === "erase",
       // Annotations live above content nodes visually.
       zIndex: 5,
@@ -911,7 +912,8 @@ function Canvas({
           dangerouslySetInnerHTML={{
             __html:
               `.canvas-edge-focused .react-flow__node:not([data-id="${expandedEdge.source}"]):not([data-id="${expandedEdge.target}"])::after{opacity:1}` +
-              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.08}`,
+              `.canvas-edge-focused .react-flow__edge:not([data-id="${expandedEdgeId}"]){opacity:0.08}` +
+              `.canvas-edge-focused .react-flow__edge[data-id="${expandedEdgeId}"]{opacity:1}`,
           }}
         />
       ) : null}

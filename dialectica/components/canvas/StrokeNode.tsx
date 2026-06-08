@@ -77,6 +77,29 @@ function FreehandStroke({
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function selectWordAtPoint(el: HTMLElement, x: number, y: number) {
+  const doc = document as any;
+  let range: Range | null = doc.caretRangeFromPoint?.(x, y) ?? null;
+  if (!range && doc.caretPositionFromPoint) {
+    const pos = doc.caretPositionFromPoint(x, y);
+    if (pos) {
+      range = document.createRange();
+      range.setStart(pos.offsetNode, pos.offset);
+      range.collapse(true);
+    }
+  }
+  if (!range || !el.contains(range.startContainer)) return;
+  const sel = window.getSelection();
+  if (!sel) return;
+  sel.removeAllRanges();
+  sel.addRange(range);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (sel as any).modify?.("move", "backward", "word");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (sel as any).modify?.("extend", "forward", "word");
+}
+
 function TextBox({
   annotation,
   eraseHover,
@@ -89,6 +112,7 @@ function TextBox({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const dblClickPosRef = useRef<{ x: number; y: number } | null>(null);
   const [hasSelection, setHasSelection] = useState(false);
   const mode = useUIStore((s) => s.mode);
   const removeOptimistic = useUIStore((s) => s.removeOptimistic);
@@ -176,11 +200,17 @@ function TextBox({
     const el = ref.current;
     if (!el) return;
     el.focus({ preventScroll: true });
-    const range = document.createRange();
-    range.selectNodeContents(el);
-    range.collapse(false);
-    window.getSelection()?.removeAllRanges();
-    window.getSelection()?.addRange(range);
+    const dblPos = dblClickPosRef.current;
+    dblClickPosRef.current = null;
+    if (dblPos) {
+      selectWordAtPoint(el, dblPos.x, dblPos.y);
+    } else {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+    }
   }, [isEditing]);
 
   // Auto-enter edit mode for newly placed textboxes. hasPendingTextFocus does
@@ -230,8 +260,17 @@ function TextBox({
       suppressContentEditableWarning
       onDoubleClick={(e) => {
         e.stopPropagation();
-        // If already editing, let the browser handle word selection natively.
-        if (!isEditing) enterEdit();
+        if (isEditing) {
+          // Already editing (React re-rendered between first click and dblclick):
+          // manually select the word since the element wasn't contentEditable
+          // when the browser's native double-click fired.
+          if (ref.current) selectWordAtPoint(ref.current, e.clientX, e.clientY);
+        } else {
+          // React hasn't re-rendered yet — save position so useLayoutEffect
+          // can select the word after making the element contentEditable.
+          dblClickPosRef.current = { x: e.clientX, y: e.clientY };
+          enterEdit();
+        }
       }}
       onClick={(e) => {
         // In erase mode let the event bubble so the node-click handler can erase.
