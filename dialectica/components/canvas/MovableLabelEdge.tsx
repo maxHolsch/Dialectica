@@ -82,6 +82,21 @@ export function MovableLabelEdge({
     return () => clearTimeout(timer);
   }, [isExpandedOrHovered]);
 
+  // ── Arc routing for long / backward same-row edges ──────────────────────────
+  // In a layered-right frame, edges that span multiple tiles in the same
+  // horizontal row would clip straight through every tile in between.
+  // Route them with a cubic bezier:
+  //   • long forward (dx > 700, same row)  → arc ABOVE the tile row
+  //   • backward     (dx < 0,   same row)  → arc BELOW the tile row
+  const SAME_ROW_PX = 80;
+  const LONG_EDGE_PX = 700;
+  const ARC_HEIGHT = 200;
+
+  const isSameRow = Math.abs(targetY - sourceY) < SAME_ROW_PX;
+  const isBackwardArc = isSameRow && targetX < sourceX;
+  const isLongForwardArc = isSameRow && targetX - sourceX > LONG_EDGE_PX;
+  const needsArc = isBackwardArc || isLongForwardArc;
+
   // Axially-aligned connections (endpoints differ only on one axis) draw as
   // straight lines. Diagonal connections get a bezier so the convergent fan-in
   // of multiple edges arriving at the same tile curves gracefully.
@@ -90,9 +105,18 @@ export function MovableLabelEdge({
     Math.abs(targetX - sourceX) > DIAGONAL_PX &&
     Math.abs(targetY - sourceY) > DIAGONAL_PX;
 
-  const [edgePath, midX, midY] = isDiagonal
-    ? getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: curvature || 0.25 })
-    : getStraightPath({ sourceX, sourceY, targetX, targetY });
+  const [edgePath, midX, midY] = (() => {
+    if (needsArc) {
+      // Backward arcs below (+Y), long-forward arcs above (−Y).
+      const h = isBackwardArc ? ARC_HEIGHT : -ARC_HEIGHT;
+      const path = `M ${sourceX} ${sourceY} C ${sourceX} ${sourceY + h} ${targetX} ${targetY + h} ${targetX} ${targetY}`;
+      return [path, (sourceX + targetX) / 2, (sourceY + targetY) / 2 + h * 0.75] as [string, number, number];
+    }
+    if (isDiagonal) {
+      return getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: curvature || 0.25 });
+    }
+    return getStraightPath({ sourceX, sourceY, targetX, targetY });
+  })();
 
   const pathMetrics = useMemo(() => {
     if (typeof document === "undefined") return null;

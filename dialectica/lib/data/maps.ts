@@ -169,7 +169,13 @@ export async function getMap(id: string): Promise<ArgMap | null> {
     if (id === "seed-001") return ArgMap.parse(seedMap);
     if (id === tetradMap.id) return ArgMap.parse(tetradMap);
     if (id === (googleXiTest6 as { id: string }).id) return ArgMap.parse(googleXiTest6);
-    return STUB_MAPS.find((m) => m.id === id) ?? null;
+    const stub = STUB_MAPS.find((m) => m.id === id);
+    if (stub) return stub;
+    // Fall through to admin client for production maps not in stubs.
+    const admin = createSupabaseAdminClient();
+    const { data: adminData } = await admin.from("Dialectica_maps").select("data").eq("id", id).maybeSingle();
+    if (adminData) return ArgMap.parse(adminData.data);
+    return null;
   }
   try {
     const supabase = await createSupabaseServerClient();
