@@ -83,6 +83,7 @@ export function CanvasShell({
   onReady,
   stakes,
   moveHandlers,
+  imperativeRef,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -105,6 +106,15 @@ export function CanvasShell({
   stakes?: StakeMap;
   /** Edit-mode only: handlers wiring move-mode interactions to persistence. */
   moveHandlers?: MoveHandlers;
+  /**
+   * Imperative handle: filled by Canvas on mount so FrameCanvas can trigger
+   * visual-only node moves (undo/redo) and clear all position overrides
+   * (post-reset) without going through React Flow drag events.
+   */
+  imperativeRef?: React.MutableRefObject<{
+    moveNode: (nodeId: string, pos: { x: number; y: number }) => void;
+    clearOverrides: () => void;
+  } | null>;
 }) {
   // Always include the stroke node type alongside whatever the caller passes.
   const mergedNodeTypes = useMemo<NodeTypes>(
@@ -132,6 +142,7 @@ export function CanvasShell({
         onReady={onReady}
         stakes={stakes}
         moveHandlers={moveHandlers}
+        imperativeRef={imperativeRef}
       />
     </ReactFlowProvider>
   );
@@ -155,6 +166,7 @@ function Canvas({
   onReady,
   stakes,
   moveHandlers,
+  imperativeRef,
 }: {
   nodes: Node[];
   edges: Edge[];
@@ -173,6 +185,10 @@ function Canvas({
   onReady?: () => void;
   stakes?: StakeMap;
   moveHandlers?: MoveHandlers;
+  imperativeRef?: React.MutableRefObject<{
+    moveNode: (nodeId: string, pos: { x: number; y: number }) => void;
+    clearOverrides: () => void;
+  } | null>;
 }) {
   const router = useRouter();
   const reactFlow = useReactFlow();
@@ -403,6 +419,20 @@ function Canvas({
   const [nodeOverrides, setNodeOverrides] = useState<
     Record<string, { x: number; y: number }>
   >({});
+
+  // Expose imperative handle so FrameCanvas can drive undo/redo moves and
+  // post-reset overrides clears without going through React Flow drag events.
+  useEffect(() => {
+    if (!imperativeRef) return;
+    imperativeRef.current = {
+      moveNode: (nodeId, pos) =>
+        setNodeOverrides((prev) => ({ ...prev, [nodeId]: pos })),
+      clearOverrides: () => setNodeOverrides({}),
+    };
+    return () => { imperativeRef.current = null; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // stable: imperativeRef is a ref object, setNodeOverrides is a stable setter
+
   const [edgeOverrides, setEdgeOverrides] = useState<
     Record<
       string,
