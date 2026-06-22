@@ -196,6 +196,12 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
           className="flex h-full flex-col gap-7 overflow-y-auto px-7 pb-7"
           style={{ paddingTop: 96 }}
         >
+          <h2
+            className="shrink-0 text-[15px] font-medium tracking-[0.2px] text-white"
+            style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}
+          >
+            related excerpts
+          </h2>
           {snippets.length === 0 ? (
             <p className="font-mono text-[12px] leading-[1.6] text-dia-fg-dim">
               No snippets generated yet. Run the audio-snippet pipeline for this
@@ -230,6 +236,14 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                       fontFamily: "Georgia, serif",
                     }}
                   >
+                    {sourceLabel ? (
+                      <div
+                        className="mb-1.5 text-[10px] tracking-[0.5px]"
+                        style={{ color: p.fg, opacity: 0.6, fontFamily: "var(--font-dm-sans), sans-serif" }}
+                      >
+                        {sourceLabel}
+                      </div>
+                    ) : null}
                     <div className="mb-1.5 flex items-baseline justify-between gap-2">
                       <span
                         className="truncate text-[12px]"
@@ -244,14 +258,6 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                         {clock(s.startMs)}
                       </span>
                     </div>
-                    {sourceLabel ? (
-                      <div
-                        className="mb-1.5 font-mono text-[10px] uppercase tracking-[1px]"
-                        style={{ color: p.fg, opacity: 0.6 }}
-                      >
-                        {sourceLabel}
-                      </div>
-                    ) : null}
                     <p
                       className="text-[16px] leading-[1.5]"
                       style={{ color: p.fg, fontFamily: "Georgia, serif" }}
