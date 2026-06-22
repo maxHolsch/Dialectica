@@ -304,7 +304,7 @@ export function MovableLabelEdge({
                     "color 140ms ease",
                     "opacity 200ms ease",
                   ].join(", "),
-                  maxWidth: isExpandedOrHovered ? "320px" : "80px",
+                  maxWidth: isExpandedOrHovered ? "320px" : "120px",
                   padding: isExpandedOrHovered ? "8px 16px" : "2px 8px",
                   borderRadius: isExpandedOrHovered ? "9999px" : "4px",
                   border: "1px solid",
