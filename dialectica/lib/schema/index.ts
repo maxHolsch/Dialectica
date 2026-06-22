@@ -33,6 +33,13 @@ export const ClaimSnippet = z.object({
   startMs: z.number(),
   endMs: z.number(),
   relevance: z.string().optional(),
+  // Which recording this snippet's startMs/endMs index into. When omitted the
+  // snippet plays from the map's primary recording (`meta.audio`); when set it
+  // names a key in `meta.audioSources` (e.g. a breakout-table mic whose
+  // timeline differs from the main-room recording). A snippet's timestamps are
+  // only valid against the exact recording it was transcribed from, so this is
+  // how a single claim can carry quotes from more than one recording.
+  sourceId: z.string().optional(),
 });
 export type ClaimSnippet = z.infer<typeof ClaimSnippet>;
 
@@ -228,6 +235,24 @@ export const ArgMap = z.object({
           publicUrl: z.string().optional(),
           durationMs: z.number().optional(),
         })
+        .optional(),
+      // Additional recordings of the same conversation (e.g. a breakout-table
+      // mic alongside the main-room recording). Keyed by a stable `sourceId`
+      // that snippets reference via `ClaimSnippet.sourceId`. `meta.audio` stays
+      // the primary/default source for snippets with no `sourceId`. The audio
+      // route signs every entry here so the drawer can play each snippet from
+      // its own recording. `label` is shown on the snippet card.
+      audioSources: z
+        .record(
+          z.string(),
+          z.object({
+            bucket: z.string().optional(),
+            path: z.string(),
+            publicUrl: z.string().optional(),
+            durationMs: z.number().optional(),
+            label: z.string().optional(),
+          }),
+        )
         .optional(),
     })
     .optional(),

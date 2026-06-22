@@ -90,9 +90,12 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
     },
     [],
   );
-  // Signed URL for the recording, minted once per map when the drawer first
-  // opens. `undefined` = not fetched yet, `null` = no audio / failed.
-  const [audioSrc, setAudioSrc] = useState<string | null | undefined>(undefined);
+  // Signed URLs for the map's recordings, minted once when the drawer first
+  // opens. `primary` is `meta.audio`; `sources` maps each `meta.audioSources`
+  // key to its signed URL (a snippet picks one via `sourceId`). `undefined` =
+  // not fetched yet, `null` = no audio / failed.
+  type AudioUrls = { primary: string; sources: Record<string, string> };
+  const [audio, setAudio] = useState<AudioUrls | null | undefined>(undefined);
 
   useEffect(() => {
     if (!target) return;
@@ -103,22 +106,29 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [target, close]);
 
-  // Fetch the signed audio URL the first time the drawer opens for this map.
+  // Fetch the signed audio URLs the first time the drawer opens for this map.
+  // The route returns the primary recording plus one signed URL per additional
+  // source, so each snippet can play from its own recording.
   useEffect(() => {
-    if (!target || !hasAudio || audioSrc !== undefined) return;
+    if (!target || !hasAudio || audio !== undefined) return;
     let cancelled = false;
     fetch(`/api/maps/${encodeURIComponent(map.id)}/audio`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((body: { url?: string } | null) => {
-        if (!cancelled) setAudioSrc(body?.url ?? null);
+      .then((body: { url?: string; sources?: Record<string, string> } | null) => {
+        if (cancelled) return;
+        setAudio(
+          body?.url
+            ? { primary: body.url, sources: body.sources ?? {} }
+            : null,
+        );
       })
       .catch(() => {
-        if (!cancelled) setAudioSrc(null);
+        if (!cancelled) setAudio(null);
       });
     return () => {
       cancelled = true;
     };
-  }, [target, hasAudio, audioSrc, map.id]);
+  }, [target, hasAudio, audio, map.id]);
 
   const claim = useMemo(() => {
     if (!target) return null;
@@ -129,7 +139,16 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
 
   if (!target || !claim) return null;
 
-  const snippets = [...(claim.snippets ?? [])].sort((a, b) => a.rank - b.rank);
+  // Primary-recording snippets (no `sourceId` — the June 8 main-room recording)
+  // sort to the top; additional-source snippets (e.g. Jennifer's Team table)
+  // sit at the bottom. Within each group, keep the LLM's rank order.
+  const audioSources = map.meta?.audioSources ?? {};
+  const snippets = [...(claim.snippets ?? [])].sort((a, b) => {
+    const ag = a.sourceId ? 1 : 0;
+    const bg = b.sourceId ? 1 : 0;
+    if (ag !== bg) return ag - bg;
+    return a.rank - b.rank;
+  });
 
   return (
     <>
@@ -186,6 +205,20 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
             <ul className="flex flex-col gap-3">
               {snippets.map((s, i) => {
                 const p = SNIPPET_PALETTES[i % SNIPPET_PALETTES.length];
+                // Resolve which recording this snippet plays from: the primary
+                // unless it names an additional source. `audio === undefined`
+                // means the signed URLs are still loading.
+                const resolvedSrc =
+                  !hasAudio || audio == null
+                    ? null
+                    : s.sourceId
+                      ? audio.sources[s.sourceId] ?? null
+                      : audio.primary;
+                // Only additional-source snippets get a recording label, so the
+                // primary (June 8) cards stay unchanged.
+                const sourceLabel = s.sourceId
+                  ? audioSources[s.sourceId]?.label ?? s.sourceId
+                  : null;
                 return (
                   <li
                     key={i}
@@ -211,6 +244,14 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                         {clock(s.startMs)}
                       </span>
                     </div>
+                    {sourceLabel ? (
+                      <div
+                        className="mb-1.5 font-mono text-[10px] uppercase tracking-[1px]"
+                        style={{ color: p.fg, opacity: 0.6 }}
+                      >
+                        {sourceLabel}
+                      </div>
+                    ) : null}
                     <p
                       className="text-[16px] leading-[1.5]"
                       style={{ color: p.fg, fontFamily: "Georgia, serif" }}
@@ -218,7 +259,7 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                       &ldquo;{s.text}&rdquo;
                     </p>
                     <div className="mt-3">
-                      {hasAudio && audioSrc === undefined ? (
+                      {hasAudio && audio === undefined ? (
                         <p
                           className="font-mono text-[10px] uppercase tracking-[1px]"
                           style={{ color: p.fg, opacity: 0.75 }}
@@ -227,7 +268,7 @@ export function SnippetDrawer({ map }: { map: ArgMap }) {
                         </p>
                       ) : (
                         <SnippetAudioPlayer
-                          src={hasAudio ? audioSrc ?? null : null}
+                          src={resolvedSrc}
                           startMs={s.startMs}
                           endMs={s.endMs}
                           tint={p.fg}
