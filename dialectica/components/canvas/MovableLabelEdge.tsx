@@ -86,11 +86,19 @@ export function MovableLabelEdge({
   // In a layered-right frame, edges that span multiple tiles in the same
   // horizontal row would clip straight through every tile in between.
   // Route them with a cubic bezier:
-  //   • long forward (dx > 700, same row)  → arc ABOVE the tile row
-  //   • backward     (dx < 0,   same row)  → arc BELOW the tile row
-  const SAME_ROW_PX = 80;
-  const LONG_EDGE_PX = 700;
-  const ARC_HEIGHT = 200;
+  //   • long forward (dx > 400, near-row)  → arc ABOVE the tile row
+  //   • backward     (dx < 0,   near-row)  → arc BELOW the tile row
+  //
+  // SAME_ROW_PX: treat edges within this vertical band as near-row — tiles in
+  // the same layout row can differ by ~100px due to height variation.
+  const SAME_ROW_PX = 150;
+  // Arc any forward span exceeding this — 400px covers 2+ tile widths.
+  const LONG_EDGE_PX = 400;
+
+  const span = Math.abs(targetX - sourceX);
+  // Scale arc height with distance so longer edges arc higher and clear more
+  // tiles. Min 260px to always clear a full tile height; cap at 450px.
+  const ARC_HEIGHT = Math.min(450, Math.max(260, span * 0.30));
 
   const isSameRow = Math.abs(targetY - sourceY) < SAME_ROW_PX;
   const isBackwardArc = isSameRow && targetX < sourceX;
@@ -109,8 +117,13 @@ export function MovableLabelEdge({
     if (needsArc) {
       // Backward arcs below (+Y), long-forward arcs above (−Y).
       const h = isBackwardArc ? ARC_HEIGHT : -ARC_HEIGHT;
-      const path = `M ${sourceX} ${sourceY} C ${sourceX} ${sourceY + h} ${targetX} ${targetY + h} ${targetX} ${targetY}`;
-      return [path, (sourceX + targetX) / 2, (sourceY + targetY) / 2 + h * 0.75] as [string, number, number];
+      // Pull control points horizontally inward — creates a flatter dome that
+      // stays clear of tiles for more of the arc's length.
+      const inset = span * 0.2;
+      const cx1 = sourceX + (isBackwardArc ? -inset : inset);
+      const cx2 = targetX + (isBackwardArc ? inset : -inset);
+      const path = `M ${sourceX} ${sourceY} C ${cx1} ${sourceY + h} ${cx2} ${targetY + h} ${targetX} ${targetY}`;
+      return [path, (sourceX + targetX) / 2, (sourceY + targetY) / 2 + h * 0.5] as [string, number, number];
     }
     if (isDiagonal) {
       return getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: curvature || 0.25 });
