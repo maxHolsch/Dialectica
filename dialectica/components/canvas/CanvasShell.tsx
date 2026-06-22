@@ -432,9 +432,10 @@ function Canvas({
         return {
           ...n,
           position,
-          // Edit-mode users get drag affordance on content nodes when the
-          // yellow move tool is selected.
-          draggable: mode === "move" && !!moveHandlers,
+          // Edit-mode users can drag tiles in select mode (click still
+          // selects; React Flow distinguishes click from drag automatically).
+          // Move mode keeps working as before for edge reconnect etc.
+          draggable: (mode === "move" || (mode === "select" && isEditMode)) && !!moveHandlers,
         };
       });
     const strokeNodes = visibleAnnotations.map<Node>((a) => ({
@@ -553,9 +554,9 @@ function Canvas({
           }
           continue;
         }
-        // Content node drag (move mode only). Track overrides for instant
-        // visual feedback; flush to server when the drag releases.
-        if (mode === "move" && moveHandlers) {
+        // Content node drag (move mode, or select mode for edit users).
+        // Track overrides for instant visual feedback; flush to server on release.
+        if ((mode === "move" || (mode === "select" && isEditMode)) && moveHandlers) {
           const next = positionChange.position;
           setNodeOverrides((prev) => ({ ...prev, [positionChange.id]: next }));
           if (positionChange.dragging === false) {
@@ -564,7 +565,7 @@ function Canvas({
         }
       }
     },
-    [annotationById, addOptimistic, mapId, mode, moveHandlers],
+    [annotationById, addOptimistic, mapId, mode, moveHandlers, isEditMode],
   );
 
   // Edge reconnect (move mode). React Flow fires this when a user drags an
@@ -868,6 +869,7 @@ function Canvas({
         onNodesChange={handleNodesChange}
         onReconnect={moveActive ? handleReconnect : undefined}
         nodesDraggable
+        nodeDragThreshold={8}
         nodesConnectable={false}
         elementsSelectable
         // In drag mode, enable click-drag panning. Otherwise reserved for 2-finger scroll.
@@ -895,7 +897,11 @@ function Canvas({
       {mode === "select" ? (
         <style
           dangerouslySetInnerHTML={{
-            __html: `.react-flow__node{cursor:${CURSORS.pointer}!important}`,
+            // Edit-mode users can drag tiles — show grab to signal affordance.
+            // View-mode users see pointer (click-only interaction).
+            __html: isEditMode && !!moveHandlers
+              ? `.react-flow__node{cursor:${CURSORS.grab}!important}`
+              : `.react-flow__node{cursor:${CURSORS.pointer}!important}`,
           }}
         />
       ) : null}
