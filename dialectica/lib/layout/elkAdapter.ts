@@ -112,7 +112,7 @@ type ElkRootOut = {
 type Side = "top" | "bottom" | "left" | "right";
 
 /** Number of handle slots rendered per side per direction (src + tgt). */
-export const SLOTS_PER_SIDE = 3;
+export const SLOTS_PER_SIDE = 1;
 
 function clamp(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
