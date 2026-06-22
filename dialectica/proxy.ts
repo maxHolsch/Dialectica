@@ -15,11 +15,15 @@ export async function proxy(request: NextRequest) {
   // Workflow DevKit talks to its own /.well-known/workflow/* endpoints from
   // step/workflow callbacks — never gate or redirect those.
   const isWorkflowInternal = pathname.startsWith("/.well-known/workflow/");
-  // Artifact mode: /a/<mapId> is the password gate (always open), and
-  // /m/<artifact-mapId>/* is allowed through to anonymous users that already
-  // hold the unlock cookie. The page-level check re-validates the cookie value.
+  // Artifact mode: /a/<mapId> is the password gate (always open), and both the
+  // map page (/m/<artifact-mapId>/*) AND that map's read APIs
+  // (/api/maps/<artifact-mapId>/* — e.g. the audio endpoint the snippet drawer
+  // fetches) are allowed through to anonymous users that already hold the unlock
+  // cookie. Each target still re-validates the cookie (the audio route calls
+  // isArtifactUnlocked); without this, the drawer's audio fetch is bounced to
+  // /sign-in and comes back as HTML, surfacing as "audio unavailable".
   const isArtifactGate = pathname.startsWith("/a/");
-  const artifactMatch = pathname.match(/^\/m\/([^/]+)(?:\/|$)/);
+  const artifactMatch = pathname.match(/^\/(?:m|api\/maps)\/([^/]+)(?:\/|$)/);
   const artifactMapId =
     artifactMatch && artifactMatch[1] && artifactMatch[1] in ARTIFACT_MAPS
       ? artifactMatch[1]
